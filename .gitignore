@@ -5,6 +5,7 @@ dist/
 
 # pytest
 .pytest_cache/
+__pycache__/
 
 # C Library
 lib/
@@ -15,7 +16,8 @@ lib/
 !bin
 
 # Python
-*.pyc
+**/*.pyc
+__pycache__/
 
 # Chef
 .chef/*.pem

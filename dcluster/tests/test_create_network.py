@@ -3,7 +3,7 @@ import string
 import unittest
 
 
-from dcluster import connect, create_network
+from dcluster import create_network
 
 
 DEFAULT_DOCKER_NETWORK = 'bridge'
@@ -11,14 +11,13 @@ DEFAULT_DOCKER_NETWORK = 'bridge'
 
 class TestValidateNameIsAvailable(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.client = connect.client()
+    def setUp(self):
+        self.creator = create_network.CreateNetwork()
 
     def test_existing_name(self):
         with self.assertRaises(create_network.NameExistsException):
             # this network should be present (docker default)
-            create_network.validate_name_is_available(DEFAULT_DOCKER_NETWORK, self.client)
+            self.creator.validate_name(DEFAULT_DOCKER_NETWORK)
 
     def test_new_name(self):
         # create a random string for name, extremely low chance of this existing...
@@ -26,14 +25,15 @@ class TestValidateNameIsAvailable(unittest.TestCase):
         random_name = ''.join(random.choice(letters) for i in range(8))
 
         # this should return the valid name
-        result = create_network.validate_name_is_available(random_name, self.client)
+        result = self.creator.validate_name(random_name)
         self.assertEqual(result, random_name)
 
 
 class TestSubnetGenerator(unittest.TestCase):
 
     def test_four_subnets(self):
-        gen = create_network.subnet_generator('172.30.0.0/16', 18)
+        creator = create_network.CreateNetwork('172.30.0.0/16', 18)
+        gen = creator.subnet_generator
         all_four_subnet_names = [str(subnet) for subnet in gen]
 
         expected = [
@@ -43,7 +43,3 @@ class TestSubnetGenerator(unittest.TestCase):
             '172.30.192.0/18'
         ]
         self.assertEqual(all_four_subnet_names, expected)
-
-
-class TestAttemptCreateNetwork(unittest.TestCase):
-    pass
