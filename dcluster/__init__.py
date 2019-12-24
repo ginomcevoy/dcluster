@@ -3,7 +3,7 @@
 #
 
 # Use this B-class network to create all subnet networks for Docker clusters
-MAIN_NETWORK = '172.30.0.0/16'
+SUPERNET = '172.30.0.0/16'
 
 # Use these amount of bits for each Docker cluster
 CIDR_BITS = 24

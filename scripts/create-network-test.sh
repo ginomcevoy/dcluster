@@ -10,4 +10,4 @@ BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 cd $BIN_DIR/..
 
-PYTHONPATH=. python -m dcluster.create_network
+PYTHONPATH=. python -m dcluster.networking
