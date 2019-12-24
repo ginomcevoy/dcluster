@@ -29,7 +29,7 @@ class TestValidateNameIsAvailable(unittest.TestCase):
         self.assertEqual(result, random_name)
 
 
-class TestSubnetGenerator(unittest.TestCase):
+class TestSubnets(unittest.TestCase):
 
     def test_four_subnets(self):
         creator = create_network.CreateNetwork('172.30.0.0/16', 18)
@@ -43,3 +43,31 @@ class TestSubnetGenerator(unittest.TestCase):
             '172.30.192.0/18'
         ]
         self.assertEqual(all_four_subnet_names, expected)
+
+    def test_gateway_for_24(self):
+        creator = create_network.CreateNetwork('172.30.0.0/16', 24)
+        gen = creator.subnet_generator
+        first_network = next(gen)
+        gateway = creator.gateway_ip(first_network)
+
+        expected = '172.30.0.254'
+        self.assertEqual(str(gateway), expected)
+
+    def test_gateway_for_18(self):
+        creator = create_network.CreateNetwork('172.30.0.0/16', 18)
+        gen = creator.subnet_generator
+        next(gen)
+        second_network = next(gen)  # 172.30.64.0/18
+        gateway = creator.gateway_ip(second_network)
+
+        expected = '172.30.127.254'
+        self.assertEqual(str(gateway), expected)
+
+    def test_controller_for_24(self):
+        creator = create_network.CreateNetwork('172.30.0.0/16', 24)
+        gen = creator.subnet_generator
+        first_network = next(gen)
+        controller_ip = creator.controller_ip(first_network)
+
+        expected = '172.30.0.253'
+        self.assertEqual(str(controller_ip), expected)

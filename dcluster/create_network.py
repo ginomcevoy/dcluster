@@ -67,9 +67,28 @@ class CreateNetwork:
         possible_subnets = network.subnets(new_prefix=self.cidr_bits)
         return possible_subnets
 
+    def gateway_ip(self, subnet):
+        '''
+        Returns a suitable gateway IP address for a subnet. We prefer to use the last available IP
+        address in the subnet. E.g. 172.30.0.0/24 -> 172.30.0.254
+        '''
+        all_ip_addresses = list(subnet.hosts())
+        return all_ip_addresses[-1]
+
+    def controller_ip(self, subnet):
+        '''
+        Returns a suitable IP address for a controller node in the subnet.
+        We prefer to use the second-to-last available IP address in the subnet (last is for the
+        gateway). E.g. 172.30.0.0/24 -> 172.30.0.253
+        '''
+        all_ip_addresses = list(subnet.hosts())
+        return all_ip_addresses[-2]
+
     def attempt_create_network(self, name, subnet):
         '''
         Tries to create a named network.
+        Returns a tuple with the Docker network and the subnet (ipaddress object) that was used
+        to create said network.
 
         If the name exists, NameExistsException is raised.
         If the name is (apparently) available but the network creation fails,
@@ -84,7 +103,8 @@ class CreateNetwork:
 
         # from docker.models.networks.create() help
         try:
-            ipam_pool = docker.types.IPAMPool(subnet=str(subnet))
+            gateway = self.gateway_ip(subnet)
+            ipam_pool = docker.types.IPAMPool(subnet=str(subnet), gateway=str(gateway))
             ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
             network = self.client.networks.create(name, driver='bridge', ipam=ipam_config)
         except docker.errors.APIError as e:
@@ -92,12 +112,19 @@ class CreateNetwork:
             print(str(e))
             raise NetworkSubnetTaken
 
-        return network
+        return (network, subnet)
 
     def keep_attempting_to_create_network(self, name):
         '''
         Calls 'attempt_create_network' iteratively until a network is created, or until
         all possible subnets have been exhausted.
+
+        Returns a tuple with the Docker network and the subnet (ipaddress object) that was used
+        to create said network.
+
+        If the name exists, NameExistsException is raised.
+        If it is not possible to create a network (all IP ranges for the specified main network
+        are taken) then NoNetworkSubnetsAvaialble is raised.
         '''
 
         network = None
@@ -107,7 +134,7 @@ class CreateNetwork:
 
             try:
                 subnet = next(possible_subnets)
-                network = self.attempt_create_network(name, subnet)
+                (network, subnet) = self.attempt_create_network(name, subnet)
             except NetworkSubnetTaken:
                 # will keep trying
                 continue
@@ -118,7 +145,7 @@ class CreateNetwork:
                 raise NoNetworkSubnetsAvaialble(msg % (str(self.main_network),
                                                        str(self.cidr_bits)))
 
-        return network
+        return (network, subnet)
 
 
 class TestAttemptCreateNetwork(unittest.TestCase):
