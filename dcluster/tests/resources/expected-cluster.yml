@@ -1,0 +1,20 @@
+---
+all:
+    hosts:
+        172.30.0.253:
+            hostname: slurmctld
+        172.30.0.1:
+            hostname: node001
+        172.30.0.2:
+            hostname: node002
+        172.30.0.3:
+            hostname: node003
+    children:
+        head:
+            hosts:
+                172.30.0.253:
+        compute:
+            hosts:
+                172.30.0.1:
+                172.30.0.2:
+                172.30.0.3:
