@@ -15,15 +15,18 @@ from . import SUPERNET, CIDR_BITS
 from . import connect
 
 
-class SubnetDetails:
+class ClusterNetwork:
     '''
     Defines the cluster network addresses based on a subnet (ipaddress.Network object).
+    Encapsulates a docker network object once the network has been created in Docker
+    (docker.models.networks.Network).
     '''
 
     def __init__(self, subnet, name=None):
         self.subnet = subnet
         self.all_ip_addresses = list(self.subnet.hosts())
         self.name = name
+        self.__docker_network = None
 
     def gateway_ip(self):
         '''
@@ -63,16 +66,16 @@ class SubnetDetails:
     @classmethod
     def from_first_subnet(cls, supernet, cidr_bits, name=None):
         '''
-        Given a supernet, return the first SubnetDetails. This subnet will start at the same
+        Given a supernet, return the first ClusterNetwork. This subnet will start at the same
         address as the supernet, and have cidr_bits available.
         '''
         # get the first item yielded by the generator
-        return next(cls.subnet_details_generator(supernet, cidr_bits, name))
+        return next(cls.generator(supernet, cidr_bits, name))
 
     @classmethod
-    def subnet_details_generator(cls, supernet, cidr_bits, name=None):
+    def generator(cls, supernet, cidr_bits, name=None):
         '''
-        Returns a generator of SubnetDetails, based on the subnet generator for all possible
+        Returns a generator of ClusterNetwork, based on the subnet generator for all possible
         subnets given the supernet and cidr_bits.
         '''
         # https://docs.python.org/3/library/ipaddress.html
@@ -81,10 +84,32 @@ class SubnetDetails:
 
         # this will turn this function into a generator that yields instances of this class
         for subnet in possible_subnets:
-            yield SubnetDetails(subnet, name)
+            yield ClusterNetwork(subnet, name)
 
 
-class CreateNetwork:
+class DockerClusterNetwork(ClusterNetwork):
+    '''
+    Cluster network that encapsulates a docker network, once it has been created in Docker
+    (docker.models.networks.Network).
+    '''
+
+    def __init__(self, subnet, docker_network):
+        super(DockerClusterNetwork, self).__init__(subnet)
+        self.docker_network = docker_network
+
+    @property
+    def id(self):
+        return self.docker_network.id
+
+    @property
+    def containers(self):
+        return self.docker_network.containers
+
+    def remove(self):
+        return self.docker_network.remove()
+
+
+class DockerClusterNetworkFactory:
 
     def __init__(self, supernet=SUPERNET, cidr_bits=CIDR_BITS, client=None):
         if not client:
@@ -102,37 +127,10 @@ class CreateNetwork:
         # name is available, return it to be nice
         return name
 
-    def get_possible_subnet_details(self, name):
-        return SubnetDetails.subnet_details_generator(self.supernet, self.cidr_bits, name)
+    def cluster_network_candidates(self, name):
+        return ClusterNetwork.generator(self.supernet, self.cidr_bits, name)
 
-    # @property
-    # def subnet_generator(self):
-    #     '''
-    #     Generator for all subnets in the main network that have the specified prefix.
-    #     '''
-    #     # https://docs.python.org/3/library/ipaddress.html
-    #     network = ipaddress.ip_network(self.main_network)
-    #     possible_subnets = network.subnets(new_prefix=self.cidr_bits)
-    #     return possible_subnets
-
-    # def gateway_ip(self, subnet):
-    #     '''
-    #     Returns a suitable gateway IP address for a subnet. We prefer to use the last available IP
-    #     address in the subnet. E.g. 172.30.0.0/24 -> 172.30.0.254
-    #     '''
-    #     all_ip_addresses = list(subnet.hosts())
-    #     return all_ip_addresses[-1]
-
-    # def controller_ip(self, subnet):
-    #     '''
-    #     Returns a suitable IP address for a controller node in the subnet.
-    #     We prefer to use the second-to-last available IP address in the subnet (last is for the
-    #     gateway). E.g. 172.30.0.0/24 -> 172.30.0.253
-    #     '''
-    #     all_ip_addresses = list(subnet.hosts())
-    #     return all_ip_addresses[-2]
-
-    def attempt_create_network(self, subnet_details):
+    def attempt_create(self, cluster_network):
         '''
         Tries to create a named network.
         Returns a tuple with the Docker network and the subnet (ipaddress object) that was used
@@ -147,25 +145,27 @@ class CreateNetwork:
         '''
 
         # validate name to have one less reason that network creation fails
-        self.validate_name(subnet_details.name)
+        self.validate_name(cluster_network.name)
 
         # from docker.models.networks.create() help
         try:
-            gateway_ip = subnet_details.gateway_ip()
-            ipam_pool = docker.types.IPAMPool(subnet=str(subnet_details), gateway=gateway_ip)
+            gateway_ip = cluster_network.gateway_ip()
+            ipam_pool = docker.types.IPAMPool(subnet=str(cluster_network), gateway=gateway_ip)
             ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
-            network = self.client.networks.create(subnet_details.name, driver='bridge',
-                                                  ipam=ipam_config)
+            docker_network = self.client.networks.create(cluster_network.name, driver='bridge',
+                                                         ipam=ipam_config)
         except docker.errors.APIError as e:
             # network creation failed, assume that subnet was taken
             print(str(e))
             raise NetworkSubnetTaken
 
-        return network
+        # this encapsulates docker network
+        docker_cluster_network = DockerClusterNetwork(cluster_network.subnet, docker_network)
+        return docker_cluster_network
 
-    def keep_attempting_to_create_network(self, name):
+    def create(self, name):
         '''
-        Calls 'attempt_create_network' iteratively until a network is created, or until
+        Calls 'attempt_create' iteratively until a network is created, or until
         all possible subnets have been exhausted.
 
         Returns a tuple with the Docker network and the subnet (ipaddress object) that was used
@@ -175,16 +175,14 @@ class CreateNetwork:
         If it is not possible to create a network (all IP ranges for the specified main network
         are taken) then NoNetworkSubnetsAvaialble is raised.
         '''
+        docker_cluster_network = None
+        cluster_network_candidates = self.cluster_network_candidates(name)
 
-        network = None
-        subnet_details = None
-        possible_subnet_details = self.get_possible_subnet_details(name)
-
-        while network is None:
+        while docker_cluster_network is None:
 
             try:
-                subnet_details = next(possible_subnet_details)
-                network = self.attempt_create_network(subnet_details)
+                cluster_network_candidate = next(cluster_network_candidates)
+                docker_cluster_network = self.attempt_create(cluster_network_candidate)
             except NetworkSubnetTaken:
                 # will keep trying
                 continue
@@ -195,22 +193,22 @@ class CreateNetwork:
                 raise NoNetworkSubnetsAvaialble(msg % (str(self.supernet),
                                                        str(self.cidr_bits)))
 
-        return (network, subnet_details)
+        return docker_cluster_network
 
 
-class TestAttemptCreateNetwork(unittest.TestCase):
+class TestDockerClusterNetworkFactory(unittest.TestCase):
 
     def test_create_network_then_try_creating_it_again(self):
 
         supernet = '172.31.0.0/16'
         cidr_bits = 17
-        create_network = CreateNetwork(supernet, cidr_bits)
+        network_factory = DockerClusterNetworkFactory(supernet, cidr_bits)
 
         print('*** test_create_network_then_try_creating_it_again ***')
         print('This test will use the main network %s' % supernet)
 
         first_name = 'shouldbenew'
-        sg = create_network.get_possible_subnet_details(first_name)
+        sg = network_factory.cluster_network_candidates(first_name)
         first_subnet = next(sg)
 
         print('About to create Docker network: %s' % str(first_subnet))
@@ -219,8 +217,8 @@ class TestAttemptCreateNetwork(unittest.TestCase):
         input('Press Enter to continue')
 
         # create it, should not raise error because the network name and subnet are available
-        create_network.validate_name(first_name)
-        network = create_network.attempt_create_network(first_subnet)
+        network_factory.validate_name(first_name)
+        cluster_network = network_factory.attempt_create(first_subnet)
 
         second_name = 'shouldalsobenew'
         first_subnet.name = second_name
@@ -231,39 +229,39 @@ class TestAttemptCreateNetwork(unittest.TestCase):
 
         # create another network with the same subnet, now we should get an error
         with self.assertRaises(NetworkSubnetTaken):
-            create_network.attempt_create_network(first_subnet)
+            network_factory.attempt_create(first_subnet)
 
         # try to clean up (remove first network)
-        network.remove()
+        cluster_network.remove()
         print('Removed first network %s' % str(first_subnet))
 
-    def test_keep_attempting_to_create_network(self):
+    def test_create_until_no_more_available(self):
 
         supernet = '172.31.0.0/16'
         cidr_bits = 17
-        create_network = CreateNetwork(supernet, cidr_bits)
+        network_factory = DockerClusterNetworkFactory(supernet, cidr_bits)
 
-        print('*** test_keep_attempting_to_create_network ***')
+        print('*** test_create_until_no_more_available ***')
         print('This test will use the main network %s and create two subnets' % supernet)
         print('Make sure there are no test networks in Docker!')
         input('Press Enter to continue')
 
         print('About to create first network, this should succeed')
         input('Press Enter to continue')
-        (first_network, _) = create_network.keep_attempting_to_create_network('shouldbenew1')
+        first_network = network_factory.create('shouldbenew1')
 
         print('Created first network %s' % str(first_network))
         print('About to create second network, this should succeed')
         input('Press Enter to continue')
 
-        (second_network, _) = create_network.keep_attempting_to_create_network('shouldbenew2')
+        second_network = network_factory.create('shouldbenew2')
         print('Created network %s' % str(second_network))
 
         print('About to try and create another network, this should fail')
         input('Press Enter to continue')
 
         with self.assertRaises(NoNetworkSubnetsAvaialble):
-            create_network.keep_attempting_to_create_network('shouldbenew3')
+            network_factory.create('shouldbenew3')
 
         # try to clean up
         print('Failed as expected, cleaning up...')
