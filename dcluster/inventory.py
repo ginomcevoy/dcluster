@@ -177,8 +177,8 @@ class DockerAnsibleIntegrationTest(unittest.TestCase):
 
         supernet = '172.31.0.0/16'
         cidr_bits = 24
-        first_subnet = '172.31.0.0/24'
-        network_name = 'ansible-docker-example'
+        first_subnet = '172.31.1.0/24'
+        network_name = 'mycluster'
         network_factory = networking.DockerClusterNetworkFactory(supernet, cidr_bits)
 
         print('*** test_create_docker_network_and_ansible_inventory ***')
