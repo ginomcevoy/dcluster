@@ -3,12 +3,16 @@ all:
     hosts:
         172.30.0.253:
             hostname: slurmctld
+            container: mycluster-slurmctld
         172.30.0.1:
             hostname: node001
+            container: mycluster-node001
         172.30.0.2:
             hostname: node002
+            container: mycluster-node002
         172.30.0.3:
             hostname: node003
+            container: mycluster-node003
     children:
         head:
             hosts:
@@ -20,4 +24,4 @@ all:
                 172.30.0.3:
 
     vars:
-        network_name: 'example'
+        network_name: 'mycluster'

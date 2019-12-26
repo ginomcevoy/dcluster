@@ -11,7 +11,7 @@ class TestCreateAnsibleInventory(unittest.TestCase):
 
     def setUp(self):
         resources = test_resources.TestResources()
-        network_name = 'example'
+        network_name = 'mycluster'
         self.inventory = inventory.AnsibleInventory(network_name, self.host_details())
         self.expected = resources.expected_cluster_inventory
         self.maxDiff = None
@@ -47,9 +47,25 @@ class TestCreateAnsibleInventory(unittest.TestCase):
 
     def host_details(self):
         host_details = {
-            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'},
-            '172.30.0.1': {'hostname': 'node001', 'type': 'compute'},
-            '172.30.0.2': {'hostname': 'node002', 'type': 'compute'},
-            '172.30.0.3': {'hostname': 'node003', 'type': 'compute'},
+            '172.30.0.253': {
+                'hostname': 'slurmctld',
+                'container': 'mycluster-slurmctld',
+                'type': 'head'
+            },
+            '172.30.0.1': {
+                'hostname': 'node001',
+                'container': 'mycluster-node001',
+                'type': 'compute'
+            },
+            '172.30.0.2': {
+                'hostname': 'node002',
+                'container': 'mycluster-node002',
+                'type': 'compute'
+            },
+            '172.30.0.3': {
+                'hostname': 'node003',
+                'container': 'mycluster-node003',
+                'type': 'compute'
+            }
         }
         return host_details

@@ -5,7 +5,7 @@ Create an Ansible inventory for a request of a Docker cluster.
 import os
 import yaml
 
-from dcluster import ALL, CHILDREN, HOSTS, HOSTNAME, TYPE, NETWORK
+from dcluster import ALL, CHILDREN, HOSTS, HOSTNAME, TYPE, NETWORK, CONTAINER
 
 
 class AnsibleInventory:
@@ -30,10 +30,26 @@ class AnsibleInventory:
         Function that takes the following dictionary:
 
         host_details = {
-            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'},
-            '172.30.0.1': {'hostname': 'node001', 'type': 'compute'},
-            '172.30.0.2': {'hostname': 'node002', 'type': 'compute'},
-            '172.30.0.3': {'hostname': 'node003', 'type': 'compute'},
+            '172.30.0.253': {
+                'hostname': 'slurmctld',
+                'container': 'mycluster-slurmctld',
+                'type': 'head'
+            },
+            '172.30.0.1': {
+                'hostname': 'node001',
+                'container': 'mycluster-node001',
+                'type': 'compute'
+            },
+            '172.30.0.2': {
+                'hostname': 'node002',
+                'container': 'mycluster-node002',
+                'type': 'compute'
+            },
+            '172.30.0.3': {
+                'hostname': 'node003',
+                'container': 'mycluster-node003',
+                'type': 'compute'
+            }
         }
         and network_name, then creates an Ansible inventory in dictionary form:
 
@@ -43,12 +59,16 @@ class AnsibleInventory:
             hosts:
                 172.30.0.253:
                     hostname: slurmctld
+                    container: mycluster-slurmctld
                 172.30.0.1:
                     hostname: node001
+                    container: mycluster-node001
                 172.30.0.2:
                     hostname: node002
+                    container: mycluster-node002
                 172.30.0.3:
                     hostname: node003
+                    container: mycluster-node003
 
             children:
                 head:
@@ -61,7 +81,7 @@ class AnsibleInventory:
                         172.30.0.3:
 
             vars:
-                network_name: 'cluster'
+                network_name: 'mycluster'
         '''
         self.inventory_dict = {
             ALL: {
@@ -77,7 +97,7 @@ class AnsibleInventory:
         for node_ip, node_dict in self.host_details.items():
 
             # add node to hosts
-            self.inventory_dict[ALL][HOSTS][node_ip] = {HOSTNAME: node_dict['hostname']}
+            self.inventory_dict[ALL][HOSTS][node_ip] = self.dict_for_host(node_dict)
 
             # check for new types
             t = node_dict[TYPE]
@@ -87,6 +107,12 @@ class AnsibleInventory:
             self.children[t][HOSTS][node_ip] = None
 
         return self.inventory_dict
+
+    def dict_for_host(self, node_dict):
+        return {
+            HOSTNAME: node_dict[HOSTNAME],
+            CONTAINER: node_dict[CONTAINER]
+        }
 
     def add_type_if_needed(self, t):
         if t not in self.children:

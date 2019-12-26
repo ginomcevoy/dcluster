@@ -69,7 +69,7 @@ class TestBuildHostDetails(unittest.TestCase):
 
     def test_zero_compute_nodes(self):
         # given
-        network = self.create_stub_docker_cluster_network('172.30.0.0/24')
+        network = self.create_stub_docker_cluster_network('172.30.0.0/24', 'mycluster')
         compute_nodes = 0
 
         # when
@@ -77,13 +77,17 @@ class TestBuildHostDetails(unittest.TestCase):
 
         # then
         expected = {
-            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'}
+            '172.30.0.253': {
+                'hostname': 'slurmctld',
+                'container': 'mycluster-slurmctld',
+                'type': 'head'
+            }
         }
         self.assertEqual(result, expected)
 
     def test_zero_compute_nodes2(self):
         # given
-        network = self.create_stub_docker_cluster_network('172.30.1.0/24')
+        network = self.create_stub_docker_cluster_network('172.30.1.0/24', 'mycluster')
         compute_nodes = 0
 
         # when
@@ -91,13 +95,17 @@ class TestBuildHostDetails(unittest.TestCase):
 
         # then
         expected = {
-            '172.30.1.253': {'hostname': 'slurmctld', 'type': 'head'}
+            '172.30.1.253': {
+                'hostname': 'slurmctld',
+                'container': 'mycluster-slurmctld',
+                'type': 'head'
+            }
         }
         self.assertEqual(result, expected)
 
     def test_one_compute_node(self):
         # given
-        network = self.create_stub_docker_cluster_network('172.30.0.0/24')
+        network = self.create_stub_docker_cluster_network('172.30.0.0/24', 'mycluster')
         compute_nodes = 1
 
         # when
@@ -105,14 +113,22 @@ class TestBuildHostDetails(unittest.TestCase):
 
         # then
         expected = {
-            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'},
-            '172.30.0.1': {'hostname': 'node001', 'type': 'compute'},
+            '172.30.0.253': {
+                'hostname': 'slurmctld',
+                'container': 'mycluster-slurmctld',
+                'type': 'head'
+            },
+            '172.30.0.1': {
+                'hostname': 'node001',
+                'container': 'mycluster-node001',
+                'type': 'compute'
+            }
         }
         self.assertEqual(result, expected)
 
     def test_three_compute_nodes(self):
         # given
-        network = self.create_stub_docker_cluster_network('172.30.0.0/24')
+        network = self.create_stub_docker_cluster_network('172.30.0.0/24', 'mycluster')
         compute_nodes = 3
 
         # when
@@ -120,16 +136,32 @@ class TestBuildHostDetails(unittest.TestCase):
 
         # then
         expected = {
-            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'},
-            '172.30.0.1': {'hostname': 'node001', 'type': 'compute'},
-            '172.30.0.2': {'hostname': 'node002', 'type': 'compute'},
-            '172.30.0.3': {'hostname': 'node003', 'type': 'compute'},
+            '172.30.0.253': {
+                'hostname': 'slurmctld',
+                'container': 'mycluster-slurmctld',
+                'type': 'head'
+            },
+            '172.30.0.1': {
+                'hostname': 'node001',
+                'container': 'mycluster-node001',
+                'type': 'compute'
+            },
+            '172.30.0.2': {
+                'hostname': 'node002',
+                'container': 'mycluster-node002',
+                'type': 'compute'
+            },
+            '172.30.0.3': {
+                'hostname': 'node003',
+                'container': 'mycluster-node003',
+                'type': 'compute'
+            }
         }
         self.assertEqual(result, expected)
 
-    def create_stub_docker_cluster_network(self, subnet_str):
+    def create_stub_docker_cluster_network(self, subnet_str, name):
         subnet = ipaddress.ip_network(subnet_str)
-        return networking.DockerClusterNetwork(subnet, None)
+        return networking.DockerClusterNetwork(subnet, name, None)
 
 
 class TestValidateNameIsAvailable(unittest.TestCase):

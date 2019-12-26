@@ -15,7 +15,7 @@ from . import connect
 
 from . import SUPERNET, CIDR_BITS
 from . import HOSTNAME, TYPE
-from . import HEAD_NAME, HEAD_TYPE, COMPUTE_PREFIX, COMPUTE_SUFFIX_LEN, COMPUTE_TYPE
+from . import HEAD_NAME, HEAD_TYPE, COMPUTE_PREFIX, COMPUTE_SUFFIX_LEN, COMPUTE_TYPE, CONTAINER
 
 
 class ClusterNetwork:
@@ -96,8 +96,8 @@ class DockerClusterNetwork(ClusterNetwork):
     (docker.models.networks.Network).
     '''
 
-    def __init__(self, subnet, docker_network):
-        super(DockerClusterNetwork, self).__init__(subnet)
+    def __init__(self, subnet, name, docker_network):
+        super(DockerClusterNetwork, self).__init__(subnet, name)
         self.docker_network = docker_network
 
     @property
@@ -111,6 +111,9 @@ class DockerClusterNetwork(ClusterNetwork):
     def remove(self):
         return self.docker_network.remove()
 
+    def container_name(self, hostname):
+        return '-'.join((self.name, hostname))
+
     def build_host_details(self, compute_count):
         '''
         Creates the host details that are needed for an Ansible inventory.
@@ -121,16 +124,38 @@ class DockerClusterNetwork(ClusterNetwork):
 
         Example output: for compute_count = 3, add a head node and 3 compute nodes:
         host_details = {
-            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'},
-            '172.30.0.1': {'hostname': 'node001', 'type': 'compute'},
-            '172.30.0.2': {'hostname': 'node002', 'type': 'compute'},
-            '172.30.0.3': {'hostname': 'node003', 'type': 'compute'},
+            '172.30.0.253': {
+                'hostname': 'slurmctld',
+                'container': 'mycluster-slurmctld',
+                'type': 'head'
+            },
+            '172.30.0.1': {
+                'hostname': 'node001',
+                'container': 'mycluster-node001',
+                'type': 'compute'
+            },
+            '172.30.0.2': {
+                'hostname': 'node002',
+                'container': 'mycluster-node002',
+                'type': 'compute'
+            },
+            '172.30.0.3': {
+                'hostname': 'node003',
+                'container': 'mycluster-node003',
+                'type': 'compute'
+            }
         }
 
         TODO move this to a better place?
         '''
         # always have a head
-        host_details = {self.head_ip(): {HOSTNAME: HEAD_NAME, TYPE: HEAD_TYPE}}
+        host_details = {
+            self.head_ip(): {
+                HOSTNAME: HEAD_NAME,
+                CONTAINER: self.container_name(HEAD_NAME),
+                TYPE: HEAD_TYPE
+            }
+        }
 
         # add compute nodes, should raise NetworkSubnetTooSmall if there are not enough IPs
         compute_ips = self.compute_ips(compute_count)
@@ -138,7 +163,11 @@ class DockerClusterNetwork(ClusterNetwork):
             suffix_str = '{0:0%sd}' % str(COMPUTE_SUFFIX_LEN)
             suffix = suffix_str.format(index + 1)
             hostname = COMPUTE_PREFIX + suffix
-            host_details[compute_ip] = {HOSTNAME: hostname, TYPE: COMPUTE_TYPE}
+            host_details[compute_ip] = {
+                HOSTNAME: hostname,
+                CONTAINER: self.container_name(hostname),
+                TYPE: COMPUTE_TYPE
+            }
 
         return host_details
 
@@ -194,7 +223,8 @@ class DockerClusterNetworkFactory:
             raise NetworkSubnetTaken
 
         # this encapsulates docker network
-        docker_cluster_network = DockerClusterNetwork(cluster_network.subnet, docker_network)
+        docker_cluster_network = DockerClusterNetwork(cluster_network.subnet, cluster_network.name,
+                                                      docker_network)
         return docker_cluster_network
 
     def create(self, name):

@@ -27,3 +27,4 @@ HEAD_TYPE = 'head'
 COMPUTE_PREFIX = 'node'
 COMPUTE_SUFFIX_LEN = 3
 COMPUTE_TYPE = 'compute'
+CONTAINER = 'container'
