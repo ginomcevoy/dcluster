@@ -1,3 +1,4 @@
+import ipaddress
 import random
 import string
 import unittest
@@ -25,12 +26,12 @@ class TestClusterNetwork(unittest.TestCase):
         expected = '172.30.0.126'
         self.assertEqual(gateway, expected)
 
-    def test_controller_for_24(self):
+    def test_head_for_24(self):
         network_addresses = networking.ClusterNetwork.from_first_subnet('172.30.0.0/16', 24)
-        controller_ip = network_addresses.controller_ip()
+        head_ip = network_addresses.head_ip()
 
         expected = '172.30.0.253'
-        self.assertEqual(controller_ip, expected)
+        self.assertEqual(head_ip, expected)
 
     def test_request_three_compute_nodes_ok(self):
         network_addresses = networking.ClusterNetwork.from_first_subnet('172.30.0.0/16', 24)
@@ -45,7 +46,7 @@ class TestClusterNetwork(unittest.TestCase):
 
     def test_request_three_compute_nodes_subnet_too_small(self):
         # this small subnet only has 4 available IP addresses, and we need two for gateway
-        # and controller
+        # and head
         network_addresses = networking.ClusterNetwork.from_first_subnet('172.30.0.0/16', 30)
 
         with self.assertRaises(networking.NetworkSubnetTooSmall):
@@ -62,6 +63,73 @@ class TestClusterNetwork(unittest.TestCase):
             '172.30.192.0/18'
         ]
         self.assertEqual(all_four_subnet_names, expected)
+
+
+class TestBuildHostDetails(unittest.TestCase):
+
+    def test_zero_compute_nodes(self):
+        # given
+        network = self.create_stub_docker_cluster_network('172.30.0.0/24')
+        compute_nodes = 0
+
+        # when
+        result = network.build_host_details(compute_nodes)
+
+        # then
+        expected = {
+            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'}
+        }
+        self.assertEqual(result, expected)
+
+    def test_zero_compute_nodes2(self):
+        # given
+        network = self.create_stub_docker_cluster_network('172.30.1.0/24')
+        compute_nodes = 0
+
+        # when
+        result = network.build_host_details(compute_nodes)
+
+        # then
+        expected = {
+            '172.30.1.253': {'hostname': 'slurmctld', 'type': 'head'}
+        }
+        self.assertEqual(result, expected)
+
+    def test_one_compute_node(self):
+        # given
+        network = self.create_stub_docker_cluster_network('172.30.0.0/24')
+        compute_nodes = 1
+
+        # when
+        result = network.build_host_details(compute_nodes)
+
+        # then
+        expected = {
+            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'},
+            '172.30.0.1': {'hostname': 'node001', 'type': 'compute'},
+        }
+        self.assertEqual(result, expected)
+
+    def test_three_compute_nodes(self):
+        # given
+        network = self.create_stub_docker_cluster_network('172.30.0.0/24')
+        compute_nodes = 3
+
+        # when
+        result = network.build_host_details(compute_nodes)
+
+        # then
+        expected = {
+            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'},
+            '172.30.0.1': {'hostname': 'node001', 'type': 'compute'},
+            '172.30.0.2': {'hostname': 'node002', 'type': 'compute'},
+            '172.30.0.3': {'hostname': 'node003', 'type': 'compute'},
+        }
+        self.assertEqual(result, expected)
+
+    def create_stub_docker_cluster_network(self, subnet_str):
+        subnet = ipaddress.ip_network(subnet_str)
+        return networking.DockerClusterNetwork(subnet, None)
 
 
 class TestValidateNameIsAvailable(unittest.TestCase):

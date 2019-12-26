@@ -18,3 +18,6 @@ all:
                 172.30.0.1:
                 172.30.0.2:
                 172.30.0.3:
+
+    vars:
+        network_name: 'example'

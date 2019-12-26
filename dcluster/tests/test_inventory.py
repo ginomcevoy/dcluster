@@ -11,7 +11,8 @@ class TestCreateAnsibleInventory(unittest.TestCase):
 
     def setUp(self):
         resources = test_resources.TestResources()
-        self.inventory = inventory.AnsibleInventory(self.host_details())
+        network_name = 'example'
+        self.inventory = inventory.AnsibleInventory(network_name, self.host_details())
         self.expected = resources.expected_cluster_inventory
         self.maxDiff = None
 

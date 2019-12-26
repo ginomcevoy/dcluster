@@ -11,8 +11,11 @@ import unittest
 
 from six.moves import input
 
-from . import SUPERNET, CIDR_BITS
 from . import connect
+
+from . import SUPERNET, CIDR_BITS
+from . import HOSTNAME, TYPE
+from . import HEAD_NAME, HEAD_TYPE, COMPUTE_PREFIX, COMPUTE_SUFFIX_LEN, COMPUTE_TYPE
 
 
 class ClusterNetwork:
@@ -35,9 +38,9 @@ class ClusterNetwork:
         '''
         return str(self.all_ip_addresses[-1])
 
-    def controller_ip(self):
+    def head_ip(self):
         '''
-        Returns a suitable IP address for a controller node in the subnet.
+        Returns a suitable IP address for a head node in the subnet.
         We prefer to use the second-to-last available IP address in the subnet (last is for the
         gateway). E.g. 172.30.0.0/24 -> 172.30.0.253
         '''
@@ -46,12 +49,12 @@ class ClusterNetwork:
     def compute_ips(self, count):
         '''
         Returns a tuple of IP addresses for the cluster.
-        Since the gateway and controller use IP addresses at the end of the subnet, we can
+        Since the gateway and head use IP addresses at the end of the subnet, we can
         use the first IP addresses.
 
         If there are not enough addresses available, ValueError is raised.
         '''
-        # make sure there are enough, count two for gateway and controller
+        # make sure there are enough, count two for gateway and head
         available_count = len(self.all_ip_addresses) - 2
         if count > available_count:
             msg = 'Not enough IP addresses avaiable in network %s, %s requested'
@@ -107,6 +110,37 @@ class DockerClusterNetwork(ClusterNetwork):
 
     def remove(self):
         return self.docker_network.remove()
+
+    def build_host_details(self, compute_count):
+        '''
+        Creates the host details that are needed for an Ansible inventory.
+        Since we are only building a single type of cluster, we can leave this here.
+
+        A cluster always has a single head (slurmctld), and zero or more compute nodes, depending
+        on compute_count.
+
+        Example output: for compute_count = 3, add a head node and 3 compute nodes:
+        host_details = {
+            '172.30.0.253': {'hostname': 'slurmctld', 'type': 'head'},
+            '172.30.0.1': {'hostname': 'node001', 'type': 'compute'},
+            '172.30.0.2': {'hostname': 'node002', 'type': 'compute'},
+            '172.30.0.3': {'hostname': 'node003', 'type': 'compute'},
+        }
+
+        TODO move this to a better place?
+        '''
+        # always have a head
+        host_details = {self.head_ip(): {HOSTNAME: HEAD_NAME, TYPE: HEAD_TYPE}}
+
+        # add compute nodes, should raise NetworkSubnetTooSmall if there are not enough IPs
+        compute_ips = self.compute_ips(compute_count)
+        for index, compute_ip in enumerate(compute_ips):
+            suffix_str = '{0:0%sd}' % str(COMPUTE_SUFFIX_LEN)
+            suffix = suffix_str.format(index + 1)
+            hostname = COMPUTE_PREFIX + suffix
+            host_details[compute_ip] = {HOSTNAME: hostname, TYPE: COMPUTE_TYPE}
+
+        return host_details
 
 
 class DockerClusterNetworkFactory:
