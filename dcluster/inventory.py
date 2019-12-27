@@ -3,9 +3,11 @@ Create an Ansible inventory for a request of a Docker cluster.
 '''
 
 import os
+import shutil
 import yaml
 
 from dcluster import ALL, CHILDREN, HOSTS, HOSTNAME, TYPE, NETWORK, CONTAINER
+from config import dcluster_config
 
 
 class AnsibleInventory:
@@ -109,10 +111,11 @@ class AnsibleInventory:
         return self.inventory_dict
 
     def dict_for_host(self, node_dict):
-        return {
-            HOSTNAME: node_dict[HOSTNAME],
-            CONTAINER: node_dict[CONTAINER]
-        }
+        d = {HOSTNAME: node_dict[HOSTNAME]}
+        if CONTAINER in node_dict:
+            # gateway is in inventory but does not have a container
+            d[CONTAINER] = node_dict[CONTAINER]
+        return d
 
     def add_type_if_needed(self, t):
         if t not in self.children:
@@ -128,8 +131,16 @@ class AnsibleInventory:
 
         return filename
 
+
+class AnsibleEnvironment:
+
+    def __init__(self, cluster_home, ansible_home, inventory):
+        self.cluster_home = cluster_home
+        self.ansible_home = ansible_home
+        self.inventory = inventory
+
     @classmethod
-    def create_structure(cls, network_name, host_details, environment_home):
+    def create(cls, network_name, host_details, environment_home):
         '''
         Creates the necessary Ansible files to manage a (container) cluster.
         This comprises the following structure:
@@ -142,20 +153,28 @@ class AnsibleInventory:
         # create all directories
         create_dir_dont_complain(environment_home)
 
-        cluster_dir = os.path.join(environment_home, network_name)
-        create_dir_dont_complain(cluster_dir)
+        cluster_home = os.path.join(environment_home, network_name)
+        create_dir_dont_complain(cluster_home)
 
-        ansible_dir = os.path.join(cluster_dir, 'ansible')
-        create_dir_dont_complain(ansible_dir)
+        # delete ansible if it exists, then create it again
+        ansible_home = os.path.join(cluster_home, 'ansible')
+        if os.path.isdir(ansible_home):
+            shutil.rmtree(ansible_home)
+        create_dir_dont_complain(ansible_home)
 
-        # group_vars_dir = os.path.join(ansible_dir, 'group_vars')
+        # group_vars_dir = os.path.join(ansible_home, 'group_vars')
         # create_dir_dont_complain(group_vars_dir)
 
         # create inventory.yml
-        inventory_file = os.path.join(ansible_dir, 'inventory.yml')
+        inventory_file = os.path.join(ansible_home, 'inventory.yml')
         inventory = AnsibleInventory(network_name, host_details)
         inventory.to_yaml(inventory_file)
-        return inventory
+
+        # copy static files
+        ansible_static_path = dcluster_config.get('ansible_static_path')
+        copytree(ansible_static_path, ansible_home)
+
+        return AnsibleEnvironment(cluster_home, ansible_home, inventory)
 
 
 def create_dir_dont_complain(directory):
@@ -164,6 +183,16 @@ def create_dir_dont_complain(directory):
     except OSError:
         if not os.path.isdir(directory):
             raise
+
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore)
+        else:
+            shutil.copy2(s, d)
 
 
 import unittest
@@ -191,7 +220,7 @@ class DockerAnsibleIntegrationTest(unittest.TestCase):
         host_details = network.build_host_details(3)
 
         basepath = '/tmp'
-        AnsibleInventory.create_structure(network_name, host_details, basepath)
+        AnsibleEnvironment.create(network_name, host_details, basepath)
 
         input('Created... press enter to remove docker network')
         network.remove()

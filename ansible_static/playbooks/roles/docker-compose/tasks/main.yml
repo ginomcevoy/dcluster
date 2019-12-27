@@ -1,0 +1,18 @@
+---
+
+- name: Create docker directory
+  file:
+    path: '{{ docker_path }}'
+    state: directory
+
+- name: Create docker-compose file
+  template:
+    src: cluster.yml.j2
+# TODO make playbook validate docker_path presence (scssi code)
+    dest: '{{ docker_path }}/docker-cluster.yml'
+
+- name: Run docker-compose
+  shell:
+    cmd: docker-compose -f docker-cluster.yml up -d --force-recreate
+    chdir: '{{ docker_path }}'
+

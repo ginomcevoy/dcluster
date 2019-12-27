@@ -24,6 +24,8 @@ NETWORK = 'network_name'
 #
 HEAD_NAME = 'slurmctld'
 HEAD_TYPE = 'head'
+GATEWAY_NAME = 'gateway'
+GATEWAY_TYPE = 'gateway'
 COMPUTE_PREFIX = 'node'
 COMPUTE_SUFFIX_LEN = 3
 COMPUTE_TYPE = 'compute'

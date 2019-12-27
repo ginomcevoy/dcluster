@@ -5,18 +5,25 @@ Two conditions for creation:
 - The IP range must be available.
 '''
 
-import docker
 import ipaddress
 import unittest
 
 from six.moves import input
 
-from . import connect
 from . import cluster
+from . import docker_facade
 
 from . import SUPERNET, CIDR_BITS
 from . import HOSTNAME, TYPE
-from . import HEAD_NAME, HEAD_TYPE, COMPUTE_PREFIX, COMPUTE_SUFFIX_LEN, COMPUTE_TYPE, CONTAINER
+from . import HEAD_NAME, HEAD_TYPE, GATEWAY_NAME, GATEWAY_TYPE
+from . import COMPUTE_PREFIX, COMPUTE_SUFFIX_LEN, COMPUTE_TYPE, CONTAINER
+
+
+def create(cluster_name):
+    '''
+    Convenience function that uses the default configuration.
+    '''
+    return DockerClusterNetworkFactory().create(cluster_name)
 
 
 class ClusterNetwork:
@@ -59,13 +66,16 @@ class ClusterNetwork:
         available_count = len(self.all_ip_addresses) - 2
         if count > available_count:
             msg = 'Not enough IP addresses avaiable in network %s, %s requested'
-            raise NetworkSubnetTooSmall(msg % (self.subnet, count))
+            raise NetworkSubnetTooSmall(msg % (self.fqdn(), count))
 
         compute_addresses = self.all_ip_addresses[:count]
         return [str(compute_address) for compute_address in compute_addresses]
 
     def fqdn(self):
         return str(self.subnet)
+
+    def network_name(self):
+        return cluster.get_network_name(self.cluster_name)
 
     def __str__(self):
         return self.fqdn()
@@ -133,6 +143,8 @@ class DockerClusterNetwork(ClusterNetwork):
         A cluster always has a single head (slurmctld), and zero or more compute nodes, depending
         on compute_count.
 
+        Also add the host of the containers as the gateway.
+
         Example output: for compute_count = 3, add a head node and 3 compute nodes:
         host_details = {
             '172.30.0.253': {
@@ -155,16 +167,24 @@ class DockerClusterNetwork(ClusterNetwork):
                 'container': 'mycluster-node003',
                 'type': 'compute'
             }
+            '172.30.0.254': {
+                'hostname': 'gateway',
+                'type': 'gateway'
+            }
         }
 
         TODO move this to a better place?
         '''
-        # always have a head
+        # always have a head and a gateway
         host_details = {
             self.head_ip(): {
                 HOSTNAME: HEAD_NAME,
                 CONTAINER: self.container_name(HEAD_NAME),
                 TYPE: HEAD_TYPE
+            },
+            self.gateway_ip(): {
+                HOSTNAME: GATEWAY_NAME,
+                TYPE: GATEWAY_TYPE
             }
         }
 
@@ -185,16 +205,12 @@ class DockerClusterNetwork(ClusterNetwork):
 
 class DockerClusterNetworkFactory:
 
-    def __init__(self, supernet=SUPERNET, cidr_bits=CIDR_BITS, client=None):
-        if not client:
-            client = connect.client()
-
-        self.client = client
+    def __init__(self, supernet=SUPERNET, cidr_bits=CIDR_BITS):
         self.supernet = supernet
         self.cidr_bits = cidr_bits
 
     def validate_network_name(self, network_name):
-        used_names = [network.name for network in self.client.networks.list()]
+        used_names = [network.name for network in docker_facade.networks()]
         if network_name in used_names:
             raise NameExistsException('Network name is already in use: %s' % network_name)
 
@@ -219,23 +235,10 @@ class DockerClusterNetworkFactory:
         '''
 
         # validate name to have one less reason that network creation fails
-        network_name = cluster.get_network_name(cluster_network.cluster_name)
-        self.validate_network_name(network_name)
+        self.validate_network_name(cluster_network.network_name())
 
-        # from docker.models.networks.create() help
-        try:
-            gateway_ip = cluster_network.gateway_ip()
-            subnet = cluster_network.fqdn()
-            ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway_ip)
-            ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
-            docker_network = self.client.networks.create(network_name,
-                                                         driver='bridge',
-                                                         attachable=True,
-                                                         ipam=ipam_config)
-        except docker.errors.APIError as e:
-            # network creation failed, assume that subnet was taken
-            print(str(e))
-            raise NetworkSubnetTaken
+        # this will raise NetworkSubnetTaken if the network is not available
+        docker_network = docker_facade.create_network(cluster_network)
 
         # this encapsulates docker network
         docker_cluster_network = DockerClusterNetwork(cluster_network, docker_network)
@@ -244,10 +247,7 @@ class DockerClusterNetworkFactory:
     def create(self, cluster_name):
         '''
         Calls 'attempt_create' iteratively until a network is created, or until
-        all possible subnets have been exhausted.
-
-        Returns a tuple with the Docker network and the subnet (ipaddress object) that was used
-        to create said network.
+        all possible subnets have been exhausted. Returns DockerClusterNetwork instance
 
         If the cluster_name exists, NameExistsException is raised.
         If it is not possible to create a network (all IP ranges for the specified main network
@@ -261,8 +261,8 @@ class DockerClusterNetworkFactory:
             try:
                 cluster_network_candidate = next(cluster_network_candidates)
                 docker_cluster_network = self.attempt_create(cluster_network_candidate)
-            except NetworkSubnetTaken:
-                # will keep trying
+            except docker_facade.NetworkSubnetTaken:
+                # this subnet is taken, keep trying
                 continue
 
             except StopIteration:
@@ -306,7 +306,7 @@ class TestDockerClusterNetworkFactory(unittest.TestCase):
 ("Pool overlaps with other one on this address space")')
 
         # create another network with the same subnet, now we should get an error
-        with self.assertRaises(NetworkSubnetTaken):
+        with self.assertRaises(docker_facade.NetworkSubnetTaken):
             network_factory.attempt_create(first_subnet)
 
         # try to clean up (remove first network)
@@ -351,14 +351,6 @@ class NameExistsException(Exception):
     '''
     Expected to be raised when a network already exists with a specified name.
     Should inform the user and exit.
-    '''
-    pass
-
-
-class NetworkSubnetTaken(Exception):
-    '''
-    Expected to be raised when a network subnet is already taken by Docker.
-    Should be used to indicate that another subnet is to be tried.
     '''
     pass
 

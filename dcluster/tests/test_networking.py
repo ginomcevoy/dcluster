@@ -84,6 +84,10 @@ class TestBuildHostDetails(unittest.TestCase):
                 'hostname': 'slurmctld',
                 'container': 'mycluster-slurmctld',
                 'type': 'head'
+            },
+            '172.30.0.254': {
+                'hostname': 'gateway',
+                'type': 'gateway'
             }
         }
         self.assertEqual(result, expected)
@@ -102,6 +106,10 @@ class TestBuildHostDetails(unittest.TestCase):
                 'hostname': 'slurmctld',
                 'container': 'mycluster-slurmctld',
                 'type': 'head'
+            },
+            '172.30.1.254': {
+                'hostname': 'gateway',
+                'type': 'gateway'
             }
         }
         self.assertEqual(result, expected)
@@ -120,6 +128,10 @@ class TestBuildHostDetails(unittest.TestCase):
                 'hostname': 'slurmctld',
                 'container': 'mycluster-slurmctld',
                 'type': 'head'
+            },
+            '172.30.0.254': {
+                'hostname': 'gateway',
+                'type': 'gateway'
             },
             '172.30.0.1': {
                 'hostname': 'node001',
@@ -143,6 +155,10 @@ class TestBuildHostDetails(unittest.TestCase):
                 'hostname': 'slurmctld',
                 'container': 'mycluster-slurmctld',
                 'type': 'head'
+            },
+            '172.30.0.254': {
+                'hostname': 'gateway',
+                'type': 'gateway'
             },
             '172.30.0.1': {
                 'hostname': 'node001',
