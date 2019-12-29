@@ -10,8 +10,8 @@ import unittest
 
 from six.moves import input
 
-from . import cluster
-from . import docker_facade
+from .docker_facade import DockerNaming, DockerNetworking, NetworkSubnetTaken
+
 
 from . import SUPERNET, CIDR_BITS
 from . import HOSTNAME, TYPE
@@ -74,8 +74,9 @@ class ClusterNetwork:
     def fqdn(self):
         return str(self.subnet)
 
+    @property
     def network_name(self):
-        return cluster.get_network_name(self.cluster_name)
+        return DockerNaming.create_network_name(self.cluster_name)
 
     def __str__(self):
         return self.fqdn()
@@ -133,7 +134,7 @@ class DockerClusterNetwork(ClusterNetwork):
         return self.docker_network.remove()
 
     def container_name(self, hostname):
-        return cluster.get_container_name(self.cluster_name, hostname)
+        return DockerNaming.create_container_name(self.cluster_name, hostname)
 
     def build_host_details(self, compute_count):
         '''
@@ -210,7 +211,7 @@ class DockerClusterNetworkFactory:
         self.cidr_bits = cidr_bits
 
     def validate_network_name(self, network_name):
-        used_names = [network.name for network in docker_facade.networks()]
+        used_names = [network.name for network in DockerNetworking.all_docker_networks()]
         if network_name in used_names:
             raise NameExistsException('Network name is already in use: %s' % network_name)
 
@@ -235,10 +236,10 @@ class DockerClusterNetworkFactory:
         '''
 
         # validate name to have one less reason that network creation fails
-        self.validate_network_name(cluster_network.network_name())
+        self.validate_network_name(cluster_network.network_name)
 
         # this will raise NetworkSubnetTaken if the network is not available
-        docker_network = docker_facade.create_network(cluster_network)
+        docker_network = DockerNetworking.create_network(cluster_network)
 
         # this encapsulates docker network
         docker_cluster_network = DockerClusterNetwork(cluster_network, docker_network)
@@ -261,7 +262,7 @@ class DockerClusterNetworkFactory:
             try:
                 cluster_network_candidate = next(cluster_network_candidates)
                 docker_cluster_network = self.attempt_create(cluster_network_candidate)
-            except docker_facade.NetworkSubnetTaken:
+            except NetworkSubnetTaken:
                 # this subnet is taken, keep trying
                 continue
 
@@ -272,6 +273,16 @@ class DockerClusterNetworkFactory:
                                                        str(self.cidr_bits)))
 
         return docker_cluster_network
+
+    @classmethod
+    def from_existing(cls, cluster_name):
+        '''
+        Recreate a cluster network given that it exists in Docker.
+        '''
+        docker_network = DockerNetworking.find_network(cluster_name)
+        subnet = DockerNetworking.get_subnet(docker_network)
+        cluster_network = ClusterNetwork(subnet, cluster_name)
+        return DockerClusterNetwork(cluster_network, docker_network)
 
 
 class TestDockerClusterNetworkFactory(unittest.TestCase):
@@ -306,7 +317,7 @@ class TestDockerClusterNetworkFactory(unittest.TestCase):
 ("Pool overlaps with other one on this address space")')
 
         # create another network with the same subnet, now we should get an error
-        with self.assertRaises(docker_facade.NetworkSubnetTaken):
+        with self.assertRaises(NetworkSubnetTaken):
             network_factory.attempt_create(first_subnet)
 
         # try to clean up (remove first network)

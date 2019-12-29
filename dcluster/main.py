@@ -10,6 +10,7 @@ import sys
 # from six.moves import input
 
 from . import ansible_facade
+from . import cluster
 from . import inventory
 from . import networking
 
@@ -25,7 +26,7 @@ def process_creation(args):
 
     # create the inventory
     host_details = cluster_network.build_host_details(int(args.compute_count))
-    network_name = cluster_network.network_name()
+    network_name = cluster_network.network_name
     ansible_environment = inventory.AnsibleEnvironment.create(network_name,
                                                               host_details, args.basepath)
 
@@ -49,6 +50,27 @@ def configure_create_parser(create_parser):
     create_parser.set_defaults(func=process_creation)
 
 
+def process_show(args):
+
+    log = logging.getLogger()
+    log.debug('Got show parameter %s' % args.cluster_name)
+
+    docker_cluster = cluster.DockerCluster.create_from_existing(args.cluster_name)
+    formatter = cluster.DockerClusterFormatterText()
+    output = docker_cluster.format(formatter)
+    print(output)
+
+
+def configure_show_parser(show_parser):
+    show_parser.add_argument('cluster_name', help='name of the Docker cluster')
+
+    # ignored
+    show_parser.add_argument('--basepath')
+
+    # default function to call
+    show_parser.set_defaults(func=process_show)
+
+
 def processRequest():
 
     # top level parser
@@ -59,6 +81,9 @@ def processRequest():
     # below we create subparsers for the subcommands
     create_parser = subparsers.add_parser('create', help='create a cluster')
     configure_create_parser(create_parser)
+
+    show_parser = subparsers.add_parser('show', help='show details of a cluster')
+    configure_show_parser(show_parser)
 
     # show help if no subcommand is given
     # assume 'basepath <basepath>' is always passed (by script)
