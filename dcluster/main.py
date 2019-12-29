@@ -71,6 +71,52 @@ def configure_show_parser(show_parser):
     show_parser.set_defaults(func=process_show)
 
 
+def process_stop(args):
+
+    docker_cluster = cluster.DockerCluster.create_from_existing(args.cluster_name)
+    docker_cluster.stop()
+
+
+def configure_stop_parser(stop_parser):
+    stop_parser.add_argument('cluster_name', help='name of the Docker cluster')
+
+    # ignored
+    stop_parser.add_argument('--basepath')
+
+    # default function to call
+    stop_parser.set_defaults(func=process_stop)
+
+
+def process_ssh(args):
+
+    docker_cluster = cluster.DockerCluster.create_from_existing(args.cluster_name)
+    docker_cluster.ssh_to_node(args.hostname)
+
+
+def configure_ssh_parser(ssh_parser):
+    ssh_parser.add_argument('cluster_name', help='name of the Docker cluster')
+    ssh_parser.add_argument('hostname', help='hostname of the cluster node')
+
+    # ignored
+    ssh_parser.add_argument('--basepath')
+
+    # default function to call
+    ssh_parser.set_defaults(func=process_ssh)
+
+
+def process_list(args):
+
+    networks = cluster.DockerCluster.list_all()
+    print('\n'.join(networks))
+
+
+def configure_list_parser(list_parser):
+    # ignored
+    list_parser.add_argument('--basepath')
+
+    list_parser.set_defaults(func=process_list)
+
+
 def processRequest():
 
     # top level parser
@@ -84,6 +130,15 @@ def processRequest():
 
     show_parser = subparsers.add_parser('show', help='show details of a cluster')
     configure_show_parser(show_parser)
+
+    ssh_parser = subparsers.add_parser('ssh', help='connect to a container of a cluster')
+    configure_ssh_parser(ssh_parser)
+
+    stop_parser = subparsers.add_parser('stop', help='stop a running cluster')
+    configure_stop_parser(stop_parser)
+
+    list_parser = subparsers.add_parser('list', help='list current clusters')
+    configure_list_parser(list_parser)
 
     # show help if no subcommand is given
     # assume 'basepath <basepath>' is always passed (by script)

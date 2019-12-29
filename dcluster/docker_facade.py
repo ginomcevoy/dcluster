@@ -17,7 +17,7 @@ __docker_client = None
 
 DCLUSTER_NETWORK_PREFIX = 'dcluster'
 
-Node = namedtuple('Node', ['hostname', 'ip_address', 'container_name'])
+Node = namedtuple('Node', ['hostname', 'ip_address', 'container'])
 
 
 def get_client():
@@ -220,35 +220,20 @@ class DockerNetworking:
         ]
 
     @classmethod
-    def create_node_for_container(cls, c, docker_network):
+    def container_ip_address(cls, container, docker_network):
+        '''
+        Finds the IP address of a container that corresponds to a specific docker network.
+        '''
+        container_networks = container.attrs['NetworkSettings']['Networks']
+        return container_networks[docker_network.name]['IPAddress']
+
+    @classmethod
+    def create_node_for_container(cls, container, docker_network):
         '''
         Creates a Node namedtuple instance using a Docker container object
         (docker.models.containers.Container)
         '''
-        hostname = c.attrs['Config']['Hostname']
-        ip_address = c.attrs['NetworkSettings']['Networks'][docker_network.name]['IPAddress']
+        hostname = container.attrs['Config']['Hostname']
+        ip_address = cls.container_ip_address(container, docker_network)
 
-        return Node(hostname, ip_address, c.name)
-
-
-def get_ip_address_for_cluster_node(cluster_name, hostname):
-    network_name = get_network_name(cluster_name)
-    container_name = get_container_name(cluster_name, hostname)
-
-    client = get_client()
-    container = client.containers.get(container_name)
-
-    # we assume that the container was created using DockerClusterNetwork
-    container_networks = container.attrs['NetworkSettings']['Networks']
-    docker_cluster_network = container_networks[network_name]
-    return docker_cluster_network['IPAddress']
-
-
-def ssh_to_cluster_node(cluster_name, hostname):
-    ip_address = get_ip_address_for_cluster_node(cluster_name, hostname)
-    ssh_command = '/usr/bin/ssh -o "StrictHostKeyChecking=no" -o "GSSAPIAuthentication=no" \
--o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR %s"'
-
-    target = 'root@%s' % ip_address
-    full_ssh_command = ssh_command % target
-    subprocess.check_output(full_ssh_command, shell=True)
+        return Node(hostname, ip_address, container)
