@@ -30,3 +30,22 @@ COMPUTE_PREFIX = 'node'
 COMPUTE_SUFFIX_LEN = 3
 COMPUTE_TYPE = 'compute'
 CONTAINER = 'container'
+
+CLUSTER_LABELS = {
+    'HEAD_NAME': 'slurmctld',
+    'HEAD_TYPE': 'head',
+    'GATEWAY_NAME': 'gateway',
+    'GATEWAY_TYPE': 'gateway',
+    'COMPUTE_TYPE': 'compute',
+    'HOSTNAME': 'hostname',
+    'CONTAINER': 'container',
+    'IPADDRESS': 'ip_address',
+    'TYPE': 'type',
+    'NETWORK': 'network'
+}
+
+CLUSTER_PREFS = {
+    'HEAD_NAME': 'slurmctld',
+    'COMPUTE_PREFIX': 'node',
+    'COMPUTE_SUFFIX_LEN': 3,
+}

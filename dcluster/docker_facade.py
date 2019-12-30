@@ -168,7 +168,7 @@ class DockerNetworking:
         try:
             # from docker.models.networks.create() help
             gateway_ip = cluster_network.gateway_ip()
-            subnet = cluster_network.fqdn()
+            subnet = cluster_network.ip_address()
             network_name = cluster_network.network_name
             ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway_ip)
             ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])

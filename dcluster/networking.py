@@ -6,6 +6,7 @@ Two conditions for creation:
 '''
 
 import ipaddress
+import logging
 import unittest
 
 from six.moves import input
@@ -17,6 +18,8 @@ from . import SUPERNET, CIDR_BITS
 from . import HOSTNAME, TYPE
 from . import HEAD_NAME, HEAD_TYPE, GATEWAY_NAME, GATEWAY_TYPE
 from . import COMPUTE_PREFIX, COMPUTE_SUFFIX_LEN, COMPUTE_TYPE, CONTAINER
+
+from . import CLUSTER_LABELS
 
 
 def create(cluster_name):
@@ -66,20 +69,31 @@ class ClusterNetwork:
         available_count = len(self.all_ip_addresses) - 2
         if count > available_count:
             msg = 'Not enough IP addresses avaiable in network %s, %s requested'
-            raise NetworkSubnetTooSmall(msg % (self.fqdn(), count))
+            raise NetworkSubnetTooSmall(msg % (self.ip_address(), count))
 
         compute_addresses = self.all_ip_addresses[:count]
         return [str(compute_address) for compute_address in compute_addresses]
 
-    def fqdn(self):
+    def ip_address(self):
         return str(self.subnet)
 
     @property
     def network_name(self):
         return DockerNaming.create_network_name(self.cluster_name)
 
+    def as_dict(self):
+        '''
+        Returns a dictionary representation for the network, to be used as a cluster spec entry.
+        '''
+        return {
+            'name': self.network_name,
+            'address': self.ip_address(),
+            'gateway': CLUSTER_LABELS['GATEWAY_NAME'],
+            'gateway_ip': self.gateway_ip()
+        }
+
     def __str__(self):
-        return self.fqdn()
+        return self.ip_address()
 
     @classmethod
     def from_first_subnet(cls, supernet, cidr_bits, cluster_name):
@@ -89,6 +103,11 @@ class ClusterNetwork:
         '''
         # get the first item yielded by the generator
         return next(cls.generator(supernet, cidr_bits, cluster_name))
+
+    @classmethod
+    def from_subnet_str(cls, subnet_str, cluster_name):
+        subnet = ipaddress.ip_network(subnet_str)
+        return ClusterNetwork(subnet, cluster_name)
 
     @classmethod
     def generator(cls, supernet, cidr_bits, cluster_name):
@@ -117,6 +136,8 @@ class DockerClusterNetwork(ClusterNetwork):
         super(DockerClusterNetwork, self).__init__(subnet, cluster_name)
         self.docker_network = docker_network
 
+        self.log = logging.getLogger()
+
     @classmethod
     def from_subnet_and_name(cls, subnet, cluster_name, docker_network):
         cluster_network = ClusterNetwork(subnet, cluster_name)
@@ -131,7 +152,8 @@ class DockerClusterNetwork(ClusterNetwork):
         return self.docker_network.containers
 
     def remove(self):
-        return self.docker_network.remove()
+        self.docker_network.remove()
+        self.log.debug('Removed network %s of cluster %s' % (self.network_name, self.cluster_name))
 
     def container_name(self, hostname):
         return DockerNaming.create_container_name(self.cluster_name, hostname)

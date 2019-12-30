@@ -1,9 +1,27 @@
 import logging
 # import subprocess
+from collections import namedtuple
 import os
 
+from config import dcluster_config
+
+from . import compose
 from . import networking
+from . import CLUSTER_LABELS, CLUSTER_PREFS
+
 from .docker_facade import Node, DockerNaming, DockerNetworking
+
+
+# represents a 'simple' cluster with the specified count of compute nodes.
+# it should also have a head node.
+ClusterRequestSimple = namedtuple('ClusterRequestSimple', ['name', 'compute_count'])
+
+
+def create(cluster_request, basepath):
+    '''
+    Convenience method to create a docker cluster, calls the builder with default options
+    '''
+    return DockerClusterBuilder().build(cluster_request, basepath)
 
 
 class DockerCluster(object):
@@ -64,10 +82,19 @@ class DockerCluster(object):
 
     def stop(self):
         '''
-        Stop the docker cluster, by stopping each container and removing the network.
+        Stop the docker cluster, by stopping each container.
+        TODO: start this manually again
         '''
         for node in self.nodes:
             node.container.stop()
+
+    def remove(self):
+        '''
+        Remove the docker cluster, by removing each container and the network
+        '''
+        self.stop()
+        for node in self.nodes:
+            node.container.remove()
 
         self.cluster_network.remove()
 
@@ -93,7 +120,7 @@ class DockerCluster(object):
         return next(node for node in self.nodes if node.hostname == hostname)
 
     @classmethod
-    def create_from_existing(cls, cluster_name):
+    def from_docker(cls, cluster_name):
         '''
         Returns an instance of DockerCluster using the name and querying docker for the
         missing data.
@@ -101,7 +128,7 @@ class DockerCluster(object):
         Raises NotDclusterElement if cluster network is not found.
         '''
         log = logging.getLogger()
-        log.debug('create_from_existing %s' % cluster_name)
+        log.debug('from_docker %s' % cluster_name)
 
         # find the network in docker, build dcluster network
         cluster_network = networking.DockerClusterNetworkFactory.from_existing(cluster_name)
@@ -120,6 +147,146 @@ class DockerCluster(object):
         '''
         docker_networks = DockerNetworking.all_dcluster_networks()
         return [DockerNaming.deduce_cluster_name(network.name) for network in docker_networks]
+
+
+class DockerClusterBuilder(object):
+
+    def __init__(self):
+        self.build_funcs = {
+            'ClusterRequestSimple': self.build_simple
+        }
+        self.log = logging.getLogger()
+
+    def build(self, cluster_request, basepath):
+        '''
+        Creates a new docker cluster based on the specified request.
+        '''
+        # for now, only simple
+        build_func = self.build_funcs[type(cluster_request).__name__]
+        return build_func(cluster_request, basepath)
+
+    def build_simple(self, simple_request, basepath):
+        '''
+        Creates a simple cluster. It has the specified compute count and a head node.
+        The network is created first, then the containers.
+
+        This does not return an instance of DockerCluster yet...
+        '''
+        # create the cluster specification
+        cluster_network = networking.create(simple_request.name)
+        cluster_specs = self.build_simple_specs(simple_request, cluster_network)
+
+        # create the containers based on the specification
+        compose_path = os.path.join(basepath, simple_request.name)
+        templates_dir = dcluster_config.get('templates_dir')
+        composer = compose.ClusterComposer(compose_path, templates_dir)
+        definition = composer.build_definition(cluster_specs, 'cluster-simple.yml.j2')
+        composer.compose(definition)
+
+        log_msg = 'Docker cluster %s -  %s created!'
+        self.log.info(log_msg % (cluster_network.network_name, cluster_network))
+
+    def build_simple_specs(self, simple_request, cluster_network):
+        '''
+        Creates a dictionary of node specs that is needed to later use docker-compose.
+        Since we are only building a single type of cluster, we can leave this here.
+
+        A cluster always has a single head (slurmctld), and zero or more compute nodes, depending
+        on compute_count.
+
+        Example output: for compute_count = 3, add a head node and 3 compute nodes:
+
+        cluster_specs = {
+            'nodes' : {
+                '172.30.0.253': {
+                    'hostname': 'slurmctld',
+                    'container': 'mycluster-slurmctld',
+                    'ip_address': '172.30.0.253',
+                    'type': 'head'
+                },
+                '172.30.0.1': {
+                    'hostname': 'node001',
+                    'container': 'mycluster-node001',
+                    'ip_address': '172.30.0.1',
+                    'type': 'compute'
+                },
+                '172.30.0.2': {
+                    'hostname': 'node002',
+                    'container': 'mycluster-node002',
+                    'ip_address': '172.30.0.2',
+                    'type': 'compute'
+                },
+                '172.30.0.3': {
+                    'hostname': 'node003',
+                    'container': 'mycluster-node003',
+                    'ip_address': '172.30.0.3',
+                    'type': 'compute'
+                }
+            }
+            'network': {
+                'name': 'dcluster-mycluster',
+                'ip_address': '172.30.0.0/24'
+                'gateway_hostname': 'gateway'
+                'gateway_ip': '172.30.0.254'
+            }
+        }
+        '''
+
+        cluster_name = simple_request.name
+        head_ip = cluster_network.head_ip()
+        head_hostname = CLUSTER_PREFS['HEAD_NAME']
+        head_type = CLUSTER_LABELS['HEAD_TYPE']
+
+        # always have a head and a network
+        head_entry = self.create_node_entry(cluster_name, head_hostname, head_ip, head_type)
+        network_entry = cluster_network.as_dict()
+
+        cluster_specs = {
+            'nodes': {
+                head_ip: head_entry
+            },
+            CLUSTER_LABELS['NETWORK']: network_entry
+        }
+
+        # add compute nodes, should raise NetworkSubnetTooSmall if there are not enough IPs
+        compute_ips = cluster_network.compute_ips(simple_request.compute_count)
+
+        for index, compute_ip in enumerate(compute_ips):
+
+            compute_hostname = self.create_compute_hostname(index)
+            compute_type = CLUSTER_LABELS['COMPUTE_TYPE']
+
+            node_entry = self.create_node_entry(cluster_name, compute_hostname,
+                                                compute_ip, compute_type)
+            cluster_specs['nodes'][compute_ip] = node_entry
+
+        return cluster_specs
+
+    def create_compute_hostname(self, index):
+        '''
+        Returns the hostname of a compute node given its index.
+
+        Ex.
+        0 -> node001
+        1 -> node002
+        '''
+        suffix_str = '{0:0%sd}' % str(CLUSTER_PREFS['COMPUTE_SUFFIX_LEN'])
+        suffix = suffix_str.format(index + 1)
+        return CLUSTER_PREFS['COMPUTE_PREFIX'] + suffix
+
+    def create_node_entry(self, cluster_name, hostname, ip_address, node_type):
+        '''
+        Create an entry for node specs. The container name is inferred from the hostname.
+        '''
+
+        container_name = DockerNaming.create_container_name(cluster_name, hostname)
+
+        return {
+            CLUSTER_LABELS['HOSTNAME']: hostname,
+            CLUSTER_LABELS['CONTAINER']: container_name,
+            CLUSTER_LABELS['IPADDRESS']: ip_address,
+            CLUSTER_LABELS['TYPE']: node_type
+        }
 
 
 class DockerClusterFormatterText(object):
