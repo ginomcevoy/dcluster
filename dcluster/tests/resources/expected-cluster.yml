@@ -2,8 +2,8 @@
 all:
     hosts:
         172.30.0.253:
-            hostname: slurmctld
-            container: mycluster-slurmctld
+            hostname: head
+            container: mycluster-head
         172.30.0.1:
             hostname: node001
             container: mycluster-node001

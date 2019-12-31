@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Try to create a real Docker network for testing
+# Create and manage Docker clusters, optionally run Ansible on the cluster.
 
 # Giacomo Mc Evoy <giacomo.valenzano@atos.net>
 # Atos 2019

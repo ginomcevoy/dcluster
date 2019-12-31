@@ -1,11 +1,10 @@
 import os
 import jinja2
 import logging
-import time
 
 from runitmockit import runit
 
-from . import CLUSTER_LABELS, CLUSTER_PREFS
+from . import CLUSTER_PREFS
 
 
 class ComposeFailure(Exception):
@@ -14,11 +13,9 @@ class ComposeFailure(Exception):
 
 class ClusterComposer(object):
 
-    def __init__(self, compose_path, templates_dir,
-                 cluster_labels=CLUSTER_LABELS, cluster_prefs=CLUSTER_PREFS):
+    def __init__(self, compose_path, templates_dir, cluster_prefs=CLUSTER_PREFS):
         self.compose_path = compose_path
         self.templates_dir = templates_dir
-        self.cluster_labels = cluster_labels
         self.cluster_prefs = cluster_prefs
 
         self.log = logging.getLogger()
@@ -27,14 +24,8 @@ class ClusterComposer(object):
 
         # build the replacement dictionary
         replacements = dict(**cluster_specs)
-        replacements.update(self.cluster_labels)
-        replacements.update(self.cluster_prefs)
-        print(replacements)
-        # rendered = None
-        # with open(self.template_path, 'r') as template:
-        #     template_text = template.read()
-        #     rendered = jinja2.Template(template_text).render(**replacements)  # .encode("utf-8")
-        # print(rendered)
+        replacements['CLUSTER_PREFS'] = self.cluster_prefs
+        self.log.debug(replacements)
 
         # Load Jinja2 template
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.templates_dir),
@@ -53,6 +44,8 @@ class ClusterComposer(object):
             df.write(compose_definition)
 
         # call docker-compose command, should pick up the created file
+        # note: apparently, using docker-compose.yml and removing '-f' fails to
+        # to acknowledge the --force-recreate option
         cmd = 'docker-compose --no-ansi -f docker-cluster.yml up -d --force-recreate'
         run = runit.execute(cmd, cwd=self.compose_path)
         print(run[1])

@@ -22,8 +22,8 @@ class TestClusterComposer(unittest.TestCase):
         cluster_specs = {
             'nodes': {
                 '172.30.0.253': {
-                    'hostname': 'slurmctld',
-                    'container': 'mycluster-slurmctld',
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 },

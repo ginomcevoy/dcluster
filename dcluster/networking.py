@@ -15,11 +15,7 @@ from .docker_facade import DockerNaming, DockerNetworking, NetworkSubnetTaken
 
 
 from . import SUPERNET, CIDR_BITS
-from . import HOSTNAME, TYPE
-from . import HEAD_NAME, HEAD_TYPE, GATEWAY_NAME, GATEWAY_TYPE
-from . import COMPUTE_PREFIX, COMPUTE_SUFFIX_LEN, COMPUTE_TYPE, CONTAINER
-
-from . import CLUSTER_LABELS
+from . import CLUSTER_PREFS
 
 
 def create(cluster_name):
@@ -88,7 +84,7 @@ class ClusterNetwork:
         return {
             'name': self.network_name,
             'address': self.ip_address(),
-            'gateway': CLUSTER_LABELS['GATEWAY_NAME'],
+            'gateway': CLUSTER_PREFS['GATEWAY_NAME'],
             'gateway_ip': self.gateway_ip()
         }
 
@@ -157,73 +153,6 @@ class DockerClusterNetwork(ClusterNetwork):
 
     def container_name(self, hostname):
         return DockerNaming.create_container_name(self.cluster_name, hostname)
-
-    def build_host_details(self, compute_count):
-        '''
-        Creates the host details that are needed for an Ansible inventory.
-        Since we are only building a single type of cluster, we can leave this here.
-
-        A cluster always has a single head (slurmctld), and zero or more compute nodes, depending
-        on compute_count.
-
-        Also add the host of the containers as the gateway.
-
-        Example output: for compute_count = 3, add a head node and 3 compute nodes:
-        host_details = {
-            '172.30.0.253': {
-                'hostname': 'slurmctld',
-                'container': 'mycluster-slurmctld',
-                'type': 'head'
-            },
-            '172.30.0.1': {
-                'hostname': 'node001',
-                'container': 'mycluster-node001',
-                'type': 'compute'
-            },
-            '172.30.0.2': {
-                'hostname': 'node002',
-                'container': 'mycluster-node002',
-                'type': 'compute'
-            },
-            '172.30.0.3': {
-                'hostname': 'node003',
-                'container': 'mycluster-node003',
-                'type': 'compute'
-            }
-            '172.30.0.254': {
-                'hostname': 'gateway',
-                'type': 'gateway'
-            }
-        }
-
-        TODO move this to a better place?
-        '''
-        # always have a head and a gateway
-        host_details = {
-            self.head_ip(): {
-                HOSTNAME: HEAD_NAME,
-                CONTAINER: self.container_name(HEAD_NAME),
-                TYPE: HEAD_TYPE
-            },
-            self.gateway_ip(): {
-                HOSTNAME: GATEWAY_NAME,
-                TYPE: GATEWAY_TYPE
-            }
-        }
-
-        # add compute nodes, should raise NetworkSubnetTooSmall if there are not enough IPs
-        compute_ips = self.compute_ips(compute_count)
-        for index, compute_ip in enumerate(compute_ips):
-            suffix_str = '{0:0%sd}' % str(COMPUTE_SUFFIX_LEN)
-            suffix = suffix_str.format(index + 1)
-            hostname = COMPUTE_PREFIX + suffix
-            host_details[compute_ip] = {
-                HOSTNAME: hostname,
-                CONTAINER: self.container_name(hostname),
-                TYPE: COMPUTE_TYPE
-            }
-
-        return host_details
 
 
 class DockerClusterNetworkFactory:

@@ -1,8 +1,10 @@
+import collections
 import ipaddress
 import unittest
 
 
 from dcluster import cluster, networking
+from dcluster import docker_facade
 
 
 class TestBuildNodeSpecsSimple(unittest.TestCase):
@@ -29,8 +31,8 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         expected = {
             'nodes': {
                 '172.30.0.253': {
-                    'hostname': 'slurmctld',
-                    'container': 'mycluster-slurmctld',
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 }
@@ -60,8 +62,8 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         expected = {
             'nodes': {
                 '172.30.1.125': {
-                    'hostname': 'slurmctld',
-                    'container': 'mycluster-slurmctld',
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
                     'ip_address': '172.30.1.125',
                     'type': 'head'
                 }
@@ -91,8 +93,8 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         expected = {
             'nodes': {
                 '172.30.0.253': {
-                    'hostname': 'slurmctld',
-                    'container': 'mycluster-slurmctld',
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 },
@@ -128,8 +130,8 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         expected = {
             'nodes': {
                 '172.30.0.253': {
-                    'hostname': 'slurmctld',
-                    'container': 'mycluster-slurmctld',
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 },
@@ -230,7 +232,8 @@ Network: 172.30.0.0/24
         self.assertEqual(result, expected)
 
     def node_stub(self, hostname, ip_address, container_name):
-        return cluster.Node(hostname, ip_address, ContainerStub(container_name))
+        NodeStub = collections.namedtuple('NodeStub', 'hostname, ip_address, container')
+        return NodeStub(hostname, ip_address, ContainerStub(container_name))
 
 
 class ContainerStub:

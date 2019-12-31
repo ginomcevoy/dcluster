@@ -7,9 +7,9 @@ from config import dcluster_config
 
 from . import compose
 from . import networking
-from . import CLUSTER_LABELS, CLUSTER_PREFS
+from . import CLUSTER_PREFS
 
-from .docker_facade import Node, DockerNaming, DockerNetworking
+from .docker_facade import ClusterNode, DockerNaming, DockerNetworking
 
 
 # represents a 'simple' cluster with the specified count of compute nodes.
@@ -104,11 +104,10 @@ class DockerCluster(object):
         options, when we have an installer.
         '''
         node = self.node_by_name(hostname)
-        ip_address = DockerNetworking.container_ip_address(node.container, self.docker_network)
         ssh_command = '/usr/bin/ssh -o "StrictHostKeyChecking=no" -o "GSSAPIAuthentication=no" \
 -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" %s'
 
-        target = 'ci-user@%s' % ip_address
+        target = 'ci-user@%s' % node.ip_address
         full_ssh_command = ssh_command % target
         # subprocess.run(full_ssh_command, shell=True)
         os.system(full_ssh_command)
@@ -135,8 +134,9 @@ class DockerCluster(object):
         log.debug(cluster_network)
 
         # find the nodes in the cluster
-        nodes = DockerNetworking.find_nodes_for_cluster(cluster_name,
-                                                        cluster_network.docker_network)
+        # nodes = DockerNetworking.find_nodes_for_cluster(cluster_name,
+        #                                                 cluster_network.docker_network)
+        nodes = ClusterNode.find_for_cluster(cluster_name, cluster_network.docker_network)
 
         return DockerCluster(cluster_name, cluster_network, nodes)
 
@@ -191,7 +191,7 @@ class DockerClusterBuilder(object):
         Creates a dictionary of node specs that is needed to later use docker-compose.
         Since we are only building a single type of cluster, we can leave this here.
 
-        A cluster always has a single head (slurmctld), and zero or more compute nodes, depending
+        A cluster always has a single head, and zero or more compute nodes, depending
         on compute_count.
 
         Example output: for compute_count = 3, add a head node and 3 compute nodes:
@@ -199,8 +199,8 @@ class DockerClusterBuilder(object):
         cluster_specs = {
             'nodes' : {
                 '172.30.0.253': {
-                    'hostname': 'slurmctld',
-                    'container': 'mycluster-slurmctld',
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 },
@@ -235,17 +235,16 @@ class DockerClusterBuilder(object):
         cluster_name = simple_request.name
         head_ip = cluster_network.head_ip()
         head_hostname = CLUSTER_PREFS['HEAD_NAME']
-        head_type = CLUSTER_LABELS['HEAD_TYPE']
 
         # always have a head and a network
-        head_entry = self.create_node_entry(cluster_name, head_hostname, head_ip, head_type)
+        head_entry = self.create_node_entry(cluster_name, head_hostname, head_ip, 'head')
         network_entry = cluster_network.as_dict()
 
-        cluster_specs = {
+        cluster_specs = {   
             'nodes': {
                 head_ip: head_entry
             },
-            CLUSTER_LABELS['NETWORK']: network_entry
+            'network': network_entry
         }
 
         # add compute nodes, should raise NetworkSubnetTooSmall if there are not enough IPs
@@ -254,10 +253,8 @@ class DockerClusterBuilder(object):
         for index, compute_ip in enumerate(compute_ips):
 
             compute_hostname = self.create_compute_hostname(index)
-            compute_type = CLUSTER_LABELS['COMPUTE_TYPE']
-
             node_entry = self.create_node_entry(cluster_name, compute_hostname,
-                                                compute_ip, compute_type)
+                                                compute_ip, 'compute')
             cluster_specs['nodes'][compute_ip] = node_entry
 
         return cluster_specs
@@ -282,10 +279,10 @@ class DockerClusterBuilder(object):
         container_name = DockerNaming.create_container_name(cluster_name, hostname)
 
         return {
-            CLUSTER_LABELS['HOSTNAME']: hostname,
-            CLUSTER_LABELS['CONTAINER']: container_name,
-            CLUSTER_LABELS['IPADDRESS']: ip_address,
-            CLUSTER_LABELS['TYPE']: node_type
+            'hostname': hostname,
+            'container': container_name,
+            'ip_address': ip_address,
+            'type': node_type
         }
 
 
@@ -304,7 +301,7 @@ class DockerClusterFormatterText(object):
         node_format = '  {:15}{:16}{:25}'
 
         # header of nodes
-        lines[4] = node_format.format(*Node._fields)
+        lines[4] = node_format.format('hostname', 'ip_address', 'container')
         lines[5] = '  ' + '-' * 48
 
         node_lines = [

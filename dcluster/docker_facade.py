@@ -8,16 +8,12 @@ Requires the user to be in the 'docker' group.
 import docker
 import ipaddress
 import logging
-import subprocess
 
-from collections import namedtuple
 from operator import attrgetter
 
+from . import CLUSTER_PREFS
+
 __docker_client = None
-
-DCLUSTER_NETWORK_PREFIX = 'dcluster'
-
-Node = namedtuple('Node', ['hostname', 'ip_address', 'container'])
 
 
 def get_client():
@@ -50,7 +46,7 @@ class DockerNaming:
         '''
         Single place to define how network name is built based on cluster name.
         '''
-        return '-'.join((DCLUSTER_NETWORK_PREFIX, cluster_name))
+        return '-'.join((CLUSTER_PREFS['NETWORK_PREFIX'], cluster_name))
 
     @classmethod
     def deduce_cluster_name(cls, network):
@@ -74,12 +70,12 @@ class DockerNaming:
         assert type(network_name) == str, 'Could not understand %s' % network_name
 
         # now we have a string, dcluster networks are preceded by the prefix
-        if network_name.find(DCLUSTER_NETWORK_PREFIX) != 0:
+        if network_name.find(CLUSTER_PREFS['NETWORK_PREFIX']) != 0:
             # this is not a dcluster network
             raise NotFromDcluster()
 
         # this is a dcluster string
-        return network_name[(len(DCLUSTER_NETWORK_PREFIX) + 1):]
+        return network_name[(len(CLUSTER_PREFS['NETWORK_PREFIX']) + 1):]
 
     @classmethod
     def is_dcluster_network(cls, network):
@@ -103,6 +99,54 @@ class DockerNaming:
         return '-'.join((cluster_name, hostname))
 
 
+class ClusterNode(object):
+    '''
+    Encapsulates docker-specific implementation of a container and its attributes.
+    Assumes it is part of a docker cluster.
+    '''
+
+    def __init__(self, docker_container, docker_network):
+        self.docker_container = docker_container
+        self.docker_network = docker_network
+
+    @property
+    def hostname(self):
+        return self.docker_container.attrs['Config']['Hostname']
+
+    @property
+    def ip_address(self):
+        '''
+        Finds the IP address of a container that corresponds to a specific docker network.
+        '''
+        container_networks = self.docker_container.attrs['NetworkSettings']['Networks']
+        return container_networks[self.docker_network.name]['IPAddress']
+
+    @property
+    def container(self):
+        return self.docker_container
+
+    @classmethod
+    def find_for_cluster(cls, cluster_name, docker_network=None):
+        if not docker_network:
+            docker_network = DockerNetworking.find_network(cluster_name)
+
+        # get internal containers
+        client = get_client()
+        all_docker_containers = client.containers.list()
+
+        # match the network, create the instances
+        # Finding containers for a network should be as easy as docker_network.containers,
+        # but the API is returning an empty list sometimes...
+        cluster_containers = [
+            ClusterNode(docker_container, docker_network)
+            for docker_container
+            in all_docker_containers
+            if docker_network.name in docker_container.attrs['NetworkSettings']['Networks']
+        ]
+
+        return sorted(cluster_containers, key=attrgetter('ip_address'))
+
+
 class DockerNetworking:
 
     @classmethod
@@ -123,8 +167,10 @@ class DockerNetworking:
     @classmethod
     def all_dcluster_networks(cls):
         '''
-        Returns a list of all dcluster networks, as string. See is_dcluster_network() for
-        assumption.
+        Returns a list of all dcluster networks, as docker network instances.
+        (docker.models.networks.Network)
+
+        See is_dcluster_network() for assumption.
         '''
         # get Docker networks, use logic in is_dcluster_network()
         # to determine which belong to dcluster
@@ -183,57 +229,3 @@ class DockerNetworking:
             raise NetworkSubnetTaken
 
         return docker_network
-
-    @classmethod
-    def find_nodes_for_cluster(cls, cluster_name, docker_network=None):
-        '''
-        Finds all nodes that belong to a docker network, as Node namedtuple.
-        '''
-        if not docker_network:
-            docker_network = cls.find_network(cluster_name)
-
-        cls.logger().debug(docker_network)
-
-        # get containers first, then build Node for each of them
-        containers = cls.find_containers_for_network(docker_network)
-        nodes = [
-            cls.create_node_for_container(container, docker_network)
-            for container
-            in containers
-        ]
-        return sorted(nodes, key=attrgetter('ip_address'))
-
-    @classmethod
-    def find_containers_for_network(cls, docker_network):
-        '''
-        Returns a list of containers that belong to a docker network.
-        This should be as easy as docker_network.containers, but the API is returning
-        an empty list sometimes.
-        '''
-        client = get_client()
-        containers = client.containers.list()
-        return [
-            container
-            for container
-            in containers
-            if docker_network.name in container.attrs['NetworkSettings']['Networks']
-        ]
-
-    @classmethod
-    def container_ip_address(cls, container, docker_network):
-        '''
-        Finds the IP address of a container that corresponds to a specific docker network.
-        '''
-        container_networks = container.attrs['NetworkSettings']['Networks']
-        return container_networks[docker_network.name]['IPAddress']
-
-    @classmethod
-    def create_node_for_container(cls, container, docker_network):
-        '''
-        Creates a Node namedtuple instance using a Docker container object
-        (docker.models.containers.Container)
-        '''
-        hostname = container.attrs['Config']['Hostname']
-        ip_address = cls.container_ip_address(container, docker_network)
-
-        return Node(hostname, ip_address, container)
