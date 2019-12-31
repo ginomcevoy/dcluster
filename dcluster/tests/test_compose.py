@@ -9,7 +9,7 @@ from . import test_resources
 class TestClusterComposer(unittest.TestCase):
 
     def setUp(self):
-        self.resources = test_resources.TestResources()
+        self.resources = test_resources.ResourcesForTest()
         self.maxDiff = None
 
         templates_dir = config.internal('templates_dir')

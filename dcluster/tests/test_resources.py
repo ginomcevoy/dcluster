@@ -4,7 +4,7 @@ import yaml
 from dcluster import tests
 
 
-class TestResources(object):
+class ResourcesForTest(object):
 
     def __init__(self):
         # full path of the test module
@@ -35,6 +35,6 @@ class TestResources(object):
 
 
 if __name__ == '__main__':
-    tr = TestResources()
+    tr = ResourcesForTest()
     print(tr.resources_dir)
     print(tr.expected_cluster_inventory)
