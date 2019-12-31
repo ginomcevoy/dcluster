@@ -1,0 +1,7 @@
+---
+
+internal:
+  templates_dir: '/usr/share/dcluster/templates'
+
+prefs:
+  log_level: INFO

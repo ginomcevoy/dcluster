@@ -4,8 +4,6 @@ import logging
 
 from runitmockit import runit
 
-from . import CLUSTER_PREFS
-
 
 class ComposeFailure(Exception):
     pass
@@ -13,10 +11,9 @@ class ComposeFailure(Exception):
 
 class ClusterComposer(object):
 
-    def __init__(self, compose_path, templates_dir, cluster_prefs=CLUSTER_PREFS):
+    def __init__(self, compose_path, templates_dir):
         self.compose_path = compose_path
         self.templates_dir = templates_dir
-        self.cluster_prefs = cluster_prefs
 
         self.log = logging.getLogger()
 
@@ -24,7 +21,6 @@ class ClusterComposer(object):
 
         # build the replacement dictionary
         replacements = dict(**cluster_specs)
-        replacements['CLUSTER_PREFS'] = self.cluster_prefs
         self.log.debug(replacements)
 
         # Load Jinja2 template

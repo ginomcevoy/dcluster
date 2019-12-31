@@ -11,7 +11,7 @@ import logging
 
 from operator import attrgetter
 
-from . import CLUSTER_PREFS
+from . import config
 
 __docker_client = None
 
@@ -46,7 +46,7 @@ class DockerNaming:
         '''
         Single place to define how network name is built based on cluster name.
         '''
-        return '-'.join((CLUSTER_PREFS['NETWORK_PREFIX'], cluster_name))
+        return '-'.join((config.networking('prefix'), cluster_name))
 
     @classmethod
     def deduce_cluster_name(cls, network):
@@ -70,12 +70,12 @@ class DockerNaming:
         assert type(network_name) == str, 'Could not understand %s' % network_name
 
         # now we have a string, dcluster networks are preceded by the prefix
-        if network_name.find(CLUSTER_PREFS['NETWORK_PREFIX']) != 0:
+        if network_name.find(config.networking('prefix')) != 0:
             # this is not a dcluster network
             raise NotFromDcluster()
 
         # this is a dcluster string
-        return network_name[(len(CLUSTER_PREFS['NETWORK_PREFIX']) + 1):]
+        return network_name[(len(config.networking('prefix')) + 1):]
 
     @classmethod
     def is_dcluster_network(cls, network):

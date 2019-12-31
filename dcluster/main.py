@@ -4,11 +4,11 @@ Main entry point of dcluster.
 
 import argparse
 import logging
-import os
 import sys
 
 # from six.moves import input
 
+from . import config
 from . import cluster
 
 
@@ -155,7 +155,9 @@ def processRequest():
 
 
 if __name__ == "__main__":
-    log_level = logging.DEBUG
+
+    log_level_str = config.prefs('log_level')
+    log_level = getattr(logging, log_level_str)
     logging.basicConfig(format='%(asctime)s - %(levelname)6s | %(message)s',
                         level=log_level, datefmt='%d-%b-%y %H:%M:%S')
     processRequest()

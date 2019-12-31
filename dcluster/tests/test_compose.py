@@ -1,9 +1,8 @@
-import os
 import unittest
 
 from dcluster import compose
 
-from config import dcluster_config
+from dcluster import config
 from . import test_resources
 
 
@@ -13,7 +12,7 @@ class TestClusterComposer(unittest.TestCase):
         self.resources = test_resources.TestResources()
         self.maxDiff = None
 
-        templates_dir = dcluster_config.get('templates_dir')
+        templates_dir = config.internal('templates_dir')
         # template_path = os.path.join(templates_dir, 'cluster-simple.yml.j2')
         self.composer = compose.ClusterComposer('', templates_dir)
 
@@ -51,7 +50,6 @@ class TestClusterComposer(unittest.TestCase):
 
         # when
         result = self.composer.build_definition(cluster_specs, template_filename)
-        print(result)
 
         # then matches a saved file
         expected = self.resources.expected_docker_compose_simple

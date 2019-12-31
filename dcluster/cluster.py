@@ -3,11 +3,9 @@ import logging
 from collections import namedtuple
 import os
 
-from config import dcluster_config
-
 from . import compose
+from . import config
 from . import networking
-from . import CLUSTER_PREFS
 
 from .docker_facade import ClusterNode, DockerNaming, DockerNetworking
 
@@ -107,7 +105,8 @@ class DockerCluster(object):
         ssh_command = '/usr/bin/ssh -o "StrictHostKeyChecking=no" -o "GSSAPIAuthentication=no" \
 -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" %s'
 
-        target = 'ci-user@%s' % node.ip_address
+        ssh_user = config.prefs('ssh_user')
+        target = '%s@%s' % (ssh_user, node.ip_address)
         full_ssh_command = ssh_command % target
         # subprocess.run(full_ssh_command, shell=True)
         os.system(full_ssh_command)
@@ -178,7 +177,7 @@ class DockerClusterBuilder(object):
 
         # create the containers based on the specification
         compose_path = os.path.join(basepath, simple_request.name)
-        templates_dir = dcluster_config.get('templates_dir')
+        templates_dir = config.internal('templates_dir')
         composer = compose.ClusterComposer(compose_path, templates_dir)
         definition = composer.build_definition(cluster_specs, 'cluster-simple.yml.j2')
         composer.compose(definition)
@@ -234,13 +233,13 @@ class DockerClusterBuilder(object):
 
         cluster_name = simple_request.name
         head_ip = cluster_network.head_ip()
-        head_hostname = CLUSTER_PREFS['HEAD_NAME']
+        head_hostname = config.naming('head_name')
 
         # always have a head and a network
         head_entry = self.create_node_entry(cluster_name, head_hostname, head_ip, 'head')
         network_entry = cluster_network.as_dict()
 
-        cluster_specs = {   
+        cluster_specs = {
             'nodes': {
                 head_ip: head_entry
             },
@@ -267,9 +266,9 @@ class DockerClusterBuilder(object):
         0 -> node001
         1 -> node002
         '''
-        suffix_str = '{0:0%sd}' % str(CLUSTER_PREFS['COMPUTE_SUFFIX_LEN'])
+        suffix_str = '{0:0%sd}' % str(config.naming('compute_suffix_len'))
         suffix = suffix_str.format(index + 1)
-        return CLUSTER_PREFS['COMPUTE_PREFIX'] + suffix
+        return config.naming('compute_prefix') + suffix
 
     def create_node_entry(self, cluster_name, hostname, ip_address, node_type):
         '''

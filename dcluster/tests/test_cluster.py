@@ -4,7 +4,6 @@ import unittest
 
 
 from dcluster import cluster, networking
-from dcluster import docker_facade
 
 
 class TestBuildNodeSpecsSimple(unittest.TestCase):

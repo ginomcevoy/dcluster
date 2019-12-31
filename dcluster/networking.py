@@ -12,10 +12,10 @@ import unittest
 from six.moves import input
 
 from .docker_facade import DockerNaming, DockerNetworking, NetworkSubnetTaken
+from . import config
 
-
-from . import SUPERNET, CIDR_BITS
-from . import CLUSTER_PREFS
+SUPERNET = config.networking('supernet')
+CIDR_BITS = config.networking('cidr_bits')
 
 
 def create(cluster_name):
@@ -84,7 +84,7 @@ class ClusterNetwork:
         return {
             'name': self.network_name,
             'address': self.ip_address(),
-            'gateway': CLUSTER_PREFS['GATEWAY_NAME'],
+            'gateway': config.naming('gateway_name'),
             'gateway_ip': self.gateway_ip()
         }
 

@@ -1,17 +1,10 @@
-#
-# Some default values to interact with Docker
-#
+# Single place to define the software version
+__version__ = '0.0.1'
 
-# Use this B-class network to create all subnet networks for Docker clusters
-SUPERNET = '172.30.0.0/16'
+# Environment variable used to determine if we want a development environment.
+# For a dev setting, set the environment variable to 'True' when calling a dcluster script
+DEVELOPMENT_ENV_VAR = 'DCLUSTER_DEV'
 
-# Use these amount of bits for each Docker cluster
-CIDR_BITS = 24
-
-CLUSTER_PREFS = {
-    'HEAD_NAME': 'head',
-    'GATEWAY_NAME': 'gateway',
-    'COMPUTE_PREFIX': 'node',
-    'COMPUTE_SUFFIX_LEN': 3,
-    'NETWORK_PREFIX': 'dcluster'
-}
+# File to store configuration in a production environment
+CONFIG_DIR = '/etc/dcluster'
+CONFIG_FILE = 'config.yml'
