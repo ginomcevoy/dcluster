@@ -21,7 +21,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         # given
         compute_nodes = 0
         cluster_specs_simple = self.simple_request('mycluster', compute_nodes)
-        cluster_network = self.stub_network('172.30.0.0/24', cluster_specs_simple)
+        cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
 
         # when
         result = self.builder.build_simple_specs(cluster_specs_simple, cluster_network)
@@ -52,7 +52,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         # given
         compute_nodes = 0
         cluster_specs_simple = self.simple_request('mycluster', compute_nodes)
-        cluster_network = self.stub_network('172.30.1.0/25', cluster_specs_simple)
+        cluster_network = self.stub_network(u'172.30.1.0/25', cluster_specs_simple)
 
         # when
         result = self.builder.build_simple_specs(cluster_specs_simple, cluster_network)
@@ -83,7 +83,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         # given
         compute_nodes = 1
         cluster_specs_simple = self.simple_request('mycluster', compute_nodes)
-        cluster_network = self.stub_network('172.30.0.0/24', cluster_specs_simple)
+        cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
 
         # when
         result = self.builder.build_simple_specs(cluster_specs_simple, cluster_network)
@@ -120,7 +120,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         # given
         compute_nodes = 3
         cluster_specs_simple = self.simple_request('mycluster', compute_nodes)
-        cluster_network = self.stub_network('172.30.0.0/24', cluster_specs_simple)
+        cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
 
         # when
         result = self.builder.build_simple_specs(cluster_specs_simple, cluster_network)
@@ -222,10 +222,10 @@ Network: 172.30.0.0/24
 
   hostname       ip_address      container                
   ------------------------------------------------
+  gateway        172.30.0.254                             
+  head           172.30.0.253    testcluster-head         
   node001        172.30.0.1      testcluster-node001      
   node002        172.30.0.2      testcluster-node002      
-  head           172.30.0.253    testcluster-head         
-  gateway        172.30.0.254                             
 '''
         self.maxDiff = None
         self.assertEqual(result, expected)

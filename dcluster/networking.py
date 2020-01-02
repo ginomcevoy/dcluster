@@ -25,7 +25,7 @@ def create(cluster_name):
     return DockerClusterNetworkFactory().create(cluster_name)
 
 
-class ClusterNetwork:
+class ClusterNetwork(object):
     '''
     Defines the cluster network addresses based on a subnet (ipaddress.Network object).
     Encapsulates a docker network object once the network has been created in Docker
@@ -37,12 +37,15 @@ class ClusterNetwork:
         self.all_ip_addresses = list(self.subnet.hosts())
         self.cluster_name = cluster_name
         self.__docker_network = None
+        self.log = logging.getLogger()
 
     def gateway_ip(self):
         '''
         Returns a suitable gateway IP address for a subnet. We prefer to use the last available IP
         address in the subnet. E.g. 172.30.0.0/24 -> 172.30.0.254
         '''
+        msg = 'subnet %s has %s available IPs'
+        self.log.debug(msg % (self.subnet, len(self.all_ip_addresses)))
         return str(self.all_ip_addresses[-1])
 
     def head_ip(self):
@@ -111,8 +114,13 @@ class ClusterNetwork:
         Returns a generator of ClusterNetwork, based on the subnet generator for all possible
         subnets given the supernet and cidr_bits.
         '''
+        # python2 wants unicode, python3 does not like using decode...
+        if hasattr(supernet, 'decode'):
+            supernet = supernet.decode('unicode-escape')
+
         # https://docs.python.org/3/library/ipaddress.html
         super_network = ipaddress.ip_network(supernet)
+        logging.getLogger().debug('super network %s ' % super_network)
         possible_subnets = super_network.subnets(new_prefix=cidr_bits)
 
         # this will turn this function into a generator that yields instances of this class

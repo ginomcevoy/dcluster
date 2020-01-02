@@ -42,6 +42,12 @@ class NotFromDcluster(Exception):
 class DockerNaming:
 
     @classmethod
+    def logger(cls):
+        if not hasattr(cls, 'log'):
+            cls.log = logging.getLogger()
+        return cls.log
+
+    @classmethod
     def create_network_name(cls, cluster_name):
         '''
         Single place to define how network name is built based on cluster name.
@@ -67,10 +73,14 @@ class DockerNaming:
             # assume Docker network instance
             network_name = network.name
 
-        assert type(network_name) == str, 'Could not understand %s' % network_name
+        network_name_is_string = isinstance(network_name, str) or isinstance(network_name, unicode)
+        assert network_name_is_string, 'Could not understand %s' % network_name
 
         # now we have a string, dcluster networks are preceded by the prefix
-        if network_name.find(config.networking('prefix')) != 0:
+        prefix = config.networking('prefix')
+        cls.logger().debug('Looking in %s for %s' % (network_name, prefix))
+
+        if network_name.find(prefix) != 0:
             # this is not a dcluster network
             raise NotFromDcluster()
 
@@ -85,8 +95,9 @@ class DockerNaming:
         '''
         try:
             cls.deduce_cluster_name(network)
-        except Exception:
-            # not a dcluster network
+        except Exception as e:
+            cls.logger().debug('Not a dcluster network: %s' % network.name)
+            cls.logger().debug(e)
             return False
 
         return True
@@ -174,10 +185,12 @@ class DockerNetworking:
         '''
         # get Docker networks, use logic in is_dcluster_network()
         # to determine which belong to dcluster
+        all_networks = cls.all_docker_networks()
+        cls.logger().debug(all_networks)
         return [
             network
             for network
-            in cls.all_docker_networks()
+            in all_networks
             if DockerNaming.is_dcluster_network(network)]
 
     @classmethod

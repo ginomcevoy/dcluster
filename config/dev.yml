@@ -1,7 +1,7 @@
 ---
 
-internal:
-  templates_dir: 'templates'
+paths:
+  templates: 'templates'
 
 prefs:
   log_level: DEBUG

@@ -1,6 +1,6 @@
 version: '3.1'
 services:
-{% for node in nodes.values() %}
+{% for node_ip, node in nodes.items() | sort(attribute='1.hostname') %}
 
     {{node.container}}:
         container_name: {{node.container}}
@@ -10,7 +10,7 @@ services:
             {{network.name}}:
                 ipv4_address: {{node.ip_address}}
         extra_hosts:
-{% for extra_host in nodes.values() %}
+{% for node_ip, extra_host in nodes.items() | sort(attribute='1.hostname') %}
             {{extra_host.hostname}}: {{extra_host.ip_address}}
 {% endfor %}
             gateway: {{network.gateway_ip}}

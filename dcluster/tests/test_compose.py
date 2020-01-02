@@ -1,4 +1,5 @@
 import unittest
+from collections import OrderedDict
 
 from dcluster import compose
 
@@ -12,14 +13,14 @@ class TestClusterComposer(unittest.TestCase):
         self.resources = test_resources.ResourcesForTest()
         self.maxDiff = None
 
-        templates_dir = config.internal('templates_dir')
-        # template_path = os.path.join(templates_dir, 'cluster-simple.yml.j2')
+        templates_dir = config.paths('templates')
+        print(templates_dir)
         self.composer = compose.ClusterComposer('', templates_dir)
 
     def test_build_definition(self):
         # given a cluster specification
         cluster_specs = {
-            'nodes': {
+            'nodes': OrderedDict({
                 '172.30.0.253': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
@@ -38,7 +39,7 @@ class TestClusterComposer(unittest.TestCase):
                     'ip_address': '172.30.0.2',
                     'type': 'compute'
                 }
-            },
+            }),
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.0.0/24',
@@ -50,6 +51,7 @@ class TestClusterComposer(unittest.TestCase):
 
         # when
         result = self.composer.build_definition(cluster_specs, template_filename)
+        print(result)
 
         # then matches a saved file
         expected = self.resources.expected_docker_compose_simple

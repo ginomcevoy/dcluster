@@ -19,9 +19,11 @@ MODULE=dcluster
 
 if [ "x$1" == "x--pytest" ]; then
     # with pytest
+    PYTHONPATH=. pytest-2 --pyargs $MODULE -v
     PYTHONPATH=. pytest-3 --pyargs $MODULE -v
 else
     # with unittest
-    PYTHONPATH=. python -m unittest discover $MODULE -v
+    PYTHONPATH=. python2 -m unittest discover $MODULE -v
+    PYTHONPATH=. python3 -m unittest discover $MODULE -v
 fi
  

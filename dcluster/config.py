@@ -1,36 +1,13 @@
-import collections
-import importlib
 import os
 import yaml
-import sys
 
 
-from dcluster import CONFIG_DIR, CONFIG_FILE
+from dcluster import CONFIG_FILE
+from dcluster import util
 
 
 # Singleton for dcluster configuration
 __dcluster_config = None
-
-
-def get_module_filename(module_name):
-
-    # if module not available, try to import it manually
-    if module_name not in sys.modules:
-        importlib.import_module(module_name)
-
-    actual_module = sys.modules[module_name]
-    return actual_module.__file__
-
-
-def get_module_directory(module_name):
-    module_filename = get_module_filename(module_name)
-    return os.path.dirname(module_filename)
-
-
-def dev_config_dir():
-    dir_of_this_module = get_module_directory('dcluster.config')
-    config_dir = os.path.join(os.path.dirname(dir_of_this_module), 'config')
-    return config_dir
 
 
 def read_config(config_dir, config_filename):
@@ -43,59 +20,86 @@ def read_config(config_dir, config_filename):
     return config_dict
 
 
-def update_recursively(d, u):
-    # https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
-
-    # TODO unit test this, it was 'iteritmes' before, also there may be corner cases
-    if not u:
-        return d
-
-    for k, v in u.items():
-        if isinstance(v, collections.Mapping):
-            d[k] = update_recursively(d.get(k, {}), v)
-        else:
-            d[k] = v
-    return d
-
-
-def read_dev_config():
+def create_dev_config():
     '''
-    Development environment is obtained by reading both config/common.yml and config/dev.yml
+    Configuration for development environment is created by reading both
+    config/common.yml and config/prod.yml
     '''
-    config_dir = dev_config_dir()
+    config_dir = config_dir_from_source()
 
     common_config = read_config(config_dir, 'common.yml')
-    dev_config = read_config(config_dir, 'dev.yml')
+    dev_only_config = read_config(config_dir, 'dev.yml')
 
     # we don't want to lose key/value pairs in subdictionaries
-    update_recursively(common_config, dev_config)
-
-    return common_config
+    return util.update_recursively(common_config, dev_only_config)
 
 
-def read_prod_config():
-    return read_config(CONFIG_DIR, CONFIG_FILE)
-
-
-def is_development():
+def create_prod_config():
     '''
-    Read the presence of the environment variable
+    Configuration for production environment is created by reading both
+    config/common.yml and config/prod.yml
     '''
-    return 'DCLUSTER_DEV' in os.environ
+    config_dir = config_dir_from_source()
+
+    common_config = read_config(config_dir, 'common.yml')
+    dev_only_config = read_config(config_dir, 'prod.yml')
+
+    # we don't want to lose key/value pairs in subdictionaries
+    return util.update_recursively(common_config, dev_only_config)
 
 
-def get_config():
+def read_deployed_config(config_source, dcluster_root):
+    '''
+    Configuration from a deployed source, e.g. /etc/dcluster/config.yml
+    The paths may be prefixed by dcluster_root
+    '''
+
+    (config_dir, config_filename) = os.path.split(config_source)
+
+    if dcluster_root:
+        # prefix configuration path
+        config_dir = dcluster_root + config_dir
+
+    deployed_config = read_config(config_dir, config_filename)
+
+    if dcluster_root and 'paths' in deployed_config:
+        # prefix paths with the supplied root
+        for entry, value in deployed_config['paths'].items():
+            deployed_config['paths'][entry] = dcluster_root + deployed_config['paths'][entry]
+
+    return deployed_config
+
+
+def config_dir_from_source():
+    '''
+    Calculate <dcluster_source>/config directory using the fact that it is one level above
+    this module, outside the dcluster package (dcluster/config.py -> dcluster/../config)
+    '''
+    dir_of_this_module = util.get_module_directory('dcluster.config')
+    return os.path.join(os.path.dirname(dir_of_this_module), 'config')
+
+
+def get_config(dcluster_root=None):
     global __dcluster_config
     if not __dcluster_config:
 
         # need to read configuration, use feature toggle to determine which to load
-        if is_development():
-            __dcluster_config = read_dev_config()
-        else:
-            __dcluster_config = read_prod_config()
+        if 'DCLUSTER_DEV' in os.environ:
+            # override to use development config from source code
+            __dcluster_config = create_dev_config()
 
-    # defensive copying
-    return dict(__dcluster_config)
+        elif 'DCLUSTER_ROOT' in os.environ or dcluster_root:
+            # override the root of production dcluster configuration (default is '/')
+            # useful when doing rpmbuild testing
+            if 'DCLUSTER_ROOT' in os.environ:
+                dcluster_root = os.environ['DCLUSTER_ROOT']
+            __dcluster_config = read_deployed_config(CONFIG_FILE, dcluster_root)
+
+        else:
+            # use the config file that dcluster is expected to have deployed (after installing RPM)
+            __dcluster_config = read_deployed_config(CONFIG_FILE, None)
+
+    return __dcluster_config
 
 
 def networking(key):
@@ -119,11 +123,11 @@ def prefs(key):
     return get_config()['prefs'][key]
 
 
-def internal(key):
+def paths(key):
     '''
-    Configuration sub-element for internals
+    Configuration sub-element for paths. These paths may be prefixed by dcluster_root.
     '''
-    return get_config()['internal'][key]
+    return get_config()['paths'][key]
 
 
 if __name__ == '__main__':

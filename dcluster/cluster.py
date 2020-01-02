@@ -1,7 +1,8 @@
 import logging
-# import subprocess
-from collections import namedtuple
 import os
+
+from collections import namedtuple
+from operator import attrgetter
 
 from . import compose
 from . import config
@@ -177,7 +178,7 @@ class DockerClusterBuilder(object):
 
         # create the containers based on the specification
         compose_path = os.path.join(basepath, simple_request.name)
-        templates_dir = config.internal('templates_dir')
+        templates_dir = config.paths('templates')
         composer = compose.ClusterComposer(compose_path, templates_dir)
         definition = composer.build_definition(cluster_specs, 'cluster-simple.yml.j2')
         composer.compose(definition)
@@ -303,11 +304,13 @@ class DockerClusterFormatterText(object):
         lines[4] = node_format.format('hostname', 'ip_address', 'container')
         lines[5] = '  ' + '-' * 48
 
+        sorted_node_info = sorted(cluster_dict['nodes'].values(), key=attrgetter('hostname'))
+
         node_lines = [
             # format namedtuple contents
             node_format.format(node.hostname, node.ip_address, node.container.name)
             for node
-            in cluster_dict['nodes'].values()
+            in sorted_node_info
         ]
 
         lines.extend(node_lines)

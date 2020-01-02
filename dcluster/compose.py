@@ -1,3 +1,4 @@
+import collections
 import os
 import jinja2
 import logging
@@ -26,6 +27,7 @@ class ClusterComposer(object):
         # Load Jinja2 template
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(self.templates_dir),
                                  trim_blocks=True, lstrip_blocks=True)
+
         template = env.get_template(template_filename)
         compose_definition = template.render(**replacements)
         self.log.debug(compose_definition)

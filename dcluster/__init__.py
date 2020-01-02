@@ -6,5 +6,4 @@ __version__ = '0.0.1'
 DEVELOPMENT_ENV_VAR = 'DCLUSTER_DEV'
 
 # File to store configuration in a production environment
-CONFIG_DIR = '/etc/dcluster'
-CONFIG_FILE = 'config.yml'
+CONFIG_FILE = '/etc/dcluster/config.yml'
