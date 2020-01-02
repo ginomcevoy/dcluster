@@ -1,3 +1,5 @@
 %changelog
+* Thu Jan 2 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.2-1
+- Simplify deployment by using DCLUSTER_ROOT environment variable
 * Tue Dec 31 2019 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.1-1
 - Initial release, can deploy docker clusters

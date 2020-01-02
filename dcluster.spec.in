@@ -32,11 +32,11 @@ BuildArch: noarch
 Vendor: Giacomo Mc Evoy Valenzano <giacomo.valenzano@atos.net>
 Url: https://github.com
 
+Provides: %{mod_name}           = %{version}-%{release}
+Requires: python-%{mod_name}    = %{version}-%{release}
+
 %description
 Create and manage Docker clusters, optionally run Ansible on the cluster.
-
-Provides: %{mode_name}          = %{version}-%{release}
-Requires: %{python}-%{mod_name} = %{version}-%{release}
 
 %if 0%{?with_python2}
 
@@ -99,10 +99,10 @@ python3 setup.py build
 # install the python code to RPM_BUILD_ROOT
 python2 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
 
-# create the production configuration
-echo "Current path $PWD"
+# create the production configuration, need DCLUSTER_ROOT environment variable to deploy
 export PYTHONPATH=.
-python2 -m deployment.deploy $RPM_BUILD_ROOT
+export DCLUSTER_ROOT=$RPM_BUILD_ROOT
+python2 -m deployment.deploy
 
 # deployment script has done its job
 rm -rf %{buildroot}%{python2_sitelib}/deployment
@@ -115,9 +115,10 @@ rm -rf %{buildroot}%{python2_sitelib}/deployment
 # install the python code to RPM_BUILD_ROOT
 python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
 
-# create the production configuration
+# create the production configuration, need DCLUSTER_ROOT environment variable to deploy
 export PYTHONPATH=.
-python3 -m deployment.deploy $RPM_BUILD_ROOT
+export DCLUSTER_ROOT=$RPM_BUILD_ROOT
+python3 -m deployment.deploy
 
 # deployment script has done its job
 rm -rf %{buildroot}%{python3_sitelib}/deployment

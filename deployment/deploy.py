@@ -4,6 +4,9 @@ Used when creating the RPM:
 - create the production configuration
 '''
 
+# print to stderr - https://stackoverflow.com/a/14981125
+from __future__ import print_function
+
 import os
 import shutil
 import sys
@@ -28,8 +31,8 @@ def create_production_config(sandbox_dir):
     sandboxed_config_dir = sandbox_dir + config_deploy_dir
     util.create_dir_dont_complain(sandboxed_config_dir)
 
+    # save YAML fle
     sandboxed_config_file = os.path.join(sandboxed_config_dir, config_deploy_filename)
-
     with open(sandboxed_config_file, 'w') as scf:
         # https://stackoverflow.com/a/47940875
         yaml.dump(production_config, scf, default_flow_style=False)
@@ -49,25 +52,32 @@ def templates_dir_from_source():
 def copy_templates(sandbox_dir):
     '''
     Copy templates to the path specified in the production configuration file
-    Note that this means that the path should not be prefixed here
-    (don't call this script with DCLUSTER_ROOT!)
+    Note that we have set DCLUSTER_ROOT, so the path is already prefixed here!
     '''
     # read templates from here
     template_source = templates_dir_from_source()
 
     # where the production template will be at build time (the paths are also sandboxed...)
-    production_config_at_sandbox = config.get_config(dcluster_root=sandbox_dir)
-    production_template_dir = production_config_at_sandbox['paths']['templates']
+    # production_config_at_sandbox = config.get_config(dcluster_root=sandbox_dir)
+    # production_template_dir = production_config_at_sandbox['paths']['templates']
+    sandboxed_production_template_dir = config.paths('templates')
 
     # copy the entire directory (assumes that the production target ends with 'templates')
     # don't copy anything if the target dir exists, assume it was already done
-    if not os.path.isdir(production_template_dir):
-        shutil.copytree(template_source, production_template_dir)
+    if not os.path.isdir(sandboxed_production_template_dir):
+        shutil.copytree(template_source, sandboxed_production_template_dir)
 
 
 if __name__ == '__main__':
-    # Assuming we are working within rpmbuild, we get RPM_BUILD_ROOT
-    sandbox_dir = sys.argv[1]
+
+    # DCLUSTER_ROOT is required for deployment, even if it is '/'
+    if 'DCLUSTER_ROOT' not in os.environ:
+        print('Need to set DCLUSTER_ROOT environment variable for deployment!', file=sys.stderr)
+        print('Export "DCLUSTER_ROOT=/" to install directly to filesystem.', file=sys.stderr)
+        exit(1)
+
+    # If we are working within rpmbuild, we should get RPM_BUILD_ROOT
+    sandbox_dir = os.environ['DCLUSTER_ROOT']
     sandboxed_config_file = create_production_config(sandbox_dir)
     copy_templates(sandbox_dir)
 

@@ -79,7 +79,7 @@ def config_dir_from_source():
     return os.path.join(os.path.dirname(dir_of_this_module), 'config')
 
 
-def get_config(dcluster_root=None):
+def get_config():
     global __dcluster_config
     if not __dcluster_config:
 
@@ -88,12 +88,10 @@ def get_config(dcluster_root=None):
             # override to use development config from source code
             __dcluster_config = create_dev_config()
 
-        elif 'DCLUSTER_ROOT' in os.environ or dcluster_root:
+        elif 'DCLUSTER_ROOT' in os.environ:
             # override the root of production dcluster configuration (default is '/')
             # useful when doing rpmbuild testing
-            if 'DCLUSTER_ROOT' in os.environ:
-                dcluster_root = os.environ['DCLUSTER_ROOT']
-            __dcluster_config = read_deployed_config(CONFIG_FILE, dcluster_root)
+            __dcluster_config = read_deployed_config(CONFIG_FILE, os.environ['DCLUSTER_ROOT'])
 
         else:
             # use the config file that dcluster is expected to have deployed (after installing RPM)

@@ -4,6 +4,7 @@ networking:
     supernet: '172.30.0.0/16'
     cidr_bits: 24
     prefix: 'dcluster'
+    gateway: 'gateway'
 
 naming:
     head_name: 'head'
@@ -12,4 +13,59 @@ naming:
     compute_suffix_len: 3
 
 prefs:
-  ssh_user: 'ci-user'
+    ssh_user: 'ci-user'
+
+clusters:
+  
+  simple:
+
+    head:
+      hostname: 'head'
+      image: 'centos7:ssh'
+      ssh_user:  'ci-user'
+
+    compute:
+      hostname:
+          prefix: 'node'
+          suffix_len: 3          
+      image:  'centos7:ssh'
+      ssh_user:  'ci-user'
+  
+  slurm:
+
+    reuse: 'simple'
+
+    head:
+      shared_mounts:
+        - '/home:/home'
+        - '/opt/intel:/opt/intel'
+        - '/srv/shared:/srv/dcluster/shared'
+      docker_mounts:
+        - 'etc_munge:/etc/munge'
+        - 'etc_slurm:/etc/slurm'
+        - 'slurm_jobdir:/data'
+        - 'var_log_slurm:/var/log/slurm'
+      static:
+        expose:
+            - '6817'
+            - '6819'
+        environment:
+          MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+          MYSQL_DATABASE: 'slurm_acct_db'
+          MYSQL_USER: 'slurm'
+          MYSQL_PASSWORD: 'password'
+
+    compute:
+      shared_mounts:
+        - '/home:/home'
+        - '/opt/intel:/opt/intel'
+        - '/srv/shared:/srv/dcluster/shared'
+      docker_mounts:
+        - 'etc_munge:/etc/munge'
+        - 'etc_slurm:/etc/slurm'
+        - 'slurm_jobdir:/data'
+        - 'var_log_slurm:/var/log/slurm'
+      static:
+        expose:
+            - '6818'
+        shm_size: 4g
