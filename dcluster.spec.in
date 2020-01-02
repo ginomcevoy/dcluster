@@ -1,0 +1,184 @@
+
+# THIS FILE NEEDS THE FOLLOWING INPUT:
+#
+#% define name <name>
+#% define version <version>
+#% define unmangled_version <version>
+#% define release <release>
+#% define mod_name <name>
+
+# The first five lines are found in the SPEC file of setuptools
+# the last line should be manually provided
+# All this input should be provided by build-rpm.sh
+
+# build Python2 and Python3 by default
+%bcond_without python2
+%bcond_without python3
+%define python2_sitelib /usr/lib/python2.7/site-packages/
+
+# Don't run tests by default
+%bcond_with tests
+
+Name: %{mod_name}
+Summary: Create and manage Docker clusters, optionally run Ansible on the cluster
+Version: %{version}
+Release: %{release}
+Source0: %{mod_name}-%{unmangled_version}.tar.gz
+License: MIT
+Group: Development/Libraries
+#BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+Prefix: %{_prefix}
+BuildArch: noarch
+Vendor: Giacomo Mc Evoy Valenzano <giacomo.valenzano@atos.net>
+Url: https://github.com
+
+%description
+Create and manage Docker clusters, optionally run Ansible on the cluster.
+
+Provides: %{mode_name}          = %{version}-%{release}
+Requires: %{python}-%{mod_name} = %{version}-%{release}
+
+%if 0%{?with_python2}
+
+%package -n python2-%{mod_name}
+Summary: Create and manage Docker clusters, optionally run Ansible on the cluster.
+Provides: python-%{mod_name}       = %{version}-%{release}
+Provides: python2-%{mod_name}      = %{version}-%{release}
+
+Requires:  python2-jinja2
+Requires:  python2-runitmockit
+
+# NOTE: We also require PyYAML / python2-yaml, but we would need some if statements here.
+
+%if 0%{?with_tests}
+BuildRequires:  python2-pytest
+%endif
+
+%description -n python2-%{mod_name}
+Create and manage Docker clusters, optionally run Ansible on the cluster.
+
+%endif
+
+%if 0%{?with_python3}
+
+%package -n python3-%{mod_name}
+Summary: Create and manage Docker clusters, optionally run Ansible on the cluster.
+Provides: python-%{mod_name}       = %{version}-%{release}
+Provides: python3-%{mod_name}      = %{version}-%{release}
+
+Requires:  python3-jinja2
+Requires:  python3-runitmockit
+
+%if 0%{?with_tests}
+BuildRequires:  python3-pytest
+%endif
+
+%description -n python3-%{mod_name}
+Create and manage Docker clusters, optionally run Ansible on the cluster.
+
+%endif
+
+
+%prep
+%setup -n %{mod_name}-%{unmangled_version} 
+
+
+%build
+%if 0%{?with_python2}
+python2 setup.py build
+%endif
+
+%if 0%{?with_python3}
+python3 setup.py build
+%endif
+
+
+%install
+%if 0%{?with_python2}
+
+# install the python code to RPM_BUILD_ROOT
+python2 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
+
+# create the production configuration
+echo "Current path $PWD"
+export PYTHONPATH=.
+python2 -m deployment.deploy $RPM_BUILD_ROOT
+
+# deployment script has done its job
+rm -rf %{buildroot}%{python2_sitelib}/deployment
+
+%endif
+
+
+%if 0%{?with_python3}
+
+# install the python code to RPM_BUILD_ROOT
+python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
+
+# create the production configuration
+export PYTHONPATH=.
+python3 -m deployment.deploy $RPM_BUILD_ROOT
+
+# deployment script has done its job
+rm -rf %{buildroot}%{python3_sitelib}/deployment
+
+%endif
+
+# the executable
+mkdir -p $RPM_BUILD_ROOT/usr/bin
+cp usr/bin/dcluster $RPM_BUILD_ROOT/usr/bin
+
+
+%check
+%if 0%{?with_tests}
+
+%if 0%{?with_python2}
+
+# this is needed to find deployed files for testing, but before the RPM is installed
+export DCLUSTER_ROOT=%{buildroot}
+
+# run the tests
+export PYTHONPATH=%{buildroot}%{python2_sitelib}
+pytest-2 --pyargs %{mod_name}
+
+# cleanup pycache so that pytest does not complain later
+rm -rf %{buildroot}%{python2_sitelib}/%{mod_name}/tests/__pycache__
+%endif
+
+%if 0%{?with_python3}
+
+# this is needed to find deployed files for testing, but before the RPM is installed
+export DCLUSTER_ROOT=%{buildroot}
+
+# run the tests
+export PYTHONPATH=%{buildroot}%{python3_sitelib}
+pytest-3 --pyargs %{mod_name}
+
+# cleanup pycache so that pytest does not complain later
+rm -rf %{buildroot}%{python3_sitelib}/%{mod_name}/tests/__pycache__
+%endif
+%endif # tests
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+/usr/bin/dcluster
+/etc/dcluster
+/usr/share/dcluster
+%defattr(-,root,root)
+
+%if 0%{?with_python2}
+%files -n python2-%{mod_name}
+%{python2_sitelib}/%{mod_name}
+%{python2_sitelib}/%{mod_name}-*.egg-info
+%defattr(-,root,root)
+%endif
+
+%if 0%{?with_python3}
+%files -n python3-%{mod_name}
+%{python3_sitelib}/%{mod_name}
+%{python3_sitelib}/%{mod_name}-*.egg-info
+%defattr(-,root,root)
+%endif
