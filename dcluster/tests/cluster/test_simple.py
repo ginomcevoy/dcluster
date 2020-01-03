@@ -2,17 +2,22 @@ import collections
 import ipaddress
 import unittest
 
+from dcluster import cluster
+from dcluster import config
+from dcluster import networking
 
-from dcluster import cluster, networking
+from dcluster.cluster.simple import ClusterBuilderSimple, ClusterComposerSimple
+
+from dcluster.tests import test_resources
 
 
 class TestBuildNodeSpecsSimple(unittest.TestCase):
     '''
-    Unit tests for cluster.DockerClusterBuilder.build_simple_specs
+    Unit tests for cluster.simple.ClusterBuilderSimple.build_specs
     '''
 
     def setUp(self):
-        self.builder = cluster.DockerClusterBuilder()
+        self.builder = ClusterBuilderSimple()
         self.maxDiff = None
 
     def test_zero_compute_nodes(self):
@@ -25,7 +30,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
 
         # when
-        result = self.builder.build_simple_specs(cluster_specs_simple, cluster_network)
+        result = self.builder.build_specs(cluster_specs_simple, cluster_network)
 
         # then
         expected = {
@@ -57,7 +62,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         cluster_network = self.stub_network(u'172.30.1.0/25', cluster_specs_simple)
 
         # when
-        result = self.builder.build_simple_specs(cluster_specs_simple, cluster_network)
+        result = self.builder.build_specs(cluster_specs_simple, cluster_network)
 
         # then
         expected = {
@@ -89,7 +94,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
 
         # when
-        result = self.builder.build_simple_specs(cluster_specs_simple, cluster_network)
+        result = self.builder.build_specs(cluster_specs_simple, cluster_network)
 
         # then
         expected = {
@@ -128,7 +133,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
         cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
 
         # when
-        result = self.builder.build_simple_specs(cluster_specs_simple, cluster_network)
+        result = self.builder.build_specs(cluster_specs_simple, cluster_network)
 
         # then
         expected = {
@@ -244,6 +249,59 @@ Network: 172.30.0.0/24
         return NodeStub(hostname, ip_address, ContainerStub(container_name))
 
 
+class TestClusterComposerSimple(unittest.TestCase):
+
+    def setUp(self):
+        self.resources = test_resources.ResourcesForTest()
+        self.maxDiff = None
+
+        templates_dir = config.paths('templates')
+        print(templates_dir)
+        self.composer = ClusterComposerSimple('', templates_dir)
+
+    def test_build_definition(self):
+        # given a cluster specification
+        cluster_specs = {
+            'nodes': collections.OrderedDict({
+                '172.30.0.253': {
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.253',
+                    'type': 'head'
+                },
+                '172.30.0.1': {
+                    'hostname': 'node001',
+                    'container': 'mycluster-node001',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.1',
+                    'type': 'compute'
+                },
+                '172.30.0.2': {
+                    'hostname': 'node002',
+                    'container': 'mycluster-node002',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.2',
+                    'type': 'compute'
+                }
+            }),
+            'network': {
+                'name': 'dcluster-mycluster',
+                'address': '172.30.0.0/24',
+                'gateway': 'gateway',
+                'gateway_ip': '172.30.0.254'
+            }
+        }
+        template_filename = 'cluster-simple.yml.j2'
+
+        # when
+        result = self.composer.build_definition(cluster_specs, template_filename)
+
+        # then matches a saved file
+        expected = self.resources.expected_docker_compose_simple
+        self.assertEqual(result, expected)
+
+
 class ContainerStub:
     '''
     This stubs the real Docker container, it has a name
@@ -251,3 +309,4 @@ class ContainerStub:
 
     def __init__(self, name):
         self.name = name
+

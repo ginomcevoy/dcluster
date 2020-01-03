@@ -1,0 +1,20 @@
+    mycluster-head:
+        container_name: mycluster-head
+        image: centos7:slurmctld
+        hostname: head
+        networks:
+            dcluster-mycluster:
+                ipv4_address: 172.30.0.253
+        extra_hosts:
+            head: 172.30.0.253
+            node001: 172.30.0.1
+            node002: 172.30.0.2
+            gateway: 172.30.0.254
+        environment:
+          MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+          MYSQL_DATABASE: 'slurm_acct_db'
+          MYSQL_USER: 'slurm'
+          MYSQL_PASSWORD: 'password'
+        expose:
+            - '6817'
+            - '6819'

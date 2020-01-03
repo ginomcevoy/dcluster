@@ -10,6 +10,7 @@ import sys
 
 from . import config
 from . import cluster
+from .cluster import factory
 
 
 def process_creation(args):
@@ -20,7 +21,7 @@ def process_creation(args):
 
     # create the request and call factory method
     cluster_specs = cluster.build_cluster_request(args)
-    cluster.create(cluster_specs, args.basepath)
+    factory.create(cluster_specs, args.basepath)
 
 
 def configure_create_parser(create_parser):

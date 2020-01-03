@@ -13,6 +13,8 @@ clusters:
   
   simple:
 
+    template: cluster-simple.yml.j2
+
     head:
       hostname: 'head'
       image: 'centos7:ssh'
@@ -39,14 +41,14 @@ clusters:
         - 'slurm_jobdir:/data'
         - 'var_log_slurm:/var/log/slurm'
       static:
-        expose:
-            - '6817'
-            - '6819'
         environment:
           MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
           MYSQL_DATABASE: 'slurm_acct_db'
           MYSQL_USER: 'slurm'
           MYSQL_PASSWORD: 'password'
+        expose:
+            - '6817'
+            - '6819'
 
     compute:
       image: 'centos7:slurm'
