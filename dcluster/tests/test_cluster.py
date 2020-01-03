@@ -13,6 +13,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
 
     def setUp(self):
         self.builder = cluster.DockerClusterBuilder()
+        self.maxDiff = None
 
     def test_zero_compute_nodes(self):
         '''
@@ -32,6 +33,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
                 '172.30.0.253': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 }
@@ -63,6 +65,7 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
                 '172.30.1.125': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.1.125',
                     'type': 'head'
                 }
@@ -94,12 +97,14 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
                 '172.30.0.253': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 },
                 '172.30.0.1': {
                     'hostname': 'node001',
                     'container': 'mycluster-node001',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.1',
                     'type': 'compute'
                 }
@@ -131,24 +136,28 @@ class TestBuildNodeSpecsSimple(unittest.TestCase):
                 '172.30.0.253': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 },
                 '172.30.0.1': {
                     'hostname': 'node001',
                     'container': 'mycluster-node001',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.1',
                     'type': 'compute'
                 },
                 '172.30.0.2': {
                     'hostname': 'node002',
                     'container': 'mycluster-node002',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.2',
                     'type': 'compute'
                 },
                 '172.30.0.3': {
                     'hostname': 'node003',
                     'container': 'mycluster-node003',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.3',
                     'type': 'compute'
                 }

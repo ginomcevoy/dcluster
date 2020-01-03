@@ -87,7 +87,7 @@ class ClusterNetwork(object):
         return {
             'name': self.network_name,
             'address': self.ip_address(),
-            'gateway': config.naming('gateway_name'),
+            'gateway': config.networking('gateway'),
             'gateway_ip': self.gateway_ip()
         }
 

@@ -15,6 +15,9 @@ from .docker_facade import ClusterNode, DockerNaming, DockerNetworking
 # it should also have a head node.
 ClusterRequestSimple = namedtuple('ClusterRequestSimple', ['name', 'compute_count'])
 
+# this represents a Slurm cluster, it can have more options
+ClusterRequestSlurm = namedtuple('ClusterRequestSlurm', ['name', 'compute_count'])
+
 
 def create(cluster_request, basepath):
     '''
@@ -153,7 +156,8 @@ class DockerClusterBuilder(object):
 
     def __init__(self):
         self.build_funcs = {
-            'ClusterRequestSimple': self.build_simple
+            'ClusterRequestSimple': self.build_simple,
+            'ClusterRequestSlurm': self.build_slurm
         }
         self.log = logging.getLogger()
 
@@ -172,6 +176,8 @@ class DockerClusterBuilder(object):
 
         This does not return an instance of DockerCluster yet...
         '''
+        self.log.debug('Building cluster of type simple with request %s' % (simple_request,))
+
         # create the cluster specification
         cluster_network = networking.create(simple_request.name)
         cluster_specs = self.build_simple_specs(simple_request, cluster_network)
@@ -201,24 +207,28 @@ class DockerClusterBuilder(object):
                 '172.30.0.253': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 },
                 '172.30.0.1': {
                     'hostname': 'node001',
                     'container': 'mycluster-node001',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.1',
                     'type': 'compute'
                 },
                 '172.30.0.2': {
                     'hostname': 'node002',
                     'container': 'mycluster-node002',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.2',
                     'type': 'compute'
                 },
                 '172.30.0.3': {
                     'hostname': 'node003',
                     'container': 'mycluster-node003',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.3',
                     'type': 'compute'
                 }
@@ -232,12 +242,16 @@ class DockerClusterBuilder(object):
         }
         '''
 
+        cluster_config = config.cluster('simple')
+
         cluster_name = simple_request.name
         head_ip = cluster_network.head_ip()
-        head_hostname = config.naming('head_name')
+        head_hostname = cluster_config['head']['hostname']
+        head_image = cluster_config['head']['image']
 
         # always have a head and a network
-        head_entry = self.create_node_entry(cluster_name, head_hostname, head_ip, 'head')
+        head_entry = self.create_node_entry(cluster_name, head_hostname, head_ip,
+                                            head_image, 'head')
         network_entry = cluster_network.as_dict()
 
         cluster_specs = {
@@ -249,17 +263,25 @@ class DockerClusterBuilder(object):
 
         # add compute nodes, should raise NetworkSubnetTooSmall if there are not enough IPs
         compute_ips = cluster_network.compute_ips(simple_request.compute_count)
+        compute_image = cluster_config['compute']['image']
 
         for index, compute_ip in enumerate(compute_ips):
 
-            compute_hostname = self.create_compute_hostname(index)
+            compute_hostname = self.create_compute_hostname(index, cluster_config)
             node_entry = self.create_node_entry(cluster_name, compute_hostname,
-                                                compute_ip, 'compute')
+                                                compute_ip, compute_image, 'compute')
             cluster_specs['nodes'][compute_ip] = node_entry
 
         return cluster_specs
 
-    def create_compute_hostname(self, index):
+    def build_slurm(self, slurm_request, basepath):
+        '''
+        Create a cluster meant to support Slurm.
+        '''
+        self.log.debug('Building cluster of type slurm with request %s' % (slurm_request,))
+        raise NotImplementedError('slurm')
+
+    def create_compute_hostname(self, index, cluster_config):
         '''
         Returns the hostname of a compute node given its index.
 
@@ -267,11 +289,14 @@ class DockerClusterBuilder(object):
         0 -> node001
         1 -> node002
         '''
-        suffix_str = '{0:0%sd}' % str(config.naming('compute_suffix_len'))
-        suffix = suffix_str.format(index + 1)
-        return config.naming('compute_prefix') + suffix
+        name_prefix = cluster_config['compute']['hostname']['prefix']
+        suffix_len = cluster_config['compute']['hostname']['suffix_len']
 
-    def create_node_entry(self, cluster_name, hostname, ip_address, node_type):
+        suffix_str = '{0:0%sd}' % str(suffix_len)
+        suffix = suffix_str.format(index + 1)
+        return name_prefix + suffix
+
+    def create_node_entry(self, cluster_name, hostname, ip_address, image, node_type):
         '''
         Create an entry for node specs. The container name is inferred from the hostname.
         '''
@@ -281,6 +306,7 @@ class DockerClusterBuilder(object):
         return {
             'hostname': hostname,
             'container': container_name,
+            'image': image,
             'ip_address': ip_address,
             'type': node_type
         }
@@ -316,3 +342,16 @@ class DockerClusterFormatterText(object):
         lines.extend(node_lines)
         lines.append('')
         return '\n'.join(lines)
+
+
+def build_cluster_request(args):
+
+    name = args.cluster_name
+    count = int(args.compute_count)
+
+    build_dict = {
+        'simple': ClusterRequestSimple(name, count),
+        'slurm': ClusterRequestSlurm(name, count)
+    }
+
+    return build_dict[args.cluster]

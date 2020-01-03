@@ -4,7 +4,7 @@ services:
 
     {{node.container}}:
         container_name: {{node.container}}
-        image: centos7:ssh
+        image: {{node.image}}
         hostname: {{node.hostname}}
         networks:
             {{network.name}}:

@@ -136,6 +136,10 @@ class ClusterNode(object):
     def container(self):
         return self.docker_container
 
+    @property
+    def image(self):
+        return self.docker_container.image
+
     @classmethod
     def find_for_cluster(cls, cluster_name, docker_network=None):
         if not docker_network:

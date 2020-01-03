@@ -19,13 +19,18 @@ def process_creation(args):
                                                   args.basepath))
 
     # create the request and call factory method
-    cluster_specs = cluster.ClusterRequestSimple(args.cluster_name, int(args.compute_count))
+    cluster_specs = cluster.build_cluster_request(args)
     cluster.create(cluster_specs, args.basepath)
 
 
 def configure_create_parser(create_parser):
     create_parser.add_argument('cluster_name', help='name of the Docker cluster')
     create_parser.add_argument('compute_count', help='number of compute nodes in cluster')
+
+    # optional arguments
+    help_msg = 'cluster type, see configuration file (default: %(default)s)'
+    create_parser.add_argument('-c', '--cluster', default='simple',
+                               help=help_msg)
 
     msg = 'directory where cluster files are created (set to $PWD by script)'
     create_parser.add_argument('--basepath', help=msg)

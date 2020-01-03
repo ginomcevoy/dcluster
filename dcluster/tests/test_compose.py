@@ -24,18 +24,21 @@ class TestClusterComposer(unittest.TestCase):
                 '172.30.0.253': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.253',
                     'type': 'head'
                 },
                 '172.30.0.1': {
                     'hostname': 'node001',
                     'container': 'mycluster-node001',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.1',
                     'type': 'compute'
                 },
                 '172.30.0.2': {
                     'hostname': 'node002',
                     'container': 'mycluster-node002',
+                    'image': 'centos7:ssh',
                     'ip_address': '172.30.0.2',
                     'type': 'compute'
                 }
@@ -51,7 +54,6 @@ class TestClusterComposer(unittest.TestCase):
 
         # when
         result = self.composer.build_definition(cluster_specs, template_filename)
-        print(result)
 
         # then matches a saved file
         expected = self.resources.expected_docker_compose_simple
