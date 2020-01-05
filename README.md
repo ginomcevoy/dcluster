@@ -2,6 +2,13 @@
 
 *Create and manage Docker clusters, optionally run Ansible on the cluster.*
 
+## Requirements
+
+docker-compose
+
+```sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose && chmod +x /usr/bin/docker-compose
+```
+
 ## Running the tests
 
 Run the binary supplied in the source code, requires `pytest`. Note: a development environment is assumed,

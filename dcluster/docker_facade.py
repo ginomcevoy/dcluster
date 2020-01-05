@@ -96,7 +96,7 @@ class DockerNaming:
         try:
             cls.deduce_cluster_name(network)
         except Exception as e:
-            cls.logger().debug('Not a dcluster network: %s' % network.name)
+            cls.logger().debug('Not a dcluster network: %s' % network)
             cls.logger().debug(e)
             return False
 
@@ -110,56 +110,26 @@ class DockerNaming:
         return '-'.join((cluster_name, hostname))
 
 
-class ClusterNode(object):
-    '''
-    Encapsulates docker-specific implementation of a container and its attributes.
-    Assumes it is part of a docker cluster.
-    '''
-
-    def __init__(self, docker_container, docker_network):
-        self.docker_container = docker_container
-        self.docker_network = docker_network
-
-    @property
-    def hostname(self):
-        return self.docker_container.attrs['Config']['Hostname']
-
-    @property
-    def ip_address(self):
-        '''
-        Finds the IP address of a container that corresponds to a specific docker network.
-        '''
-        container_networks = self.docker_container.attrs['NetworkSettings']['Networks']
-        return container_networks[self.docker_network.name]['IPAddress']
-
-    @property
-    def container(self):
-        return self.docker_container
-
-    @property
-    def image(self):
-        return self.docker_container.image
+class DockerContainers:
 
     @classmethod
-    def find_for_cluster(cls, cluster_name, docker_network=None):
-        if not docker_network:
-            docker_network = DockerNetworking.find_network(cluster_name)
+    def hostname(cls, docker_container):
+        return docker_container.attrs['Config']['Hostname']
 
-        # get internal containers
-        client = get_client()
-        all_docker_containers = client.containers.list()
+    @classmethod
+    def ip_address(cls, docker_container, docker_network):
+        container_networks = docker_container.attrs['NetworkSettings']['Networks']
+        return container_networks[docker_network.name]['IPAddress']
 
-        # match the network, create the instances
-        # Finding containers for a network should be as easy as docker_network.containers,
-        # but the API is returning an empty list sometimes...
-        cluster_containers = [
-            ClusterNode(docker_container, docker_network)
-            for docker_container
-            in all_docker_containers
-            if docker_network.name in docker_container.attrs['NetworkSettings']['Networks']
-        ]
+    @classmethod
+    def role(cls, docker_container):
+        labels = docker_container.attrs['Config']['Labels']
+        role = None
+        role_label = 'bull.com.dcluster.role'
+        if role_label in labels:
+            role = labels[role_label]
 
-        return sorted(cluster_containers, key=attrgetter('ip_address'))
+        return role
 
 
 class DockerNetworking:
@@ -226,13 +196,30 @@ class DockerNetworking:
         return ipaddress.ip_network(subnet_str)
 
     @classmethod
-    def create_network(cls, cluster_network):
+    def containers_in_network(cls, docker_network):
+        client = get_client()
+
+        # match the network, create the instances
+        # Finding containers for a network should be as easy as docker_network.containers,
+        # but the API is returning an empty list sometimes...
+        docker_containers = [
+            docker_container
+            for docker_container
+            in client.containers.list()
+            if docker_network.name in docker_container.attrs['NetworkSettings']['Networks']
+        ]
+
+        # return sorted(cluster_nodes, key=attrgetter('ip_address'))
+        return docker_containers
+
+    @classmethod
+    def create_network(cls, planned_network):
         client = get_client()
         try:
             # from docker.models.networks.create() help
-            gateway_ip = cluster_network.gateway_ip()
-            subnet = cluster_network.ip_address()
-            network_name = cluster_network.network_name
+            gateway_ip = planned_network.gateway_ip()
+            subnet = planned_network.ip_address()
+            network_name = planned_network.network_name
             ipam_pool = docker.types.IPAMPool(subnet=subnet, gateway=gateway_ip)
             ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
             docker_network = client.networks.create(network_name,

@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.3'
 services:
 {% for node_ip, node in nodes.items() | sort(attribute='1.hostname') %}
 
@@ -6,6 +6,8 @@ services:
         container_name: {{node.container}}
         image: {{node.image}}
         hostname: {{node.hostname}}
+        labels:
+            bull.com.dcluster.role: {{node.role}}
         networks:
             {{network.name}}:
                 ipv4_address: {{node.ip_address}}
