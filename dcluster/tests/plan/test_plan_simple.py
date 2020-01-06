@@ -1,20 +1,104 @@
+'''
+Unit tests for plan.simple
+'''
+
 import ipaddress
 import unittest
 
-from dcluster.cluster import node
-from dcluster.cluster import simple as simple_cluster
-from dcluster.request import simple as simple_request
+from dcluster import config, networking
 
-from dcluster import networking
+from dcluster.plan import PlannedNode, SimpleCreationRequest
+from dcluster.plan.simple import SimpleClusterPlan
+
+
+def stub_simple_request(cluster_name, compute_count):
+    return SimpleCreationRequest(cluster_name, compute_count, 'simple')
+
+
+def stub_network(subnet_str, cluster_name):
+    subnet = ipaddress.ip_network(subnet_str)
+    return networking.ClusterNetwork(subnet, cluster_name)
+
+
+def stub_cluster_plan(cluster_name='test', subnet_str=u'172.30.0.0/24', compute_count=3):
+    creation_request = stub_simple_request(cluster_name, compute_count)
+    cluster_network = stub_network(subnet_str, cluster_name)
+    simple_config = config.for_cluster('simple')
+
+    return SimpleClusterPlan.create(creation_request, simple_config, cluster_network)
+
+
+class CreateSimpleClusterPlanTest(unittest.TestCase):
+    '''
+    Unit tests for plan.simple.SimpleClusterPlan.create()
+    '''
+
+    def test_create(self):
+        # given
+        creation_request = stub_simple_request('test', 2)
+        simple_config = config.for_cluster('simple')
+        cluster_network = stub_network(u'172.30.0.0/24', 'test')
+
+        # when
+        cluster_plan = SimpleClusterPlan.create(creation_request, simple_config, cluster_network)
+
+        # then
+        result = cluster_plan.as_dict()
+        expected = {
+            'name': 'test',
+            'head': {
+                'hostname': 'head',
+                'image': 'centos7:ssh'
+            },
+            'compute': {
+                'hostname': {
+                    'prefix': 'node',
+                    'suffix_len': 3
+                },
+                'image': 'centos7:ssh'
+            },
+            'network': cluster_network.as_dict(),
+            'template': 'cluster-simple.yml.j2'
+        }
+
+        self.assertEqual(result, expected)
+
+
+class CreateComputeHostname(unittest.TestCase):
+
+    def setUp(self):
+        cluster_name = 'test'
+        subnet_str = u'172.30.0.0/24'
+        compute_count = 3
+        self.cluster_plan = stub_cluster_plan(cluster_name, subnet_str, compute_count)
+
+    def test_hostname_0(self):
+        # given
+        index = 0
+
+        # when
+        result = self.cluster_plan.create_compute_hostname(index)
+
+        # then
+        self.assertEqual(result, 'node001')
+
+    def test_hostname_10(self):
+        # given
+        index = 10
+
+        # when
+        result = self.cluster_plan.create_compute_hostname(index)
+
+        # then
+        self.assertEqual(result, 'node011')
 
 
 class TestBuildSpecs(unittest.TestCase):
     '''
-    Unit tests for cluster.simple.ClusterPlanner.build_specs
+    Unit tests for plan.simple.SimpleClusterPlan.build_specs()
     '''
 
     def setUp(self):
-        self.planner = simple_cluster.SimplePlanner()
         self.maxDiff = None
 
     def test_zero_compute_nodes(self):
@@ -22,18 +106,19 @@ class TestBuildSpecs(unittest.TestCase):
         Cluster without compute nodes, just the head
         '''
         # given
-        compute_nodes = 0
-        cluster_specs_simple = self.create_simple_request('mycluster', compute_nodes)
-        cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
+        cluster_name = 'mycluster'
+        subnet_str = u'172.30.0.0/24'
+        compute_count = 0
+        cluster_plan = stub_cluster_plan(cluster_name, subnet_str, compute_count)
 
         # when
-        result = self.planner.build_specs(cluster_specs_simple, cluster_network)
+        result = cluster_plan.build_specs()
 
         # then
         expected = {
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': node.PlannedNode(
+                '172.30.0.253': PlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
@@ -54,18 +139,19 @@ class TestBuildSpecs(unittest.TestCase):
         Cluster without compute nodes, just the head, small subnet
         '''
         # given
-        compute_nodes = 0
-        cluster_specs_simple = self.create_simple_request('mycluster', compute_nodes)
-        cluster_network = self.stub_network(u'172.30.1.0/25', cluster_specs_simple)
+        cluster_name = 'mycluster'
+        subnet_str = u'172.30.1.0/25'
+        compute_count = 0
+        cluster_plan = stub_cluster_plan(cluster_name, subnet_str, compute_count)
 
         # when
-        result = self.planner.build_specs(cluster_specs_simple, cluster_network)
+        result = cluster_plan.build_specs()
 
         # then
         expected = {
             'name': 'mycluster',
             'nodes': {
-                '172.30.1.125': node.PlannedNode(
+                '172.30.1.125': PlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
@@ -86,24 +172,25 @@ class TestBuildSpecs(unittest.TestCase):
         Cluster with one compute node
         '''
         # given
-        compute_nodes = 1
-        cluster_specs_simple = self.create_simple_request('mycluster', compute_nodes)
-        cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
+        cluster_name = 'mycluster'
+        subnet_str = u'172.30.0.0/24'
+        compute_count = 1
+        cluster_plan = stub_cluster_plan(cluster_name, subnet_str, compute_count)
 
         # when
-        result = self.planner.build_specs(cluster_specs_simple, cluster_network)
+        result = cluster_plan.build_specs()
 
         # then
         expected = {
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': node.PlannedNode(
+                '172.30.0.253': PlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
                     ip_address='172.30.0.253',
                     role='head'),
-                '172.30.0.1': node.PlannedNode(
+                '172.30.0.1': PlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
                     image='centos7:ssh',
@@ -124,36 +211,37 @@ class TestBuildSpecs(unittest.TestCase):
         Cluster with three compute nodes
         '''
         # given
-        compute_nodes = 3
-        cluster_specs_simple = self.create_simple_request('mycluster', compute_nodes)
-        cluster_network = self.stub_network(u'172.30.0.0/24', cluster_specs_simple)
+        cluster_name = 'mycluster'
+        subnet_str = u'172.30.0.0/24'
+        compute_count = 3
+        cluster_plan = stub_cluster_plan(cluster_name, subnet_str, compute_count)
 
         # when
-        result = self.planner.build_specs(cluster_specs_simple, cluster_network)
+        result = cluster_plan.build_specs()
 
         # then
         expected = {
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': node.PlannedNode(
+                '172.30.0.253': PlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
                     ip_address='172.30.0.253',
                     role='head'),
-                '172.30.0.1': node.PlannedNode(
+                '172.30.0.1': PlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
                     image='centos7:ssh',
                     ip_address='172.30.0.1',
                     role='compute'),
-                '172.30.0.2': node.PlannedNode(
+                '172.30.0.2': PlannedNode(
                     hostname='node002',
                     container='mycluster-node002',
                     image='centos7:ssh',
                     ip_address='172.30.0.2',
                     role='compute'),
-                '172.30.0.3': node.PlannedNode(
+                '172.30.0.3': PlannedNode(
                     hostname='node003',
                     container='mycluster-node003',
                     image='centos7:ssh',
@@ -168,10 +256,3 @@ class TestBuildSpecs(unittest.TestCase):
             }
         }
         self.assertEqual(result, expected)
-
-    def create_simple_request(self, name, compute_count):
-        return simple_request.ClusterRequestSimple(name, compute_count, 'simple')
-
-    def stub_network(self, subnet_str, cluster_specs_simple):
-        subnet = ipaddress.ip_network(subnet_str)
-        return networking.ClusterNetwork(subnet, cluster_specs_simple.name)

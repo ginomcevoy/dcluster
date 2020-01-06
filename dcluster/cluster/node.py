@@ -2,9 +2,7 @@ from collections import namedtuple
 from operator import attrgetter
 
 from dcluster.docker_facade import DockerContainers, DockerNetworking
-
-
-PlannedNode = namedtuple('PlannedNode', 'hostname, container, image, ip_address, role')
+from dcluster.plan.simple import PlannedNode
 
 
 def planned_from_docker(docker_container, docker_network):

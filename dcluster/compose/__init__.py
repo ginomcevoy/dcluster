@@ -1,2 +1,0 @@
-class ComposeFailure(Exception):
-    pass

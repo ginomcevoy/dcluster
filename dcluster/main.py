@@ -8,9 +8,11 @@ import sys
 
 # from six.moves import input
 
-from . import config, factory
+from . import config
 
-from .cluster import simple as simple_cluster
+from dcluster.actions import create as create_action
+from dcluster.actions import display as display_action
+from dcluster.actions import manage as manage_action
 
 
 def process_creation(args):
@@ -18,18 +20,9 @@ def process_creation(args):
     log = logging.getLogger()
     log.debug('Got create parameters %s %s %s %s' % (args.cluster_name, args.compute_count,
                                                      args.flavor, args.basepath))
-
-    # create the request and call factory method
-    # cluster_specs = cluster.build_cluster_request(args)
-    # factory.create(cluster_specs, args.basepath)
-
-    request = factory.create_request(args)
-    log.debug(request)
-
-    cluster_plan = factory.create_plan(request)
-    cluster_plan.deploy(args.basepath)
-
-    # print(running_cluster.text_report())
+    creation_request = create_action.interpret_args(args)
+    create_action.create_cluster(creation_request, args.basepath)
+    # display.show_cluster(cluster)
 
 
 def configure_create_parser(create_parser):
@@ -50,13 +43,7 @@ def configure_create_parser(create_parser):
 
 def process_show(args):
 
-    log = logging.getLogger()
-    log.debug('Got show parameter %s' % args.cluster_name)
-
-    cluster = simple_cluster.SimpleCluster.from_docker(args.cluster_name)
-    formatter = simple_cluster.SimpleFormatter()
-    output = cluster.format(formatter)
-    print(output)
+    display_action.show_cluster(args.cluster_name)
 
 
 def configure_show_parser(show_parser):
@@ -70,9 +57,7 @@ def configure_show_parser(show_parser):
 
 
 def process_stop(args):
-
-    cluster = simple_cluster.SimpleCluster.from_docker(args.cluster_name)
-    cluster.stop()
+    manage_action.stop_cluster(args.cluster_name)
 
 
 def configure_stop_parser(stop_parser):
@@ -86,11 +71,7 @@ def configure_stop_parser(stop_parser):
 
 
 def process_ssh(args):
-
-    # docker_cluster = cluster.DockerCluster.from_docker(args.cluster_name)
-    # docker_cluster.ssh_to_node(args.hostname)
-    cluster = simple_cluster.SimpleCluster.from_docker(args.cluster_name)
-    cluster.ssh_to_node(args.hostname)
+    manage_action.ssh(args.cluster_name, args.hostname)
 
 
 def configure_ssh_parser(ssh_parser):
@@ -105,10 +86,7 @@ def configure_ssh_parser(ssh_parser):
 
 
 def process_list(args):
-
-    # cluster_list = cluster.DockerCluster.list_all()
-    cluster_list = simple_cluster.SimpleCluster.list_all()
-    print('\n'.join(cluster_list))
+    display_action.list_clusters()
 
 
 def configure_list_parser(list_parser):
@@ -119,9 +97,7 @@ def configure_list_parser(list_parser):
 
 
 def process_rm(args):
-
-    cluster = simple_cluster.SimpleCluster.from_docker(args.cluster_name)
-    cluster.remove()
+    manage_action.remove_cluster(args.cluster_name)
 
 
 def configure_rm_parser(rm_parser):

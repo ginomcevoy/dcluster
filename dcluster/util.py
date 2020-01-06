@@ -2,6 +2,7 @@
 Useful misc functions
 '''
 
+import copy
 import collections
 import importlib
 import os
@@ -44,3 +45,26 @@ def create_dir_dont_complain(directory):
     except OSError:
         if not os.path.isdir(directory):
             raise
+
+
+def defensive_copy(original_dict):
+    return copy.deepcopy(original_dict)
+
+
+def defensive_merge(source_dict, target_dict):
+    '''
+    Updates target_dict with source_dict, but it does not let target_dict be modified
+    by later modifications of source_dict elements. It also does not modify source_dict.
+    Uses defensive_copy.
+    '''
+    source_copy = defensive_copy(source_dict)
+    target_dict.update(source_copy)
+    return target_dict
+
+
+def defensive_subset(source_dict, keys):
+    '''
+    Subsets a dictionary with the given keys. The new dictionary is independent of the original.
+    '''
+    subset = {key: source_dict[key] for key in keys if key in source_dict}
+    return defensive_copy(subset)

@@ -2,22 +2,21 @@ import collections
 import unittest
 
 from dcluster import config
-from dcluster.compose import simple as simple_compose
+from dcluster.cluster import render
 
 from dcluster.tests import test_resources
 
 
-class TestClusterComposerSimple(unittest.TestCase):
+class TestRendererSimple(unittest.TestCase):
 
     def setUp(self):
         self.resources = test_resources.ResourcesForTest()
         self.maxDiff = None
 
         templates_dir = config.paths('templates')
-        print(templates_dir)
-        self.composer = simple_compose.ClusterComposerSimple('', templates_dir)
+        self.renderer = render.SimpleRenderer(templates_dir)
 
-    def test_build_definition(self):
+    def test_render(self):
         # given a cluster specification
         cluster_specs = {
             'nodes': collections.OrderedDict({
@@ -53,7 +52,7 @@ class TestClusterComposerSimple(unittest.TestCase):
         template_filename = 'cluster-simple.yml.j2'
 
         # when
-        result = self.composer.build_definition(cluster_specs, template_filename)
+        result = self.renderer.render_blueprint(cluster_specs, template_filename)
 
         # then matches a saved file
         expected = self.resources.expected_docker_compose_simple

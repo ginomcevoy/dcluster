@@ -128,7 +128,7 @@ def paths(key):
     return get_config()['paths'][key]
 
 
-def cluster(key):
+def for_cluster(key):
     '''
     Configuration sub-element for cluster properties.
     '''
@@ -141,4 +141,4 @@ if __name__ == '__main__':
     pprint.pprint(get_config())
 
     print('*** SIMPLE ***')
-    pprint.pprint(cluster('simple'))
+    pprint.pprint(for_cluster('simple'))
