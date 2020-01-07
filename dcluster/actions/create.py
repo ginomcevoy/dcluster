@@ -10,7 +10,8 @@ def interpret_args(args):
     flavor = args.flavor
     count = int(args.compute_count)
     by_flavor = {
-        'simple': plan.SimpleCreationRequest(cluster_name, count, flavor)
+        'simple': plan.SimpleCreationRequest(cluster_name, count, flavor),
+        'slurm': plan.SimpleCreationRequest(cluster_name, count, flavor)
     }
     return by_flavor[flavor]
 
@@ -20,7 +21,8 @@ def create_cluster(creation_request, basepath):
     Creates a new cluster based on a creation request, it should at least have the flavor.
     '''
     create_by_flavor = {
-        'simple': create_simple_cluster
+        'simple': create_simple_cluster,
+        'slurm': create_simple_cluster
     }
     return create_by_flavor[creation_request.flavor](creation_request, basepath)
 
@@ -50,3 +52,4 @@ def create_simple_cluster(creation_request, basepath):
 
     # show newly created
     display.show_cluster(creation_request.name)
+

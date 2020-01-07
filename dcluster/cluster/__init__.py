@@ -1,15 +1,15 @@
 from dcluster import config
 
 from .deploy import DockerComposeDeployer
-from .render import SimpleRenderer
+from .render import JinjaRenderer
 
 
 def get_renderer(creation_request):
     '''
     '''
-    # only simple for now
+    # only one type for now
     templates_dir = config.paths('templates')
-    return SimpleRenderer(templates_dir)
+    return JinjaRenderer(templates_dir)
 
 
 __all__ = ['DockerComposeDeployer']

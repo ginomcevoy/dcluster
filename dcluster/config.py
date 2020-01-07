@@ -132,7 +132,20 @@ def for_cluster(key):
     '''
     Configuration sub-element for cluster properties.
     '''
-    return get_config()['clusters'][key]
+    # read YAML
+    cluster_config = get_config()['clusters'][key]
+
+    # check if the cluster config extends another
+    if 'extend' in cluster_config:
+
+        # read the parent and merge
+        parent_config = get_config()['clusters'][cluster_config['extend']]
+        cluster_config = util.update_recursively(parent_config, cluster_config)
+
+        # no need anymore
+        del cluster_config['extend']
+
+    return cluster_config
 
 
 if __name__ == '__main__':
@@ -142,3 +155,6 @@ if __name__ == '__main__':
 
     print('*** SIMPLE ***')
     pprint.pprint(for_cluster('simple'))
+
+    print('*** SLURM ***')
+    pprint.pprint(for_cluster('slurm'))

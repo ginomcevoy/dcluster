@@ -94,9 +94,7 @@ class DeployedCluster(simple_plan.SimpleClusterBlueprint, RunningClusterMixin):
             }
         }
 
-        template = config.for_cluster('simple')['template']  # eww
-
-        return DeployedCluster(cluster_network, partial_cluster_specs, template)
+        return DeployedCluster(cluster_network, partial_cluster_specs)
 
     @classmethod
     def list_all(cls):

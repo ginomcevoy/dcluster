@@ -3,7 +3,7 @@ import jinja2
 from dcluster import config, logger
 
 
-class SimpleRenderer(logger.LoggerMixin):
+class JinjaRenderer(logger.LoggerMixin):
 
     def __init__(self, templates_dir):
         self.templates_dir = templates_dir

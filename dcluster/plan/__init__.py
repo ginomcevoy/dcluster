@@ -3,7 +3,7 @@ from collections import namedtuple
 
 SimpleCreationRequest = namedtuple('SimpleCreationRequest', ['name', 'compute_count', 'flavor'])
 
-PlannedNode = namedtuple('PlannedNode', 'hostname, container, image, ip_address, role')
+SimplePlannedNode = namedtuple('SimplePlannedNode', 'hostname, container, image, ip_address, role')
 
 # after plannednode to avoid circular dep
 from .simple import SimpleClusterPlan

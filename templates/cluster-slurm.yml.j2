@@ -1,0 +1,34 @@
+version: '3.3'
+services:
+{% for node_ip, node in nodes.items() | sort(attribute='1.hostname') %}
+
+    {{node.container}}:
+        container_name: {{node.container}}
+        image: {{node.image}}
+        hostname: {{node.hostname}}
+        labels:
+            bull.com.dcluster.role: {{node.role}}
+        networks:
+            {{network.name}}:
+                ipv4_address: {{node.ip_address}}
+        extra_hosts:
+{% for node_ip, extra_host in nodes.items() | sort(attribute='1.hostname') %}
+            {{extra_host.hostname}}: {{extra_host.ip_address}}
+{% endfor %}
+            gateway: {{network.gateway_ip}}
+        volumes:
+{% for node_volume in node.volumes %}
+            - {{node_volume}}
+{% endfor %}
+{{ node.static_text }}
+{% endfor %}
+
+networks:
+  {{network.name}}:
+    external:
+        name: {{network.name}}
+
+volumes:
+{% for volume_entry in volumes %}
+    {{ volume_entry }}:
+{% endfor %}

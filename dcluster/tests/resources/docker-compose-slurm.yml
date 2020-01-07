@@ -1,10 +1,12 @@
-version: '3.1'
+version: '3.3'
 services:
 
     mycluster-head:
         container_name: mycluster-head
         image: centos7:ssh
         hostname: head
+        labels:
+            bull.com.dcluster.role: head
         networks:
             dcluster-mycluster:
                 ipv4_address: 172.30.0.253
@@ -13,11 +15,30 @@ services:
             node001: 172.30.0.1
             node002: 172.30.0.2
             gateway: 172.30.0.254
+        volumes:
+            - /home:/home
+            - /opt/intel:/opt/intel
+            - /srv/shared:/srv/dcluster/shared
+            - var_lib_mysql:/var/lib/mysql
+            - etc_munge:/etc/munge
+            - etc_slurm:/etc/slurm
+            - slurm_jobdir:/data
+            - var_log_slurm:/var/log/slurm
+        environment:
+            MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+            MYSQL_DATABASE: slurm_acct_db
+            MYSQL_USER: slurm
+            MYSQL_PASSWORD: password
+        expose:
+            - '6817'
+            - '6819'
 
     mycluster-node001:
         container_name: mycluster-node001
         image: centos7:ssh
         hostname: node001
+        labels:
+            bull.com.dcluster.role: compute
         networks:
             dcluster-mycluster:
                 ipv4_address: 172.30.0.1
@@ -26,11 +47,24 @@ services:
             node001: 172.30.0.1
             node002: 172.30.0.2
             gateway: 172.30.0.254
+        volumes:
+            - /home:/home
+            - /opt/intel:/opt/intel
+            - /srv/shared:/srv/dcluster/shared
+            - etc_munge:/etc/munge
+            - etc_slurm:/etc/slurm
+            - slurm_jobdir:/data
+            - var_log_slurm:/var/log/slurm
+        expose:
+            - '6818'
+        shm_size: 4g
 
     mycluster-node002:
         container_name: mycluster-node002
         image: centos7:ssh
         hostname: node002
+        labels:
+            bull.com.dcluster.role: compute
         networks:
             dcluster-mycluster:
                 ipv4_address: 172.30.0.2
@@ -39,8 +73,26 @@ services:
             node001: 172.30.0.1
             node002: 172.30.0.2
             gateway: 172.30.0.254
+        volumes:
+            - /home:/home
+            - /opt/intel:/opt/intel
+            - /srv/shared:/srv/dcluster/shared
+            - etc_munge:/etc/munge
+            - etc_slurm:/etc/slurm
+            - slurm_jobdir:/data
+            - var_log_slurm:/var/log/slurm
+        expose:
+            - '6818'
+        shm_size: 4g
 
 networks:
   dcluster-mycluster:
     external:
         name: dcluster-mycluster
+
+volumes:
+    etc_munge:
+    etc_slurm:
+    slurm_jobdir:
+    var_lib_mysql:
+    var_log_slurm:

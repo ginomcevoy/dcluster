@@ -2,11 +2,11 @@ from collections import namedtuple
 from operator import attrgetter
 
 from dcluster.docker_facade import DockerContainers, DockerNetworking
-from dcluster.plan.simple import PlannedNode
+from dcluster.plan.simple import SimplePlannedNode
 
 
 def planned_from_docker(docker_container, docker_network):
-    return PlannedNode(
+    return SimplePlannedNode(
         hostname=DockerContainers.hostname(docker_container),
         container=docker_container.name,
         image=docker_container.image.tags[0],
@@ -21,7 +21,7 @@ class DeployedNode():
     Encapsulates docker-specific implementation of a container and its attributes.
     Assumes it is part of a docker cluster.
 
-    TODO extend PlannedNode like this
+    TODO extend SimplePlannedNode like this
     https://stackoverflow.com/questions/42385916/inheriting-from-a-namedtuple-base-class-python
 
     but ONLY if it is worth it...

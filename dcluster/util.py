@@ -9,7 +9,7 @@ import os
 import sys
 
 
-def update_recursively(d, u):
+def update_recursively(d, u, unique={}):
     # https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
 
     # upgraded to python3-compatible code, seems OK
@@ -18,9 +18,11 @@ def update_recursively(d, u):
 
     for k, v in u.items():
         if isinstance(v, collections.Mapping):
-            d[k] = update_recursively(d.get(k, {}), v)
+            d[k] = update_recursively(d.get(k, {}), v, unique)
+
         else:
             d[k] = v
+
     return d
 
 
@@ -68,3 +70,13 @@ def defensive_subset(source_dict, keys):
     '''
     subset = {key: source_dict[key] for key in keys if key in source_dict}
     return defensive_copy(subset)
+
+
+def defensive_subtraction(source_dict, keys):
+    '''
+    Subsets a dictionary with the keys that are not in keys.
+    The new dictionary is independent of the original.
+    '''
+    all_keys = set(source_dict.keys())
+    remaining_keys = all_keys.difference(set(keys))
+    return defensive_subset(source_dict, remaining_keys)

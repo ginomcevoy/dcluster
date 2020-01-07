@@ -33,6 +33,14 @@ class ResourcesForTest(object):
             expected_contents = ef.read()
         return expected_contents
 
+    @property
+    def expected_docker_compose_slurm(self):
+        expected_filename = os.path.join(self.resources_dir, 'docker-compose-slurm.yml')
+        expected_contents = None
+        with open(expected_filename, 'r') as ef:
+            expected_contents = ef.read()
+        return expected_contents
+
 
 if __name__ == '__main__':
     tr = ResourcesForTest()

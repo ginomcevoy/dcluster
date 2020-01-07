@@ -36,6 +36,7 @@ clusters:
         - '/opt/intel:/opt/intel'
         - '/srv/shared:/srv/dcluster/shared'
       docker_mounts:
+        - 'var_lib_mysql:/var/lib/mysql'
         - 'etc_munge:/etc/munge'
         - 'etc_slurm:/etc/slurm'
         - 'slurm_jobdir:/data'
