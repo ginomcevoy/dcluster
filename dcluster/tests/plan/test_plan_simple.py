@@ -1,73 +1,13 @@
 '''
 Unit tests for plan.simple
 '''
-
-import ipaddress
 import unittest
-from collections import OrderedDict
 
-from dcluster import config, networking
+from dcluster.plan import SimplePlannedNode
+from dcluster.plan.simple import SimpleClusterPlan
 
-from dcluster.plan import SimplePlannedNode, SimpleCreationRequest
-from dcluster.plan.simple import SimpleClusterPlan, SimpleNodePlanner, simple_plan_data
-
-
-def simple_request_stub(cluster_name, compute_count):
-    return SimpleCreationRequest(cluster_name, compute_count, 'simple')
-
-
-def network_stub(subnet_str, cluster_name):
-    subnet = ipaddress.ip_network(subnet_str)
-    return networking.ClusterNetwork(subnet, cluster_name)
-
-
-def simple_plan_data_stub(cluster_name, compute_count):
-    simple_config = config.for_cluster('simple')
-    request = simple_request_stub(cluster_name, compute_count)
-    return simple_plan_data(simple_config, request)
-
-
-def simple_node_planner_stub(cluster_name, subnet_str):
-    network = network_stub(subnet_str, cluster_name)
-    return SimpleNodePlanner(network)
-
-
-def simple_cluster_plan_stub(cluster_name='test', subnet_str=u'172.30.0.0/24', compute_count=3):
-    creation_request = simple_request_stub(cluster_name, compute_count)
-    cluster_network = network_stub(subnet_str, cluster_name)
-    simple_config = config.for_cluster('simple')
-
-    return SimpleClusterPlan.create(creation_request, simple_config, cluster_network)
-
-
-class CreateComputeHostname(unittest.TestCase):
-
-    def setUp(self):
-        cluster_name = 'test'
-        subnet_str = u'172.30.0.0/24'
-        compute_count = 3
-        self.plan_data = simple_plan_data_stub(cluster_name, compute_count)
-        self.node_planner = simple_node_planner_stub(cluster_name, subnet_str)
-
-    def test_hostname_0(self):
-        # given
-        index = 0
-
-        # when
-        result = self.node_planner.create_compute_hostname(self.plan_data, index)
-
-        # then
-        self.assertEqual(result, 'node001')
-
-    def test_hostname_10(self):
-        # given
-        index = 10
-
-        # when
-        result = self.node_planner.create_compute_hostname(self.plan_data, index)
-
-        # then
-        self.assertEqual(result, 'node011')
+from . import base_stubs
+from . import simple_stubs as stubs
 
 
 class TestSimpleBuildSpecs(unittest.TestCase):
@@ -86,7 +26,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 0
-        cluster_plan = simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()
@@ -121,7 +61,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.1.0/25'
         compute_count = 0
-        cluster_plan = simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()
@@ -156,7 +96,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 1
-        cluster_plan = simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()
@@ -197,7 +137,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 3
-        cluster_plan = simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()
@@ -250,9 +190,9 @@ class CreateSimpleClusterPlanTest(unittest.TestCase):
 
     def test_create(self):
         # given
-        creation_request = simple_request_stub('test', 2)
-        simple_config = config.for_cluster('simple')
-        cluster_network = network_stub(u'172.30.0.0/24', 'test')
+        creation_request = stubs.simple_request_stub('test', 2)
+        simple_config = stubs.simple_config()
+        cluster_network = base_stubs.network_stub('test', u'172.30.0.0/24')
 
         # when
         cluster_plan = SimpleClusterPlan.create(creation_request, simple_config, cluster_network)
@@ -296,7 +236,7 @@ class ExtendedBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 2
-        cluster_plan = simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()

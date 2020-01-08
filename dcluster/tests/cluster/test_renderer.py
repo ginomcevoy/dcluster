@@ -1,4 +1,3 @@
-import collections
 import unittest
 
 from dcluster import config
@@ -19,7 +18,7 @@ class TestJinjaRenderer(unittest.TestCase):
     def test_simple_render(self):
         # given a simple cluster specification
         cluster_specs = {
-            'nodes': collections.OrderedDict({
+            'nodes': {
                 '172.30.0.253': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
@@ -41,7 +40,7 @@ class TestJinjaRenderer(unittest.TestCase):
                     'ip_address': '172.30.0.2',
                     'role': 'compute'
                 }
-            }),
+            },
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.0.0/24',
@@ -61,11 +60,11 @@ class TestJinjaRenderer(unittest.TestCase):
     def test_slurm_render(self):
         # given a cluster specification for Slurm
         cluster_specs = {
-            'nodes': collections.OrderedDict({
+            'nodes': {
                 '172.30.0.253': {
                     'hostname': 'head',
                     'container': 'mycluster-head',
-                    'image': 'centos7:ssh',
+                    'image': 'centos7:slurmctld',
                     'ip_address': '172.30.0.253',
                     'role': 'head',
                     'volumes': [
@@ -90,7 +89,7 @@ class TestJinjaRenderer(unittest.TestCase):
                 '172.30.0.1': {
                     'hostname': 'node001',
                     'container': 'mycluster-node001',
-                    'image': 'centos7:ssh',
+                    'image': 'centos7:slurmd',
                     'ip_address': '172.30.0.1',
                     'role': 'compute',
                     'volumes': [
@@ -109,7 +108,7 @@ class TestJinjaRenderer(unittest.TestCase):
                 '172.30.0.2': {
                     'hostname': 'node002',
                     'container': 'mycluster-node002',
-                    'image': 'centos7:ssh',
+                    'image': 'centos7:slurmd',
                     'ip_address': '172.30.0.2',
                     'role': 'compute',
                     'volumes': [
@@ -125,7 +124,7 @@ class TestJinjaRenderer(unittest.TestCase):
             - '6818'
         shm_size: 4g'''
                 }
-            }),
+            },
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.0.0/24',

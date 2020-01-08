@@ -138,8 +138,11 @@ def for_cluster(key):
     # check if the cluster config extends another
     if 'extend' in cluster_config:
 
-        # read the parent and merge
+        # read the parent, but don't modify it!
         parent_config = get_config()['clusters'][cluster_config['extend']]
+        parent_config = util.defensive_copy(parent_config)
+
+        # merge parent with current config
         cluster_config = util.update_recursively(parent_config, cluster_config)
 
         # no need anymore

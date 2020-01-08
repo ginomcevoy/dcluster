@@ -16,10 +16,12 @@ services:
             {{extra_host.hostname}}: {{extra_host.ip_address}}
 {% endfor %}
             gateway: {{network.gateway_ip}}
+{% if node.volumes %}
         volumes:
 {% for node_volume in node.volumes %}
             - {{node_volume}}
 {% endfor %}
+{% endif %}
 {{ node.static_text }}
 {% endfor %}
 
@@ -28,7 +30,9 @@ networks:
     external:
         name: {{network.name}}
 
+{% if volumes %}
 volumes:
 {% for volume_entry in volumes %}
     {{ volume_entry }}:
 {% endfor %}
+{% endif %}
