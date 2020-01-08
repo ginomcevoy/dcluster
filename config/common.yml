@@ -29,13 +29,15 @@ clusters:
 
     extend: 'simple'
 
+    template: cluster-slurm.yml.j2
+
     head:
       image: 'centos7:slurmctld'
-      shared_mounts:
+      shared_volumes:
         - '/home:/home'
         - '/opt/intel:/opt/intel'
         - '/srv/shared:/srv/dcluster/shared'
-      docker_mounts:
+      docker_volumes:
         - 'var_lib_mysql:/var/lib/mysql'
         - 'etc_munge:/etc/munge'
         - 'etc_slurm:/etc/slurm'
@@ -43,21 +45,21 @@ clusters:
         - 'var_log_slurm:/var/log/slurm'
       static:
         environment:
-          MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
-          MYSQL_DATABASE: 'slurm_acct_db'
-          MYSQL_USER: 'slurm'
-          MYSQL_PASSWORD: 'password'
+          MYSQL_DATABASE: "slurm_acct_db"
+          MYSQL_PASSWORD: "password"
+          MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+          MYSQL_USER: "slurm"
         expose:
             - '6817'
             - '6819'
 
     compute:
       image: 'centos7:slurm'
-      shared_mounts:
+      shared_volumes:
         - '/home:/home'
         - '/opt/intel:/opt/intel'
         - '/srv/shared:/srv/dcluster/shared'
-      docker_mounts:
+      docker_volumes:
         - 'etc_munge:/etc/munge'
         - 'etc_slurm:/etc/slurm'
         - 'slurm_jobdir:/data'

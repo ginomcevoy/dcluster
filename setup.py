@@ -14,7 +14,7 @@ setuptools.setup(
     description="Create and manage Docker clusters, optionally run Ansible on the cluster.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com",
+    url="https://github.com/ginomcevoy/dcluster.git",
     # packages=['dcluster', 'dcluster.tests'],
     packages=setuptools.find_packages(),
     include_package_data=True,

@@ -1,4 +1,6 @@
 %changelog
+* Wed Jan 7 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.4-1
+- Supports for Slurm cluster
 * Mon Jan 6 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.3-1
 - Refactor existing behavior into submodules, prepare for Slurm
 * Thu Jan 2 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.2-1

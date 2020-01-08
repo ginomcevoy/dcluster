@@ -70,13 +70,13 @@ Ax explained in github ('get commandline instructions'):
 
 ```bash
 git checkout -b <git_name>-<feature_branch> master
-git pull https://github.com/<git_name>/python-runitmockit.git <feature_branch> --no-commit --ff-only
+git pull https://github.com/ginomcevoy/dcluster.git <feature_branch> --no-commit --ff-only
 ```
 
 if the second step does not work, do a normal auto-merge (do not use **rebase**!):
 
 ```bash
-git pull https://github.com/<git_name>/python-runitmockit.git <feature_branch> --no-commit
+git pull https://github.com/ginomcevoy/dcluster.git <feature_branch> --no-commit
 ```
 
 Finally review the changes, possibly perform some modifications, and commit.

@@ -3,7 +3,7 @@ services:
 
     mycluster-head:
         container_name: mycluster-head
-        image: centos7:ssh
+        image: centos7:slurmctld
         hostname: head
         labels:
             bull.com.dcluster.role: head
@@ -35,7 +35,7 @@ services:
 
     mycluster-node001:
         container_name: mycluster-node001
-        image: centos7:ssh
+        image: centos7:slurmd
         hostname: node001
         labels:
             bull.com.dcluster.role: compute
@@ -61,7 +61,7 @@ services:
 
     mycluster-node002:
         container_name: mycluster-node002
-        image: centos7:ssh
+        image: centos7:slurmd
         hostname: node002
         labels:
             bull.com.dcluster.role: compute

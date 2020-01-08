@@ -12,28 +12,33 @@ def simple_plan_data(simple_config, creation_request):
 
 
 class SimpleNodePlanner(object):
+    '''
+    Creates node entries for the ClusterBlueprint (cluster_specs dictionary).
+    Requires a cluster plan that already has all the necessary information (config + request)
+    to design the cluster specifications.
+    '''
 
     def __init__(self, cluster_network):
         self.cluster_network = cluster_network
 
-    def create_head_entry(self, plan_data):
+    def create_head_plan(self, plan_data):
         head_ip = self.cluster_network.head_ip()
         head_hostname = plan_data['head']['hostname']
         head_image = plan_data['head']['image']
 
-        head_entry = self.create_node_entry(plan_data['name'], head_hostname, head_ip,
-                                            head_image, 'head')
+        head_plan = self.create_node_plan(plan_data['name'], head_hostname, head_ip,
+                                          head_image, 'head')
 
-        return head_entry
+        return head_plan
 
-    def create_compute_entry(self, plan_data, index, compute_ip):
+    def create_compute_plan(self, plan_data, index, compute_ip):
         compute_hostname = self.create_compute_hostname(plan_data, index)
         compute_image = plan_data['compute']['image']
-        compute_entry = self.create_node_entry(plan_data['name'], compute_hostname, compute_ip,
-                                               compute_image, 'compute')
-        return compute_entry
+        compute_plan = self.create_node_plan(plan_data['name'], compute_hostname, compute_ip,
+                                             compute_image, 'compute')
+        return compute_plan
 
-    def create_node_entry(self, cluster_name, hostname, ip_address, image, role):
+    def create_node_plan(self, cluster_name, hostname, ip_address, image, role):
         container_name = self.create_container_name(cluster_name, hostname)
         return SimplePlannedNode(hostname, container_name, image, ip_address, role)
 
@@ -140,7 +145,7 @@ class SimpleClusterPlan(logger.LoggerMixin):
         # head_hostname = self.head['hostname']
         # head_image = self.head['image']
 
-        # head_entry = self.create_node_entry(self.name, head_hostname, head_ip,
+        # head_plan = self.create_node_plan(self.name, head_hostname, head_ip,
         #                                     head_image, 'head')
 
         # # begin from existing entries, include head node spec
@@ -150,7 +155,7 @@ class SimpleClusterPlan(logger.LoggerMixin):
 
         # # always have a head and the network
         # cluster_specs['network'] = self.cluster_network.as_dict()
-        # cluster_specs['nodes'] = {head_ip: head_entry}
+        # cluster_specs['nodes'] = {head_ip: head_plan}
 
         # # add compute nodes, should raise NetworkSubnetTooSmall if there are not enough IPs
         # compute_ips = self.cluster_network.compute_ips(self.compute_count)
@@ -159,9 +164,9 @@ class SimpleClusterPlan(logger.LoggerMixin):
         # for index, compute_ip in enumerate(compute_ips):
 
         #     compute_hostname = self.create_compute_hostname(index)
-        #     node_entry = self.create_node_entry(self.name, compute_hostname,
+        #     node_plan = self.create_node_plan(self.name, compute_hostname,
         #                                         compute_ip, compute_image, 'compute')
-        #     cluster_specs['nodes'][compute_ip] = node_entry
+        #     cluster_specs['nodes'][compute_ip] = node_plan
 
         # return cluster_specs
 
@@ -174,14 +179,14 @@ class SimpleClusterPlan(logger.LoggerMixin):
         cluster_specs['network'] = cluster_network.as_dict()
 
         # always have a head
-        head_entry = node_planner.create_head_entry(plan_data)
-        cluster_specs['nodes'] = {head_entry.ip_address: head_entry}
+        head_plan = node_planner.create_head_plan(plan_data)
+        cluster_specs['nodes'] = {head_plan.ip_address: head_plan}
 
         # create <compute_count> nodes
         compute_ips = cluster_network.compute_ips(plan_data['compute_count'])
         for index, compute_ip in enumerate(compute_ips):
-            compute_entry = node_planner.create_compute_entry(plan_data, index, compute_ip)
-            cluster_specs['nodes'][compute_entry.ip_address] = compute_entry
+            compute_plan = node_planner.create_compute_plan(plan_data, index, compute_ip)
+            cluster_specs['nodes'][compute_plan.ip_address] = compute_plan
 
         return cluster_specs
 
