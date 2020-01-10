@@ -1,0 +1,56 @@
+version: '3.3'
+services:
+
+    mycluster-head:
+        container_name: mycluster-head
+        image: centos7:slurmctld
+        hostname: head
+        labels:
+            bull.com.dcluster.role: head
+        networks:
+            dcluster-mycluster:
+                ipv4_address: 172.30.0.253
+        extra_hosts:
+            head: 172.30.0.253
+            node001: 172.30.0.1
+            node002: 172.30.0.2
+            gateway: 172.30.0.254
+
+
+    mycluster-node001:
+        container_name: mycluster-node001
+        image: centos7:slurmd
+        hostname: node001
+        labels:
+            bull.com.dcluster.role: compute
+        networks:
+            dcluster-mycluster:
+                ipv4_address: 172.30.0.1
+        extra_hosts:
+            head: 172.30.0.253
+            node001: 172.30.0.1
+            node002: 172.30.0.2
+            gateway: 172.30.0.254
+
+
+    mycluster-node002:
+        container_name: mycluster-node002
+        image: centos7:slurmd
+        hostname: node002
+        labels:
+            bull.com.dcluster.role: compute
+        networks:
+            dcluster-mycluster:
+                ipv4_address: 172.30.0.2
+        extra_hosts:
+            head: 172.30.0.253
+            node001: 172.30.0.1
+            node002: 172.30.0.2
+            gateway: 172.30.0.254
+
+
+networks:
+  dcluster-mycluster:
+    external:
+        name: dcluster-mycluster
+

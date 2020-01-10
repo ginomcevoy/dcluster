@@ -27,15 +27,22 @@ class ResourcesForTest(object):
 
     @property
     def expected_docker_compose_simple(self):
-        expected_filename = os.path.join(self.resources_dir, 'docker-compose-simple.yml')
-        expected_contents = None
-        with open(expected_filename, 'r') as ef:
-            expected_contents = ef.read()
-        return expected_contents
+        return self.expected_text('docker-compose-simple.yml')
 
     @property
     def expected_docker_compose_slurm(self):
-        expected_filename = os.path.join(self.resources_dir, 'docker-compose-slurm.yml')
+        return self.expected_text('docker-compose-slurm.yml')
+
+    @property
+    def expected_render_extended_simplified(self):
+        return self.expected_text('docker-compose-extended-simplified.yml')
+
+    def expected_text(self, filename, resources_dir=None):
+        if resources_dir is None:
+            # use default value
+            resources_dir = self.resources_dir
+
+        expected_filename = os.path.join(resources_dir, filename)
         expected_contents = None
         with open(expected_filename, 'r') as ef:
             expected_contents = ef.read()

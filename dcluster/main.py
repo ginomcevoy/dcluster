@@ -71,12 +71,12 @@ def configure_stop_parser(stop_parser):
 
 
 def process_ssh(args):
-    manage_action.ssh(args.cluster_name, args.hostname)
+    manage_action.ssh(args)
 
 
 def configure_ssh_parser(ssh_parser):
     ssh_parser.add_argument('cluster_name', help='name of the Docker cluster')
-    ssh_parser.add_argument('hostname', help='hostname of the cluster node')
+    ssh_parser.add_argument('target', help='hostname of the cluster node, can be user@hostname')
 
     # ignored
     ssh_parser.add_argument('--basepath')

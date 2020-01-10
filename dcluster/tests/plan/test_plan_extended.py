@@ -119,7 +119,7 @@ class TestExtendedBuildSpecs(unittest.TestCase):
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
-            'template': 'cluster-slurm.yml.j2',
+            'template': 'cluster-extended.yml.j2',
             'volumes': [
                 'var_lib_mysql',
                 'etc_munge',

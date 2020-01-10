@@ -139,11 +139,53 @@ class TestJinjaRenderer(unittest.TestCase):
                 'var_log_slurm'
             ],
         }
-        template_filename = 'cluster-slurm.yml.j2'
+        template_filename = 'cluster-extended.yml.j2'
 
         # when
         result = self.renderer.render_blueprint(cluster_specs, template_filename)
 
         # then matches a saved file
         expected = self.resources.expected_docker_compose_slurm
+        self.assertEqual(result, expected)
+
+    def test_render_extended_simplified(self):
+        # given a cluster specification for Slurm but without the extended parts
+        cluster_specs = {
+            'nodes': {
+                '172.30.0.253': {
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
+                    'image': 'centos7:slurmctld',
+                    'ip_address': '172.30.0.253',
+                    'role': 'head',
+                },
+                '172.30.0.1': {
+                    'hostname': 'node001',
+                    'container': 'mycluster-node001',
+                    'image': 'centos7:slurmd',
+                    'ip_address': '172.30.0.1',
+                    'role': 'compute',
+                },
+                '172.30.0.2': {
+                    'hostname': 'node002',
+                    'container': 'mycluster-node002',
+                    'image': 'centos7:slurmd',
+                    'ip_address': '172.30.0.2',
+                    'role': 'compute',
+                }
+            },
+            'network': {
+                'name': 'dcluster-mycluster',
+                'address': '172.30.0.0/24',
+                'gateway': 'gateway',
+                'gateway_ip': '172.30.0.254'
+            },
+        }
+        template_filename = 'cluster-extended.yml.j2'
+
+        # when
+        result = self.renderer.render_blueprint(cluster_specs, template_filename)
+
+        # then matches a saved file
+        expected = self.resources.expected_render_extended_simplified
         self.assertEqual(result, expected)

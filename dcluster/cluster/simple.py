@@ -28,17 +28,16 @@ class RunningClusterMixin(logger.LoggerMixin):
 
         self.cluster_network.remove()
 
-    def ssh_to_node(self, hostname):
+    def ssh_to_node(self, username, hostname):
         '''
-        Connect to a cluster node via SSH. Refactor to someplace else, with configuration
-        options, when we have an installer.
+        Connect to a cluster node via SSH.
+        TODO Refactor to someplace else, with configuration options.
         '''
         node = self.node_by_name(hostname)
         ssh_command = '/usr/bin/ssh -o "StrictHostKeyChecking=no" -o "GSSAPIAuthentication=no" \
 -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" %s'
 
-        ssh_user = config.prefs('ssh_user')
-        target = '%s@%s' % (ssh_user, node.ip_address)
+        target = '%s@%s' % (username, node.ip_address)
         full_ssh_command = ssh_command % target
         # subprocess.run(full_ssh_command, shell=True)
         os.system(full_ssh_command)

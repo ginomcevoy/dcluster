@@ -29,7 +29,7 @@ clusters:
 
     extend: 'simple'
 
-    template: cluster-slurm.yml.j2
+    template: cluster-extended.yml.j2
 
     head:
       image: 'centos7:slurmctld'
