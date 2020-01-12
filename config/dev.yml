@@ -2,6 +2,7 @@
 
 paths:
   templates: 'templates'
+  work: $PWD
 
 prefs:
   log_level: DEBUG

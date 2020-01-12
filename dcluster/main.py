@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 Main entry point of dcluster.
 '''
@@ -8,7 +10,7 @@ import sys
 
 # from six.moves import input
 
-from . import config
+from dcluster import config
 
 from dcluster.actions import create as create_action
 from dcluster.actions import display as display_action
@@ -19,9 +21,10 @@ def process_creation(args):
 
     log = logging.getLogger()
     log.debug('Got create parameters %s %s %s %s' % (args.cluster_name, args.compute_count,
-                                                     args.flavor, args.basepath))
-    creation_request = create_action.interpret_args(args)
-    create_action.create_cluster(creation_request, args.basepath)
+                                                     args.flavor, args.workpath))
+
+    create_action.create_cluster(args)
+
     # display.show_cluster(cluster)
 
 
@@ -34,8 +37,8 @@ def configure_create_parser(create_parser):
     create_parser.add_argument('-f', '--flavor', default='simple',
                                help=help_msg)
 
-    msg = 'directory where cluster files are created (set to $PWD by script)'
-    create_parser.add_argument('--basepath', help=msg)
+    msg = 'directory where cluster files are created (default: %(default)s)'
+    create_parser.add_argument('--workpath', help=msg, default=config.paths('work'))
 
     # default function to call
     create_parser.set_defaults(func=process_creation)
@@ -49,9 +52,6 @@ def process_show(args):
 def configure_show_parser(show_parser):
     show_parser.add_argument('cluster_name', help='name of the Docker cluster')
 
-    # ignored
-    show_parser.add_argument('--basepath')
-
     # default function to call
     show_parser.set_defaults(func=process_show)
 
@@ -62,9 +62,6 @@ def process_stop(args):
 
 def configure_stop_parser(stop_parser):
     stop_parser.add_argument('cluster_name', help='name of the Docker cluster')
-
-    # ignored
-    stop_parser.add_argument('--basepath')
 
     # default function to call
     stop_parser.set_defaults(func=process_stop)
@@ -78,9 +75,6 @@ def configure_ssh_parser(ssh_parser):
     ssh_parser.add_argument('cluster_name', help='name of the Docker cluster')
     ssh_parser.add_argument('target', help='hostname of the cluster node, can be user@hostname')
 
-    # ignored
-    ssh_parser.add_argument('--basepath')
-
     # default function to call
     ssh_parser.set_defaults(func=process_ssh)
 
@@ -90,9 +84,6 @@ def process_list(args):
 
 
 def configure_list_parser(list_parser):
-    # ignored
-    list_parser.add_argument('--basepath')
-
     list_parser.set_defaults(func=process_list)
 
 
@@ -102,9 +93,6 @@ def process_rm(args):
 
 def configure_rm_parser(rm_parser):
     rm_parser.add_argument('cluster_name', help='name of the Docker cluster')
-
-    # ignored
-    rm_parser.add_argument('--basepath')
 
     # default function to call
     rm_parser.set_defaults(func=process_rm)
@@ -137,12 +125,12 @@ def processRequest():
     configure_list_parser(list_parser)
 
     # show help if no subcommand is given
-    # assume 'basepath <basepath>' is always passed (by script)
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(1)
 
     # activate parsing and sub-command function call
+    # note: we expect args.func(args) to succeed, since we are making sure we have subcommands
     args = parser.parse_args()
     args.func(args)
 

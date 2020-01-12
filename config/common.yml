@@ -6,8 +6,12 @@ networking:
     prefix: 'dcluster'
     gateway: 'gateway'
 
+paths:
+  ssh_public_key: $HOME/.ssh/id_rsa.pub
+
 prefs:
-  ssh_user: 'ci-user'
+  ssh_user: 'root'
+  inject_ssh_public_key_to_root: True
 
 clusters:
   

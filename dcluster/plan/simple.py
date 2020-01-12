@@ -1,6 +1,7 @@
 from operator import attrgetter
 
-from dcluster import logger, util
+from dcluster import logger
+from dcluster.util import collection as collection_util
 from dcluster.docker_facade import DockerNaming
 
 from . import SimplePlannedNode
@@ -8,7 +9,7 @@ from . import SimplePlannedNode
 
 def simple_plan_data(simple_config, creation_request):
     # keep merge simple for now
-    return util.defensive_merge(simple_config, creation_request._asdict())
+    return collection_util.defensive_merge(simple_config, creation_request._asdict())
 
 
 class SimpleNodePlanner(object):
@@ -83,7 +84,7 @@ class SimpleClusterPlan(logger.LoggerMixin):
 
     def __init__(self, cluster_network, plan_data, node_planner):
         self.cluster_network = cluster_network
-        self.plan_data = util.defensive_copy(plan_data)
+        self.plan_data = collection_util.defensive_copy(plan_data)
         self.node_planner = node_planner
 
     def create_blueprints(self):
@@ -151,7 +152,7 @@ class SimpleClusterPlan(logger.LoggerMixin):
         # # begin from existing entries, include head node spec
         # # this allows keeping 'extra' entries in the plan
         # undesired_keys = ('head', 'compute', 'compute_count')
-        # cluster_specs = util.defensive_subtraction(self.plan_entries, undesired_keys)
+        # cluster_specs = collection_util.defensive_subtraction(self.plan_entries, undesired_keys)
 
         # # always have a head and the network
         # cluster_specs['network'] = self.cluster_network.as_dict()
@@ -175,7 +176,7 @@ class SimpleClusterPlan(logger.LoggerMixin):
         node_planner = self.node_planner
 
         # initialize with name, template, network
-        cluster_specs = util.defensive_subset(plan_data, ('flavor', 'name', 'template'))
+        cluster_specs = collection_util.defensive_subset(plan_data, ('flavor', 'name', 'template'))
         cluster_specs['network'] = cluster_network.as_dict()
 
         # always have a head
@@ -195,7 +196,7 @@ class SimpleClusterPlan(logger.LoggerMixin):
         Dictionary version of ClusterPlan
         '''
         interesting_keys = ('name', 'head', 'compute', 'template')
-        d = util.defensive_subset(self.plan_data, interesting_keys)
+        d = collection_util.defensive_subset(self.plan_data, interesting_keys)
         d['network'] = self.cluster_network.as_dict()
         return d
 

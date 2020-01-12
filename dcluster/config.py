@@ -3,7 +3,8 @@ import yaml
 
 
 from dcluster import CONFIG_FILE
-from dcluster import util
+from dcluster.util import collection as collection_util
+from dcluster.util import fs as fs_util
 
 
 # Singleton for dcluster configuration
@@ -31,7 +32,7 @@ def create_dev_config():
     dev_only_config = read_config(config_dir, 'dev.yml')
 
     # we don't want to lose key/value pairs in subdictionaries
-    return util.update_recursively(common_config, dev_only_config)
+    return collection_util.update_recursively(common_config, dev_only_config)
 
 
 def create_prod_config():
@@ -45,7 +46,7 @@ def create_prod_config():
     dev_only_config = read_config(config_dir, 'prod.yml')
 
     # we don't want to lose key/value pairs in subdictionaries
-    return util.update_recursively(common_config, dev_only_config)
+    return collection_util.update_recursively(common_config, dev_only_config)
 
 
 def read_deployed_config(config_source, dcluster_root):
@@ -75,7 +76,7 @@ def config_dir_from_source():
     Calculate <dcluster_source>/config directory using the fact that it is one level above
     this module, outside the dcluster package (dcluster/config.py -> dcluster/../config)
     '''
-    dir_of_this_module = util.get_module_directory('dcluster.config')
+    dir_of_this_module = fs_util.get_module_directory('dcluster.config')
     return os.path.join(os.path.dirname(dir_of_this_module), 'config')
 
 
@@ -125,7 +126,7 @@ def paths(key):
     '''
     Configuration sub-element for paths. These paths may be prefixed by dcluster_root.
     '''
-    return get_config()['paths'][key]
+    return os.path.expandvars(get_config()['paths'][key])
 
 
 def for_cluster(key):
@@ -140,10 +141,10 @@ def for_cluster(key):
 
         # read the parent, but don't modify it!
         parent_config = get_config()['clusters'][cluster_config['extend']]
-        parent_config = util.defensive_copy(parent_config)
+        parent_config = collection_util.defensive_copy(parent_config)
 
         # merge parent with current config
-        cluster_config = util.update_recursively(parent_config, cluster_config)
+        cluster_config = collection_util.update_recursively(parent_config, cluster_config)
 
         # no need anymore
         del cluster_config['extend']
@@ -155,6 +156,7 @@ if __name__ == '__main__':
     import pprint
     print('*** ALL ***')
     pprint.pprint(get_config())
+    pprint.pprint(paths('work'))
 
     print('*** SIMPLE ***')
     pprint.pprint(for_cluster('simple'))

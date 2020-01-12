@@ -48,21 +48,21 @@ class RunningClusterMixin(logger.LoggerMixin):
         '''
         return next(a_node for a_node in self.ordered_nodes if a_node.hostname == hostname)
 
+    def inject_public_ssh_key(self, public_key_path):
+        '''
+        Reads the public SSH key specified in the path, and injects it to each container.
+        For now, it will inject it to the root user.
+        '''
+        ssh_target_path = '/root/.ssh'
+
+        with open(public_key_path, 'r') as pk:
+            public_key = pk.read()
+
+        for n in self.ordered_nodes:
+            n.inject_public_ssh_key(ssh_target_path, public_key)
+
 
 class DeployedCluster(simple_plan.SimpleClusterBlueprint, RunningClusterMixin):
-
-    # def deploy(self, basepath):
-
-        # TODO receive composer from planner, use self.composer
-        # Create classes to reflect that "from_docker" clusters cannot be deployed again
-
-        # compose_path = os.path.join(basepath, self.name)
-        # composer = simple_compose.ClusterComposerSimple(compose_path, self.templates_dir)
-        # definition = composer.build_definition(self.cluster_specs, 'cluster-simple.yml.j2')
-        # composer.compose(definition)
-
-        # log_msg = 'Docker cluster %s -  %s created!'
-        # self.logger.info(log_msg % (self.cluster_network.network_name, self.cluster_network))
 
     @classmethod
     def from_docker(cls, cluster_name):

@@ -13,7 +13,8 @@ import sys
 import yaml
 
 from dcluster import CONFIG_FILE
-from dcluster import config, util
+from dcluster import config
+from dcluster.util import fs as fs_util
 
 
 def create_production_config(sandbox_dir):
@@ -29,7 +30,7 @@ def create_production_config(sandbox_dir):
     # save to production config file, note the buildroot
     # join will not work, CONFIG_DIR is abs path
     sandboxed_config_dir = sandbox_dir + config_deploy_dir
-    util.create_dir_dont_complain(sandboxed_config_dir)
+    fs_util.create_dir_dont_complain(sandboxed_config_dir)
 
     # save YAML fle
     sandboxed_config_file = os.path.join(sandboxed_config_dir, config_deploy_filename)
@@ -45,7 +46,7 @@ def templates_dir_from_source():
     Calculate <dcluster_source>/templates directory using the fact that it is one level above
     this module, outside the deployment package (deployment/deploy.py -> deployment/../templates)
     '''
-    dir_of_this_module = util.get_module_directory('deployment.deploy')
+    dir_of_this_module = fs_util.get_module_directory('deployment.deploy')
     return os.path.join(os.path.dirname(dir_of_this_module), 'templates')
 
 

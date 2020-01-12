@@ -3,6 +3,9 @@ import os
 from dcluster import config, cluster, networking, plan
 
 from dcluster.actions import display
+from dcluster.util import fs as fs_util
+
+from . import get_workpath
 
 
 def interpret_args(args):
@@ -16,18 +19,21 @@ def interpret_args(args):
     return by_flavor[flavor]
 
 
-def create_cluster(creation_request, basepath):
+def create_cluster(args):
     '''
     Creates a new cluster based on a creation request, it should at least have the flavor.
     '''
+
+    creation_request = interpret_args(args)
+    workpath = get_workpath(args)
     create_by_flavor = {
         'simple': create_simple_cluster,
         'slurm': create_simple_cluster
     }
-    return create_by_flavor[creation_request.flavor](creation_request, basepath)
+    return create_by_flavor[creation_request.flavor](creation_request, workpath)
 
 
-def create_simple_cluster(creation_request, basepath):
+def create_simple_cluster(creation_request, workpath):
     '''
     Creates a new simple cluster, the request should have:
     - name
@@ -38,18 +44,25 @@ def create_simple_cluster(creation_request, basepath):
     cluster_network = networking.create(creation_request.name)
 
     # develop the cluster plan given request + config
-    simple_config = config.for_cluster(creation_request.flavor)
-    cluster_plan = plan.create_plan(creation_request, simple_config, cluster_network)
+    cluster_config = config.for_cluster(creation_request.flavor)
+    cluster_plan = plan.create_plan(creation_request, cluster_config, cluster_network)
 
     # get the blueprints with plans for all nodes
     cluster_blueprints = cluster_plan.create_blueprints()
 
     renderer = cluster.get_renderer(creation_request)
-    compose_path = os.path.join(basepath, creation_request.name)  # eww?
+    compose_path = os.path.join(workpath, creation_request.name)  # eww?
     deployer = cluster.DockerComposeDeployer(compose_path)
 
     cluster_blueprints.deploy(renderer, deployer)
 
     # show newly created
-    display.show_cluster(creation_request.name)
+    live_cluster = display.show_cluster(creation_request.name)
 
+    if config.prefs('inject_ssh_public_key_to_root'):
+        # inject SSH public key to all containers for password-less SSH
+
+        # public_key_with_shell_vars = config.paths('ssh_public_key')
+        # public_key_path = fs_util.evaluate_shell_path(public_key_with_shell_vars)
+        public_key_path = config.paths('ssh_public_key')
+        live_cluster.inject_public_ssh_key(public_key_path)

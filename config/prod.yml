@@ -2,6 +2,7 @@
 
 paths:
   templates: '/usr/share/dcluster/templates'
+  work: $HOME/.dcluster
 
 prefs:
   log_level: INFO

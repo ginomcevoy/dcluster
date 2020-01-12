@@ -52,6 +52,14 @@ class DeployedNode():
     def role(self):
         return self.planned.role
 
+    def inject_public_ssh_key(self, ssh_target_path, public_key):
+        '''
+        Injects the SSH public_key (provided as string), and injects it to the node container.
+        This is done by executing the echo command on the .ssh/authorized_keys.
+        '''
+        run_cmd = '/bin/bash -c "mkdir -p %s && echo %s >> %s/authorized_keys"'
+        self.docker_container.exec_run(run_cmd % (ssh_target_path, public_key, ssh_target_path))
+
     @classmethod
     def find_for_cluster(cls, cluster_name, docker_network=None):
         if not docker_network:

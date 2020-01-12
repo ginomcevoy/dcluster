@@ -2,7 +2,8 @@ import os
 
 from runitmockit import runit
 
-from dcluster import logger, util
+from dcluster import logger
+from dcluster.util import fs as fs_util
 
 
 class ComposeFailure(Exception):
@@ -17,7 +18,7 @@ class DockerComposeDeployer(logger.LoggerMixin):
     def deploy(self, compose_definition):
 
         # save definition in file
-        util.create_dir_dont_complain(self.compose_path)
+        fs_util.create_dir_dont_complain(self.compose_path)
         definition_file = os.path.join(self.compose_path, 'docker-cluster.yml')
         with open(definition_file, 'w') as df:
             df.write(compose_definition)

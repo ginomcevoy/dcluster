@@ -10,3 +10,11 @@ class LoggerMixin(object):
             self.__class__.__name__
         ])
         return logging.getLogger(name)
+
+
+def logger_for_me(func):
+    name = '.'.join([
+        func.__module__,
+        func.__name__
+    ])
+    return logging.getLogger(name)

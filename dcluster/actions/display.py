@@ -8,6 +8,7 @@ def show_cluster(cluster_name):
     formatter = simple_plan.SimpleFormatter()
     output = cluster.format(formatter)
     print(output)
+    return cluster
 
 
 def list_clusters():
