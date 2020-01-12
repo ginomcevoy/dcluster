@@ -2,7 +2,7 @@
 
 paths:
   templates: 'templates'
-  work: $PWD
+  work: $PWD/.dcluster
 
 prefs:
   log_level: DEBUG

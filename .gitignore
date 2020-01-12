@@ -1,3 +1,6 @@
+# dcluster dev
+.dcluster
+
 # setup.py bdist_rpm
 build/
 dist/
