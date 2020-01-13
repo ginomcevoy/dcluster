@@ -50,6 +50,16 @@ def templates_dir_from_source():
     return os.path.join(os.path.dirname(dir_of_this_module), 'templates')
 
 
+def ansible_static_dir_from_source():
+    '''
+    Calculate <dcluster_source>/ansible_static directory using the fact that it is one level above
+    this module, outside the deployment package (deployment/deploy.py ->
+    deployment/../ansible_static)
+    '''
+    dir_of_this_module = fs_util.get_module_directory('deployment.deploy')
+    return os.path.join(os.path.dirname(dir_of_this_module), 'ansible_static')
+
+
 def copy_templates(sandbox_dir):
     '''
     Copy templates to the path specified in the production configuration file
@@ -69,6 +79,16 @@ def copy_templates(sandbox_dir):
         shutil.copytree(template_source, sandboxed_production_template_dir)
 
 
+def copy_ansible_static(sandbox_dir):
+    '''
+    same as templates but for ansible_static...
+    '''
+    ansible_static_source = ansible_static_dir_from_source()
+    sandboxed_production_ansible_dir = config.paths('ansible_static')
+    if not os.path.isdir(sandboxed_production_ansible_dir):
+        shutil.copytree(ansible_static_source, sandboxed_production_ansible_dir)
+
+
 if __name__ == '__main__':
 
     # DCLUSTER_ROOT is required for deployment, even if it is '/'
@@ -81,6 +101,7 @@ if __name__ == '__main__':
     sandbox_dir = os.environ['DCLUSTER_ROOT']
     sandboxed_config_file = create_production_config(sandbox_dir)
     copy_templates(sandbox_dir)
+    copy_ansible_static(sandbox_dir)
 
     # this can be picked up by the external build process, e.g. for testing (?)
     print(sandboxed_config_file)

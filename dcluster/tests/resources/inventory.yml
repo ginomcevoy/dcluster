@@ -4,15 +4,19 @@ all:
         172.30.0.253:
             hostname: head
             container: mycluster-head
+            image: centos7:ssh
         172.30.0.1:
             hostname: node001
             container: mycluster-node001
+            image: centos7:ssh
         172.30.0.2:
             hostname: node002
             container: mycluster-node002
+            image: centos7:ssh
         172.30.0.3:
             hostname: node003
             container: mycluster-node003
+            image: centos7:ssh
     children:
         head:
             hosts:
@@ -24,4 +28,11 @@ all:
                 172.30.0.3:
 
     vars:
-        network_name: 'mycluster'
+        cluster_flavor: simple
+        cluster_name: mycluster
+        cluster_network:
+            address: 172.30.0.0/24
+            gateway: gateway
+            gateway_ip: 172.30.0.254
+            name: dcluster-mycluster
+        cluster_template: cluster-simple.yml.j2

@@ -3,6 +3,7 @@
 paths:
   templates: 'templates'
   work: $PWD/.dcluster
+  ansible_static: 'ansible_static'
 
 prefs:
   log_level: DEBUG

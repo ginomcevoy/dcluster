@@ -129,6 +129,29 @@ def paths(key):
     return os.path.expandvars(get_config()['paths'][key])
 
 
+def composer_workpath(cluster_name):
+    '''
+    Where to store the composer output.
+    '''
+    workpath = paths('work')
+    return os.path.join(workpath, 'clusters', cluster_name)
+
+
+def inventory_workpath(cluster_name):
+    '''
+    Where to store the Ansible inventory for a cluster.
+    '''
+    return composer_workpath(cluster_name)
+
+
+def playbook_workpath(cluster_name):
+    '''
+    Where to store Ansible playbook directories.
+    '''
+    workpath = paths('work')
+    return os.path.join(workpath, 'ansible')
+
+
 def for_cluster(key):
     '''
     Configuration sub-element for cluster properties.

@@ -14,6 +14,8 @@ cd $BIN_DIR/..
 find -name '*.pyc' -delete
 find -name __pycache__ -delete
 
+# assume dev
+export DCLUSTER_DEV=true
 
 MODULE=dcluster
 

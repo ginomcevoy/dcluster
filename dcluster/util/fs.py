@@ -3,6 +3,7 @@ Utility functions for filesystem and paths.
 '''
 import importlib
 import os
+import shutil
 import sys
 
 
@@ -42,6 +43,16 @@ def evaluate_shell_path(path_str):
     result = runit.execute(command_str)
     real_path = result[0].strip()
     return real_path
+
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore)
+        else:
+            shutil.copy2(s, d)
 
 
 if __name__ == '__main__':

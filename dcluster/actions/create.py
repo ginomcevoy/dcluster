@@ -1,9 +1,6 @@
-import os
-
-from dcluster import config, cluster, networking, plan
+from dcluster import config, cluster, dansible, networking, plan
 
 from dcluster.actions import display
-from dcluster.util import fs as fs_util
 
 from . import get_workpath
 
@@ -50,11 +47,21 @@ def create_simple_cluster(creation_request, workpath):
     # get the blueprints with plans for all nodes
     cluster_blueprints = cluster_plan.create_blueprints()
 
+    # deploy the cluster
     renderer = cluster.get_renderer(creation_request)
-    compose_path = os.path.join(workpath, creation_request.name)  # eww?
-    deployer = cluster.DockerComposeDeployer(compose_path)
+    composer_workpath = config.composer_workpath(creation_request.name)
+    deployer = cluster.DockerComposeDeployer(composer_workpath)
 
     cluster_blueprints.deploy(renderer, deployer)
+
+    # create the Ansible inventory now, too hard later
+    cluster_name = creation_request.name
+    inventory_workpath = config.inventory_workpath(cluster_name)
+    (_, inventory_file) = dansible.create_inventory(cluster_blueprints.as_dict(),
+                                                    inventory_workpath)
+
+    # test
+    dansible.run_playbook(cluster_name, 'hello', inventory_file)
 
     # show newly created
     live_cluster = display.show_cluster(creation_request.name)

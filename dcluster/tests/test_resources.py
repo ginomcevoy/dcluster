@@ -18,26 +18,22 @@ class ResourcesForTest(object):
         return self.resources_directory
 
     @property
-    def expected_cluster_inventory(self):
-        expected_filename = os.path.join(self.resources_dir, 'expected-cluster.yml')
-        self.expected_dict = None
-        with open(expected_filename, 'r') as ef:
-            expected_dict = yaml.load(ef)
-        return expected_dict
+    def expected_inventory(self):
+        return self.read_yaml_file('inventory.yml')
 
     @property
     def expected_docker_compose_simple(self):
-        return self.expected_text('docker-compose-simple.yml')
+        return self.read_text_file('docker-compose-simple.yml')
 
     @property
     def expected_docker_compose_slurm(self):
-        return self.expected_text('docker-compose-slurm.yml')
+        return self.read_text_file('docker-compose-slurm.yml')
 
     @property
     def expected_render_extended_simplified(self):
-        return self.expected_text('docker-compose-extended-simplified.yml')
+        return self.read_text_file('docker-compose-extended-simplified.yml')
 
-    def expected_text(self, filename, resources_dir=None):
+    def read_text_file(self, filename, resources_dir=None):
         if resources_dir is None:
             # use default value
             resources_dir = self.resources_dir
@@ -47,6 +43,17 @@ class ResourcesForTest(object):
         with open(expected_filename, 'r') as ef:
             expected_contents = ef.read()
         return expected_contents
+
+    def read_yaml_file(self, filename, resources_dir=None):
+        if resources_dir is None:
+            # use default value
+            resources_dir = self.resources_dir
+
+        expected_filename = os.path.join(self.resources_dir, filename)
+        expected_dict = None
+        with open(expected_filename, 'r') as ef:
+            expected_dict = yaml.load(ef)
+        return expected_dict
 
 
 if __name__ == '__main__':
