@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# calculate directory local to script
+SCRIPTS_DIR="$( cd "$( dirname "$0" )" && pwd )"
+SRC_HOME_DIR=$SCRIPTS_DIR/..
+
+# call dcluster.main, let bash decide which python to use
+DCLUSTER_DEV=True PYTHONPATH=$SRC_HOME_DIR python -m dcluster.main $@

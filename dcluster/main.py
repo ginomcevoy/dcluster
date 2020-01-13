@@ -101,9 +101,9 @@ def configure_rm_parser(rm_parser):
 def processRequest():
 
     # top level parser
-    desc = 'clustertest: deploy clusters of Docker containers'
-    parser = argparse.ArgumentParser(prog='clustertest', description=desc)
-    subparsers = parser.add_subparsers(help='Run clustertest <command> for additional help')
+    desc = 'dcluster: deploy clusters of Docker containers'
+    parser = argparse.ArgumentParser(prog='dcluster', description=desc)
+    subparsers = parser.add_subparsers(help='Run dcluster <command> for additional help')
 
     # below we create subparsers for the subcommands
     create_parser = subparsers.add_parser('create', help='create a cluster')

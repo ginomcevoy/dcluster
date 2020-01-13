@@ -1,2 +1,3 @@
+include usr/bin/dcluster
 include dcluster/tests/resources/*.yml
-include ansible_static/hello/*.yml
+include ansible_static/hello/*.yml2

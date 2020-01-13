@@ -127,12 +127,10 @@ rm -rf %{buildroot}%{python3_sitelib}/deployment
 
 # the executable
 mkdir -p $RPM_BUILD_ROOT/usr/bin
-#cp usr/bin/dcluster $RPM_BUILD_ROOT/usr/bin
-# TODO we may have to revert to the shell script, because we cannot determine now which python we will use
-# for now, use python3
-chmod +x $RPM_BUILD_ROOT/%{python3_sitelib}/dcluster/main.py
-ln -s %{python3_sitelib}/dcluster/main.py $RPM_BUILD_ROOT/usr/bin/dcluster
 
+# Tried to use an executable main.py and creating a link, but we have to commit to either python2 or python3.
+# Like this, we let the OS decide which python version to use (the default 'python')
+cp usr/bin/dcluster $RPM_BUILD_ROOT/usr/bin
 
 %check
 %if 0%{?with_tests}
@@ -173,7 +171,6 @@ rm -rf $RPM_BUILD_ROOT
 /etc/dcluster
 /usr/share/dcluster
 %defattr(-,root,root)
-%attr(777, root, root) /usr/bin/dcluster
 
 %if 0%{?with_python2}
 %files -n python2-%{mod_name}
