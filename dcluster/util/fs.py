@@ -46,13 +46,21 @@ def evaluate_shell_path(path_str):
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, symlinks, ignore)
-        else:
-            shutil.copy2(s, d)
+    # try:
+        for item in os.listdir(src):
+            s = os.path.join(src, item)
+            d = os.path.join(dst, item)
+            if os.path.exists(d):
+                if os.path.isdir(d):
+                    shutil.rmtree(d)
+                else:
+                    os.remove(d)
+            if os.path.isdir(s):
+                shutil.copytree(s, d, symlinks, ignore)
+            else:
+                shutil.copy2(s, d)
+    # except FileExistsError:
+        # pass
 
 
 if __name__ == '__main__':

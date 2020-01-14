@@ -1,0 +1,119 @@
+---
+
+# https://www.middlewareinventory.com/blog/ssh-key-based-authentication-using-ansible-ad-hoc-and-playbook
+# https://juriansluiman.nl/article/151/managing-ssh-known-hosts-with-ansible
+
+- hosts: all
+  gather_facts: false
+  user: root
+  tasks:
+    - name: SSH keygen command
+      shell: >
+        ssh-keygen -q -b 2048 -t rsa -N "" -C "head" -f ~/.ssh/id_rsa
+        creates="~/.ssh/id_rsa"
+      when: "'head' in group_names"
+
+    - name: Fetch the keyfile from the node to master
+      tags: run
+      fetch: 
+        src: "~/.ssh/id_rsa.pub"
+        dest: "buffer/head-id_rsa.pub"
+        flat: yes
+      when: "'head' in group_names"
+
+    - name: Copy the key add to authorized_keys using Ansible module
+      authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file','buffer/head-id_rsa.pub')}}"
+
+    - name: Make sure the known hosts file exists
+      file: 
+        path: "{{ ssh_known_hosts_file }}"
+        state: touch
+        modification_time: preserve
+        access_time: preserve
+
+    - name: Check host name availability (IP addresses)
+      shell: "ssh-keygen -f {{ ssh_known_hosts_file }} -F {{ hostvars[item].ip_address }}"
+      with_items: "{{ groups['all'] }}"
+      register: ssh_known_host_results
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Scan the public key (IP addresses)
+      shell: "{{ ssh_known_hosts_command}} {{ hostvars[item.item].ip_address }} >> {{ ssh_known_hosts_file }}"
+      with_items: "{{ ssh_known_host_results.results }}"
+      when: item.stdout == ""
+
+    - name: Check host name availability (hostnames)
+      shell: "ssh-keygen -f {{ ssh_known_hosts_file }} -F {{ hostvars[item].hostname }}"
+      with_items: "{{ groups['all'] }}"
+      register: ssh_known_host_results
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Scan the public key (hostnames)
+      shell: "{{ ssh_known_hosts_command}} {{ hostvars[item.item].hostname }} >> {{ ssh_known_hosts_file }}"
+      with_items: "{{ ssh_known_host_results.results }}"
+      when: item.stdout == ""
+
+    - name: (yum) Find default CentOS repositories
+      find:
+        paths: /etc/yum.repos.d
+        patterns: 'CentOS*.repo'
+      register: repofiles_to_delete
+
+    - name: (yum) Remove default CentOS repositories
+      file:
+          path: "{{ item.path }}"
+          state: absent
+      with_items: "{{ repofiles_to_delete.files }}"      
+
+    # https://docs.ansible.com/ansible/latest/modules/yum_repository_module.html
+    # https://stackoverflow.com/questions/42167747/how-to-loop-over-this-dictionary-in-ansible
+    - name: (yum) Generate custom repositories
+      yum_repository:
+        name: "{{ item.key }}"
+        description: "{{ item.key }} repository"
+        baseurl: "{{ item.value }}"
+        gpgcheck: no
+      loop: "{{ yum.repositories | dict2items }}"
+      notify: yum-clean-metadata
+
+    - name: (yum) upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: (ansible) Install ansible on head
+      yum:
+        name: ansible
+        state: present
+      when: "'head' in group_names"
+
+    - name: (ansible) Copy our inventory to head
+      copy:
+        src: "{{ dansible.inventory_basepath }}/{{ cluster_name }}/{{ dansible.inventory_filename }}"
+        dest: /etc/ansible/hosts
+      when: "'head' in group_names"
+
+  handlers:
+    - name: yum-clean-metadata
+      command: yum clean metadata
+      args:
+        warn: no
+
+  vars:
+    ssh_known_hosts_command: "ssh-keyscan -H -T 10"
+    ssh_known_hosts_file: "/etc/ssh/ssh_known_hosts"
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    yum:
+      repositories:
+        centos7-os: http://linorg.usp.br/CentOS/7.7.1908/os/x86_64
+        centos7-updates: http://linorg.usp.br/CentOS/7.7.1908/updates/x86_64
+        centos7-extras: http://linorg.usp.br/CentOS/7.7.1908/extras/x86_64
+        epel: http://download.fedoraproject.org/pub/epel/7/x86_64
+    dansible:
+      inventory_basepath: ../../clusters
+      inventory_filename: inventory.yml

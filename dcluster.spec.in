@@ -131,6 +131,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 # Tried to use an executable main.py and creating a link, but we have to commit to either python2 or python3.
 # Like this, we let the OS decide which python version to use (the default 'python')
 cp usr/bin/dcluster $RPM_BUILD_ROOT/usr/bin
+cp usr/bin/dcluster-ansible $RPM_BUILD_ROOT/usr/bin
 
 %check
 %if 0%{?with_tests}
@@ -168,6 +169,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 /usr/bin/dcluster
+/usr/bin/dcluster-ansible
 /etc/dcluster
 /usr/share/dcluster
 %defattr(-,root,root)

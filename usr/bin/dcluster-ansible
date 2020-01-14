@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# call dcluster.dansible.main, let bash decide which python to use
+python -m dcluster.dansible.main $@

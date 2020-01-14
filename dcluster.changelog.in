@@ -1,4 +1,8 @@
 %changelog
+* Mon Jan 13 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.5-1
+- Initial support for Ansible playbooks
+- Ansible playbook: configures SSH and installs Ansible on head node
+- Jenkins playbook: configures Jenkins JNLP Agent on head node 
 * Wed Jan 7 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.4-1
 - Supports for Slurm cluster
 * Mon Jan 6 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.3-1

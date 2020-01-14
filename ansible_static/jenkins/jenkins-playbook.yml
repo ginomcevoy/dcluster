@@ -1,0 +1,147 @@
+---
+
+# Inspired by:
+# https://github.com/grawert/ansible-jenkins-ci/blob/master/tasks/jenkins-slave.yml
+# https://code-maze.com/ci-jenkins-docker/
+
+- hosts: head
+  gather_facts: false
+  user: root
+  tasks:
+
+    - name: Install dependencies
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - java-1.8.0-openjdk
+        - curl
+        - python-requests
+        - python-httplib2
+        - python2-pip # requires EPEL (CentOS7)
+        - git
+        - procps-ng # egrep
+
+    - name: Copy Jenkins python API
+      copy:
+        src: "{{ jenkins_webapi }}"
+        dest: "/tmp/{{ jenkins_webapi }}"
+
+    - name: Install Jenkins python API
+      shell: "pip install /tmp/{{ jenkins_webapi }}"
+
+    - name: "Wait for Jenkins master"
+      uri:
+        url: "{{ jenkins_master.url }}/jnlpJars/slave.jar"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 60
+      delay: 1
+
+    - name: Create Jenkins system user (slave node)
+      user: 
+        name: "{{ jenkins_slave.user.username }}"
+        home: "{{ jenkins_slave.user.home }}"
+        system: yes
+        generate_ssh_key: yes
+
+    - name: Create Jenkins workspace directory (slave node)
+      file: 
+        name: "{{ jenkins_slave.workspace }}"
+        owner: "{{ jenkins_slave.user.username }}"
+        group: "{{ jenkins_slave.user.group }}"
+        state: directory
+
+    - name: Configure sudoers for Jenkins system user
+      lineinfile: 
+        dest: "/etc/sudoers.d/{{ jenkins_slave.user.username }}"
+        line: "{{ jenkins_slave.user.username }} ALL=(ALL) NOPASSWD:ALL"
+        state: present
+        create: yes
+        mode: 0440
+        validate: 'visudo -cf %s'
+
+    - name: Download slave.jar from Jenkins server
+      become_user: jenkins
+      uri:
+        url:  "{{ jenkins_master.url }}/jnlpJars/slave.jar"
+        dest: "{{ jenkins_slave.user.home }}/slave.jar"
+        # user: "{{ jenkins_master.user }}"
+        # password: "{{  jenkins_master.password }}"
+        # validate_certs: no
+        # force_basic_auth: true
+        status_code: 200, 304
+
+    # - name: Register slave node in Jenkins master
+    #   uri:
+    #     url: http://{{ jenkins_master.url }}/scriptText/
+    #     method: POST
+    #     body: "script={{lookup('template', 'templates/add-slave-node-to-jenkins.groovy.j2')|urlencode}}"
+    #     HEADER_Content-Type: "application/x-www-form-urlencoded"
+
+    # - name: Install Jenkins slave systemd service
+    #   template:
+    #     src: templates/jenkins-slave.service.j2
+    #     dest: /etc/systemd/system/jenkins-slave.service
+    #     owner: root
+    #     group: root
+    #     mode: 0644
+
+    # - name: Start Jenkins slave service
+    #   service:
+    #     name: jenkins-slave
+    #     enabled: true
+    #     state: started
+    - name: Prepare Jenkins python script
+      template:
+        src: jenkins-slave.py.j2
+        dest: files/jenkins-slave.py
+      delegate_to: localhost
+
+    - name: Send Jenkins python script
+      copy: 
+        src: jenkins-slave.py
+        dest: "{{ jenkins_slave.user.home }}"
+
+    - name: Check if Jenkins python script was running
+      shell: cat "{{ jenkins_slave.user.home }}/jenkins-java.pid"
+      register: jenkins_pid
+      changed_when: False
+      ignore_errors: True
+
+    - name: Kill previous Jenkins python script
+      shell: "kill {{ item }}"
+      with_items: "{{ jenkins_pid.stdout_lines }}"
+      ignore_errors: True
+
+    # https://ansibledaily.com/execute-detached-process-with-ansible
+    - name: Execute Jenkins python script forever
+      shell:
+        cmd: python -u jenkins-slave.py 
+        chdir: "{{ jenkins_slave.user.home }}"      
+      async: 2592000
+      poll: 0
+
+    # - name: Save PID of the Jenkins script
+    #   shell: sleep 3 && pgrep -n -x java > "{{ jenkins_slave.user.home }}/jenkins.pid"
+
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    jenkins_webapi: jenkins_webapi-0.5.6-py2.py3-none-any.whl
+    jenkins_label: dcluster
+    jenkins_slave:
+        user:
+            username: jenkins
+            group: jenkins
+            home: /var/lib/jenkins
+        workspace: /var/lib/jenkins/workspace
+        htaccess: /var/lib/jenkins/httpd.access
+
+    jenkins_master:
+        url: "http://{{ cluster_network.gateway_ip }}:8080"
+        user: admin
+        password: admin
+
+
+

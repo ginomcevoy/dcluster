@@ -67,18 +67,22 @@ class AnsibleInventory:
                     hostname: head
                     container: mycluster-head
                     image: centos7:ssh
+                    ip_address: 172.30.0.253
                 172.30.0.1:
                     hostname: node001
                     container: mycluster-node001
                     image: centos7:ssh
+                    ip_address: 172.30.0.1
                 172.30.0.2:
                     hostname: node002
                     container: mycluster-node002
                     image: centos7:ssh
+                    ip_address: 172.30.0.2
                 172.30.0.3:
                     hostname: node003
                     container: mycluster-node003
                     image: centos7:ssh
+                    ip_address: 172.30.0.3
             children:
                 head:
                     hosts:
@@ -128,7 +132,7 @@ class AnsibleInventory:
         return self.inventory_dict
 
     def dict_for_node(self, planned_node):
-        keys = ('hostname', 'container', 'image')
+        keys = ('hostname', 'container', 'image', 'ip_address')
         return collection_util.defensive_subset(planned_node._asdict(), keys)
 
     def add_role_if_needed(self, role):

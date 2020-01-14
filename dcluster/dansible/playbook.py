@@ -17,5 +17,5 @@ def execute_playbook(playbook_file, inventory_file, extra_vars=None):
 
     cmd = 'ansible-playbook -i %s %s %s' % (inventory_file, playbook_filename, extra_vars_str)
     cwd = playbook_path
-    print('executing from %s >>%s<<' % (cwd, cmd))
-    runit.execute(cmd, cwd=cwd, logger=logger, log_level=logging.DEBUG)
+    logger.debug('executing from %s >>%s<<' % (cwd, cmd))
+    runit.execute(cmd, cwd=cwd, logger=logger, log_level=logging.INFO)

@@ -144,6 +144,11 @@ def inventory_workpath(cluster_name):
     return composer_workpath(cluster_name)
 
 
+def default_inventory(cluster_name):
+    iw = inventory_workpath(cluster_name)
+    return os.path.join(iw, 'inventory.yml')
+
+
 def playbook_workpath(cluster_name):
     '''
     Where to store Ansible playbook directories.

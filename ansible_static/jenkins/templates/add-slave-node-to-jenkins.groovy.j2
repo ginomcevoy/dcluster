@@ -1,0 +1,10 @@
+import jenkins.model.*
+import hudson.model.*
+import hudson.slaves.*
+
+Jenkins.instance.addNode(
+new DumbSlave("{{ cluster_name }}-{{ hostvars[inventory_hostname].hostname }}","", "{{ jenkins_slave.user.home }}", "1",
+              Node.Mode.EXCLUSIVE, "dcluster",
+              new JNLPLauncher(), new RetentionStrategy.Always(),
+              new ArrayList())
+)

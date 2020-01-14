@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+from jenkins import Jenkins, NodeLaunchMethod
+import os
+import signal
+import subprocess
+import shutil
+import time
+
+
+slave_jar = '{{ jenkins_slave.user.home }}/slave.jar'
+slave_name = '{{ cluster_name }}-{{ hostvars[inventory_hostname].hostname }}'
+jnlp_url = '{{ jenkins_master.url }}/computer/' + slave_name + '/slave-agent.jnlp'
+slave_jar_url = '{{ jenkins_master.url }}' + '/jnlpJars/slave.jar'
+
+jenkins_master_url = '{{ jenkins_master.url }}'
+jenkins_master_user = '{{ jenkins_master.user }}'
+jenkins_master_password = '{{ jenkins_master.password }}'
+jenkins_label = '{{ jenkins_label }}'
+
+process = None
+
+
+def clean_dir(dir):
+    for root, dirs, files in os.walk(dir):
+        for f in files:
+            os.unlink(os.path.join(root, f))
+        for d in dirs:
+            shutil.rmtree(os.path.join(root, d))
+
+
+def slave_create(node_name, working_dir, executors, labels):
+    j = Jenkins(jenkins_master_url, jenkins_master_user, jenkins_master_password)
+    j.node_create(node_name, working_dir, num_executors=int(executors), labels=labels,
+                  launcher=NodeLaunchMethod.JNLP)
+
+
+def slave_delete(node_name):
+    j = Jenkins(jenkins_master_url, jenkins_master_user, jenkins_master_password)
+    j.node_delete(node_name)
+
+
+def slave_run(slave_jar, jnlp_url):
+    params = ['java', '-jar', slave_jar, '-jnlpUrl', jnlp_url]
+    params.extend(['-jnlpCredentials', jenkins_master_user + ':' + jenkins_master_password])
+    return subprocess.Popen(params, stdout=subprocess.PIPE)
+
+
+def signal_handler(sig, frame):
+    if process is not None:
+        process.send_signal(signal.SIGINT)
+
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+
+# if os.environ['CLEAN_WORKING_DIR'] == 'true':
+#     clean_dir(os.getcwd())
+#     print "Cleaned up working directory."
+
+slave_create(slave_name, os.getcwd(), 1, jenkins_label)
+print('Created temporary Jenkins slave.')
+
+process = slave_run(slave_jar, jnlp_url)
+print('Started Jenkins slave with name "' + slave_name + '" and label ' + jenkins_label)
+
+# save PID
+while not process.pid:
+    time.sleep(1)
+
+with open(os.path.join(os.getcwd(), 'jenkins-java.pid'), 'w') as pid_file:
+    pid_file.write(str(process.pid))
+
+process.wait()
+
+print('Jenkins slave stopped.')
+slave_delete(slave_name)
+print('Removed temporary Jenkins slave.')

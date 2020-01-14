@@ -4,4 +4,4 @@
   gather_facts: false
   tasks:
     - debug:
-        msg: "Hello from node {{hostname}} on network {{cluster_network.address}}!"
+        msg: "Hello from  {{hostname}} of cluster {{cluster_name}} on network {{cluster_network.address}}!"
