@@ -79,6 +79,19 @@ def configure_ssh_parser(ssh_parser):
     ssh_parser.set_defaults(func=process_ssh)
 
 
+def process_scp(args):
+    manage_action.scp(args)
+
+
+def configure_scp_parser(scp_parser):
+    scp_parser.add_argument('cluster_name', help='name of the Docker cluster')
+    scp_parser.add_argument('target', help='hostname of the cluster node, can be user@hostname')
+    scp_parser.add_argument("files", nargs="*")
+
+    # default function to call
+    scp_parser.set_defaults(func=process_scp)
+
+
 def process_list(args):
     display_action.list_clusters()
 
@@ -114,6 +127,9 @@ def processRequest():
 
     ssh_parser = subparsers.add_parser('ssh', help='connect to a container of a cluster')
     configure_ssh_parser(ssh_parser)
+
+    scp_parser = subparsers.add_parser('scp', help='connect to a container of a cluster')
+    configure_scp_parser(scp_parser)
 
     stop_parser = subparsers.add_parser('stop', help='stop a running cluster')
     configure_stop_parser(stop_parser)

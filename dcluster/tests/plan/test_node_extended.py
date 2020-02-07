@@ -29,10 +29,12 @@ class CreateExtendedHeadPlan(unittest.TestCase):
         expected = {
             'hostname': 'head',
             'container': 'mycluster-head',
-            'image': 'centos7:slurmctld',
+            'image': 'rhel76-slurm:v2',
             'ip_address': '172.30.0.253',
             'role': 'head',
-            'static_text': '''        environment:
+            'static_text': '''        command:
+          - slurmctld
+        environment:
           MYSQL_DATABASE: slurm_acct_db
           MYSQL_PASSWORD: password
           MYSQL_RANDOM_ROOT_PASSWORD: 'yes'

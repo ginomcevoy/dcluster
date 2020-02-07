@@ -30,45 +30,49 @@ clusters:
       image:  'centos7:ssh'
   
   slurm:
-
-    extend: 'simple'
-
+    
+    compute:
+      docker_volumes:
+      - etc_munge:/etc/munge
+      - etc_slurm:/etc/slurm
+      - slurm_jobdir:/data
+      - var_log_slurm:/var/log/slurm
+      image: rhel76-slurm:v2
+      shared_volumes:
+      - /home:/home
+      - /opt/intel:/opt/intel
+      - /srv/shared:/srv/dcluster/shared
+      static:
+        command:
+        - 'slurmd'
+        expose:
+        - '6818'
+        shm_size: 4g
+    extend: simple
+    
+    head:
+      docker_volumes:
+      - var_lib_mysql:/var/lib/mysql
+      - etc_munge:/etc/munge
+      - etc_slurm:/etc/slurm
+      - slurm_jobdir:/data
+      - var_log_slurm:/var/log/slurm
+      image: rhel76-slurm:v2
+      shared_volumes:
+      - /home:/home
+      - /opt/intel:/opt/intel
+      - /srv/shared:/srv/dcluster/shared
+      static:
+        command:
+        - 'slurmctld'
+        environment:
+          MYSQL_DATABASE: slurm_acct_db
+          MYSQL_PASSWORD: password
+          MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+          MYSQL_USER: slurm
+        expose:
+        - '6817'
+        - '6819'
+    
     template: cluster-extended.yml.j2
 
-    head:
-      image: 'centos7:slurmctld'
-      shared_volumes:
-        - '/home:/home'
-        - '/opt/intel:/opt/intel'
-        - '/srv/shared:/srv/dcluster/shared'
-      docker_volumes:
-        - 'var_lib_mysql:/var/lib/mysql'
-        - 'etc_munge:/etc/munge'
-        - 'etc_slurm:/etc/slurm'
-        - 'slurm_jobdir:/data'
-        - 'var_log_slurm:/var/log/slurm'
-      static:
-        environment:
-          MYSQL_DATABASE: "slurm_acct_db"
-          MYSQL_PASSWORD: "password"
-          MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-          MYSQL_USER: "slurm"
-        expose:
-            - '6817'
-            - '6819'
-
-    compute:
-      image: 'centos7:slurm'
-      shared_volumes:
-        - '/home:/home'
-        - '/opt/intel:/opt/intel'
-        - '/srv/shared:/srv/dcluster/shared'
-      docker_volumes:
-        - 'etc_munge:/etc/munge'
-        - 'etc_slurm:/etc/slurm'
-        - 'slurm_jobdir:/data'
-        - 'var_log_slurm:/var/log/slurm'
-      static:
-        expose:
-            - '6818'
-        shm_size: 4g

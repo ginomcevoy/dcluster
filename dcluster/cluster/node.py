@@ -1,8 +1,8 @@
-from collections import namedtuple
 from operator import attrgetter
 
 from dcluster.docker_facade import DockerContainers, DockerNetworking
 from dcluster.plan.simple import SimplePlannedNode
+from dcluster import logger
 
 
 def planned_from_docker(docker_container, docker_network):
@@ -16,7 +16,7 @@ def planned_from_docker(docker_container, docker_network):
     )
 
 
-class DeployedNode():
+class DeployedNode(logger.LoggerMixin):
     '''
     Encapsulates docker-specific implementation of a container and its attributes.
     Assumes it is part of a docker cluster.
@@ -57,8 +57,13 @@ class DeployedNode():
         Injects the SSH public_key (provided as string), and injects it to the node container.
         This is done by executing the echo command on the .ssh/authorized_keys.
         '''
-        run_cmd = '/bin/bash -c "mkdir -p %s && echo %s >> %s/authorized_keys"'
-        self.docker_container.exec_run(run_cmd % (ssh_target_path, public_key, ssh_target_path))
+        run_cmd_template = '/bin/bash -c "mkdir -p %s && echo %s >> %s/authorized_keys"'
+        run_cmd = run_cmd_template % (ssh_target_path, public_key, ssh_target_path)
+
+        log_msg = 'Run in docker container %s: %s'
+        self.logger.debug(log_msg % (self.docker_container.name, run_cmd))
+
+        self.docker_container.exec_run(run_cmd)
 
     @classmethod
     def find_for_cluster(cls, cluster_name, docker_network=None):

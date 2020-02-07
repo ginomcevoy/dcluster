@@ -33,7 +33,7 @@ class TestExtendedBuildSpecs(unittest.TestCase):
                 '172.30.0.253': ExtendedPlannedNode(
                     hostname='head',
                     container='mycluster-head',
-                    image='centos7:slurmctld',
+                    image='rhel76-slurm:v2',
                     ip_address='172.30.0.253',
                     role='head',
                     volumes=[
@@ -46,7 +46,9 @@ class TestExtendedBuildSpecs(unittest.TestCase):
                         'slurm_jobdir:/data',
                         'var_log_slurm:/var/log/slurm'
                     ],
-                    static_text='''        environment:
+                    static_text='''        command:
+          - slurmctld
+        environment:
           MYSQL_DATABASE: slurm_acct_db
           MYSQL_PASSWORD: password
           MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
@@ -58,7 +60,7 @@ class TestExtendedBuildSpecs(unittest.TestCase):
                 '172.30.0.1': ExtendedPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
-                    image='centos7:slurm',
+                    image='rhel76-slurm:v2',
                     ip_address='172.30.0.1',
                     role='compute',
                     volumes=[
@@ -70,14 +72,16 @@ class TestExtendedBuildSpecs(unittest.TestCase):
                         'slurm_jobdir:/data',
                         'var_log_slurm:/var/log/slurm'
                     ],
-                    static_text='''        expose:
+                    static_text='''        command:
+          - slurmd
+        expose:
           - '6818'
         shm_size: 4g
       '''),
                 '172.30.0.2': ExtendedPlannedNode(
                     hostname='node002',
                     container='mycluster-node002',
-                    image='centos7:slurm',
+                    image='rhel76-slurm:v2',
                     ip_address='172.30.0.2',
                     role='compute',
                     volumes=[
@@ -89,14 +93,16 @@ class TestExtendedBuildSpecs(unittest.TestCase):
                         'slurm_jobdir:/data',
                         'var_log_slurm:/var/log/slurm'
                     ],
-                    static_text='''        expose:
+                    static_text='''        command:
+          - slurmd
+        expose:
           - '6818'
         shm_size: 4g
       '''),
                 '172.30.0.3': ExtendedPlannedNode(
                     hostname='node003',
                     container='mycluster-node003',
-                    image='centos7:slurm',
+                    image='rhel76-slurm:v2',
                     ip_address='172.30.0.3',
                     role='compute',
                     volumes=[
@@ -108,7 +114,9 @@ class TestExtendedBuildSpecs(unittest.TestCase):
                         'slurm_jobdir:/data',
                         'var_log_slurm:/var/log/slurm'
                     ],
-                    static_text='''        expose:
+                    static_text='''        command:
+          - slurmd
+        expose:
           - '6818'
         shm_size: 4g
       ''')

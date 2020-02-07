@@ -1,13 +1,25 @@
 %changelog
+* Fri Feb 07 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.7-1
+- Fix jinja2 for RHEL7/RHEL8
+- Update slurm cluster definition
+
+* Tue Jan 14 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.6-1
+- Fix jinja2 dependency
+- Fix SSH key injection - strip key string
+
 * Mon Jan 13 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.5-1
 - Initial support for Ansible playbooks
 - Ansible playbook: configures SSH and installs Ansible on head node
 - Jenkins playbook: configures Jenkins JNLP Agent on head node 
+
 * Wed Jan 7 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.4-1
 - Supports for Slurm cluster
+
 * Mon Jan 6 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.3-1
 - Refactor existing behavior into submodules, prepare for Slurm
+
 * Thu Jan 2 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.2-1
 - Simplify deployment by using DCLUSTER_ROOT environment variable
+
 * Tue Dec 31 2019 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.1-1
 - Initial release, can deploy docker clusters

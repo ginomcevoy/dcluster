@@ -62,6 +62,7 @@
         mode: 0440
         validate: 'visudo -cf %s'
 
+    # TODO run as jenkins user, in the workspace
     - name: Download slave.jar from Jenkins server
       become_user: jenkins
       uri:

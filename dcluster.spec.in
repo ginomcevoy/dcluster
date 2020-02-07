@@ -45,10 +45,16 @@ Summary: Create and manage Docker clusters, optionally run Ansible on the cluste
 Provides: python-%{mod_name}       = %{version}-%{release}
 Provides: python2-%{mod_name}      = %{version}-%{release}
 
-Requires:  python2-jinja2
 Requires:  python2-runitmockit
 
-# NOTE: We also require PyYAML / python2-yaml, but we would need some if statements here.
+# Names of Jinja2 and YAML python packages depend on distro
+%if 0%{?rhel} > 7
+Requires:  python2-jinja2
+Requires:  python2-pyyaml
+%else
+Requires:  python-jinja2
+Requires:  PyYAML
+%endif
 
 %if 0%{?with_tests}
 BuildRequires:  python2-pytest

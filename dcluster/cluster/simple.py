@@ -42,6 +42,21 @@ class RunningClusterMixin(logger.LoggerMixin):
         # subprocess.run(full_ssh_command, shell=True)
         os.system(full_ssh_command)
 
+    def scp_to_node(self, username, hostname, target_dir, files):
+        '''
+        Send one or more files to a cluster node via SSH.
+        TODO Refactor to someplace else, with configuration options.
+        '''
+        node = self.node_by_name(hostname)
+        scp_command = '/usr/bin/scp -o "StrictHostKeyChecking=no" -o "GSSAPIAuthentication=no" \
+-o "UserKnownHostsFile" /dev/null %s %s'
+
+        target = '%s@%s:%s' % (username, node.ip_address, target_dir)
+        full_scp_command = scp_command % (' '.join(files), target)
+
+        self.logger.debug(full_scp_command)
+        os.system(full_scp_command)
+
     def node_by_name(self, hostname):
         '''
         Search the nodes for the node that has the hostname.
@@ -57,6 +72,8 @@ class RunningClusterMixin(logger.LoggerMixin):
 
         with open(public_key_path, 'r') as pk:
             public_key = pk.read()
+            public_key = public_key.strip()  # otherwise we get a new line in Python 2.x...
+        self.logger.debug('Read public key: %s' % public_key)
 
         for n in self.ordered_nodes:
             n.inject_public_ssh_key(ssh_target_path, public_key)
