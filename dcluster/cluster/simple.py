@@ -48,11 +48,15 @@ class RunningClusterMixin(logger.LoggerMixin):
         TODO Refactor to someplace else, with configuration options.
         '''
         node = self.node_by_name(hostname)
+
+        # determine if "-r" should be added
+        rflag = recursive_flag(files)
+
         scp_command = '/usr/bin/scp -o "StrictHostKeyChecking=no" -o "GSSAPIAuthentication=no" \
--o "UserKnownHostsFile" /dev/null %s %s'
+            %s %s %s'
 
         target = '%s@%s:%s' % (username, node.ip_address, target_dir)
-        full_scp_command = scp_command % (' '.join(files), target)
+        full_scp_command = scp_command % (rflag, ' '.join(files), target)
 
         self.logger.debug(full_scp_command)
         os.system(full_scp_command)
@@ -119,3 +123,17 @@ class DeployedCluster(simple_plan.SimpleClusterBlueprint, RunningClusterMixin):
         '''
         docker_networks = DockerNetworking.all_dcluster_networks()
         return [DockerNaming.deduce_cluster_name(network.name) for network in docker_networks]
+
+
+def recursive_flag(files):
+
+    # by default don't pass "-r"
+    recursive = ''
+
+    for file in files:
+        if os.path.isdir(file):
+            # pass "-r"
+            recursive = '-r'
+            break
+
+    return recursive
