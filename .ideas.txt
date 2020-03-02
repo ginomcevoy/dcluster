@@ -1,0 +1,133 @@
+First phase ready!
+
+- create Slurm cluster with all existing configuration
+- allow multiple clusters
+- manage lifecycle (list, show, ssh, rm)
+
+Second phase:
+
+OK - Pass user in ssh 
+OK - set workpath
+
+dcluster ssh mycluster ci-user@head
+
+- Run Ansible playbooks
+
+how will this look?!
+
+
+1. when using dcluster create:
+
+a. get the public SSH key of the current user
+b. Inject it to each container at /root/.ssh/authorized_keys using container.exec_run
+c. Now we have password-less root access to each container!
+d. create the inventory and save it at <workpath>/<cluster_name>/ansible/inventory.yml
+
+2. Run Ansible playbooks specifically:
+
+---------------------------------------
+dcluster-ansible playbook mycluster jenkins
+---------------------------------------
+
+/usr/share/dcluster/ansible_static 
+                        |- jenkins
+                            |- jenkins-playbook.yml
+                            |- roles
+                                |- jenkins-role1
+                                |- jenkins-role2
+                            |- host_vars
+                            |- group_vars
+
+
+.dcluster/
+    clusters/ (refactor)
+        <cluster_name>/
+            docker-cluster.yml
+            inventory.yml
+    ansible/
+        jenkins/
+            jenkins.yml
+            group_vars/
+            roles/
+                jenkins-role
+
+Run:
+    if jenkins not in .dcluster/ansible
+        copy /usr/share/dcluster/ansible_static/jenkins to .dcluster/ansible/ 
+
+    cd .dcluster/ansible/jenkins
+    ansible-playbook -i ../../clusters/<cluster_name>/inventory.yml jenkins-playbook.yml
+    -> this will pick up the inventory vars *and* the playbook group_vars
+
+-> ordering
+    1. inventory file
+    2. playbook group_vars dir
+    3. inventory group_vars dir
+    1. playbook dir
+
+---------------------------------------
+dcluster ansible-import myplay.yml
+---------------------------------------
+
+assumes this:
+    path/to/myplay
+        |- myplay.yml
+        |- group_vars
+        |- host_vars
+        |- roles
+
+and copies myplay to <workpath>/ansible/myplay
+-> have name clash with existing ones??
+
+---------------------------------------
+dcluster-ansible export <name> [path]
+---------------------------------------
+
+looks in these paths
+2. .dcluster/ansible/<name>
+2. /usr/share/dcluster/ansible_static/<name>
+
+and saves <name> to <path> (PWD by default)
+
+---------------------------------------
+dcluster-ansible list
+---------------------------------------
+
+    lists all directories in 
+    /usr/share/dcluster/ansible_static
+    <workpath>/ansible    
+
+===================
+
+Code organization
+
+dcluster
+    |- dansible
+        |- inventory.py
+        |- playbook.py
+
+
+
+----
+
+ansible all -i 172.30.0.253, -m setup -u ci-user --ask-pass
+-> run the setup as the ci-user
+-> ask for SSH password
+
+
+ansible all -i 172.30.0.253, -m command -a "/usr/bin/cat /etc/shadow" -u ci-user --ask-pass --become --ask-become-pass
+-> run cat /etc/shadow with sudo
+-> using ci-user that must have sudo
+-> --ask-pass asks for SSH password
+-> --become enables sudo
+-> -ask-become-pass will ask for sudo password
+
+----------
+
+Bad ideas
+
+dcluster-ansible remote-playbook mycluster slurm
+-> not a good idea... too convoluted... also why do we want to manage internal playbooks from outside the docker cluster (no need)
+
+Put playbooks inside <workpath>/<cluster_name> -> too elaborate, no need, copies that may not be in sync
+
