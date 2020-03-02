@@ -43,10 +43,10 @@ def create_prod_config():
     config_dir = config_dir_from_source()
 
     common_config = read_config(config_dir, 'common.yml')
-    dev_only_config = read_config(config_dir, 'prod.yml')
+    prod_only_config = read_config(config_dir, 'prod.yml')
 
     # we don't want to lose key/value pairs in subdictionaries
-    return collection_util.update_recursively(common_config, dev_only_config)
+    return collection_util.update_recursively(common_config, prod_only_config)
 
 
 def read_deployed_config(config_source, dcluster_root):
