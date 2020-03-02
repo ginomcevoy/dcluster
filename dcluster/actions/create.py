@@ -11,7 +11,8 @@ def interpret_args(args):
     count = int(args.compute_count)
     by_flavor = {
         'simple': plan.SimpleCreationRequest(cluster_name, count, flavor),
-        'slurm': plan.SimpleCreationRequest(cluster_name, count, flavor)
+        'slurm': plan.SimpleCreationRequest(cluster_name, count, flavor),
+        'build': plan.SimpleCreationRequest(cluster_name, count, flavor)
     }
     return by_flavor[flavor]
 
@@ -25,7 +26,8 @@ def create_cluster(args):
     workpath = get_workpath(args)
     create_by_flavor = {
         'simple': create_simple_cluster,
-        'slurm': create_simple_cluster
+        'slurm': create_simple_cluster,
+        'build': create_simple_cluster
     }
     return create_by_flavor[creation_request.flavor](creation_request, workpath)
 

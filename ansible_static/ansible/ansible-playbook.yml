@@ -110,6 +110,7 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
     yum:
       repositories:
+        centos-full: http://{{ cluster_network.gateway_ip }}/iso/CentOS-7.7.1908
         centos7-os: http://linorg.usp.br/CentOS/7.7.1908/os/x86_64
         centos7-updates: http://linorg.usp.br/CentOS/7.7.1908/updates/x86_64
         centos7-extras: http://linorg.usp.br/CentOS/7.7.1908/extras/x86_64

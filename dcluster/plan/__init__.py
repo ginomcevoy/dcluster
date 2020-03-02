@@ -21,5 +21,7 @@ def create_plan(creation_request, flavor_config, cluster_network):
     '''
     if creation_request.flavor == 'simple':
         return SimpleClusterPlan.create(creation_request, flavor_config, cluster_network)
+    elif creation_request.flavor == 'build':
+        return SimpleClusterPlan.create(creation_request, flavor_config, cluster_network)
     elif creation_request.flavor == 'slurm':
         return ExtendedClusterPlan.create(creation_request, flavor_config, cluster_network)

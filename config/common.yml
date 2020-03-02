@@ -28,6 +28,16 @@ clusters:
           prefix: 'node'
           suffix_len: 3          
       image:  'centos7:ssh'
+
+  build:
+    extend: simple
+    template: cluster-simple.yml.j2
+
+    head:
+      image: 'centos7:build'
+
+    compute:
+      image: 'centos7:build'
   
   slurm:
     
