@@ -5,9 +5,10 @@ Create a cluster via the command line.
 import logging
 
 
-from dcluster import config, plan
+from dcluster import config
 
 from dcluster.actions import create as create_action
+from dcluster.cluster import request
 
 
 def configure_parser(create_parser):
@@ -45,5 +46,5 @@ def process_cli_call(args):
 
     # dispatch a creation request
     # for now, all creation requests that pass through this CLI are 'simple'
-    creation_request = plan.SimpleCreationRequest(cluster_name, count, flavor)
+    creation_request = request.SimpleCreationRequest(cluster_name, count, flavor)
     create_action.create_simple_cluster(creation_request)

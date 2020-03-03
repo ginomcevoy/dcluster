@@ -1,6 +1,6 @@
 from dcluster import config
 
-from dcluster.plan import SimpleCreationRequest
+from dcluster.cluster.request import SimpleCreationRequest
 from dcluster.plan.extended import ExtendedNodePlanner, ExtendedClusterPlan
 from dcluster.plan.simple import simple_plan_data
 

@@ -1,8 +1,6 @@
 from collections import namedtuple
 
 
-SimpleCreationRequest = namedtuple('SimpleCreationRequest', ['name', 'compute_count', 'flavor'])
-
 SimplePlannedNode = namedtuple('SimplePlannedNode', 'hostname, container, image, ip_address, role')
 
 ExtendedPlannedNode = namedtuple('ExtendedPlannedNode',
