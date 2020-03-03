@@ -2,37 +2,8 @@ from dcluster import config, cluster, dansible, networking, plan
 
 from dcluster.actions import display
 
-from . import get_workpath
 
-
-def interpret_args(args):
-    cluster_name = args.cluster_name
-    flavor = args.flavor
-    count = int(args.compute_count)
-    by_flavor = {
-        'simple': plan.SimpleCreationRequest(cluster_name, count, flavor),
-        'slurm': plan.SimpleCreationRequest(cluster_name, count, flavor),
-        'build': plan.SimpleCreationRequest(cluster_name, count, flavor)
-    }
-    return by_flavor[flavor]
-
-
-def create_cluster(args):
-    '''
-    Creates a new cluster based on a creation request, it should at least have the flavor.
-    '''
-
-    creation_request = interpret_args(args)
-    workpath = get_workpath(args)
-    create_by_flavor = {
-        'simple': create_simple_cluster,
-        'slurm': create_simple_cluster,
-        'build': create_simple_cluster
-    }
-    return create_by_flavor[creation_request.flavor](creation_request, workpath)
-
-
-def create_simple_cluster(creation_request, workpath):
+def create_simple_cluster(creation_request):
     '''
     Creates a new simple cluster, the request should have:
     - name
