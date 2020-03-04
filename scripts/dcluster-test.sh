@@ -15,11 +15,10 @@ if [ $? -eq 0 ]; then
   WITH_PYTHON3='y'
 fi
 
-cd $BIN_DIR/..
-
 # get a clean source
-find -name '*.pyc' -delete
-find -name __pycache__ -delete
+$BIN_DIR/clean.sh
+
+cd $BIN_DIR/..
 
 # assume dev
 export DCLUSTER_DEV=true
