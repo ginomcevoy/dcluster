@@ -1,4 +1,8 @@
 %changelog
+* Wed Mar 04 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.8-1
+- Allow scp to recursively copy directories
+- Use a local yum repository, still hard-coded
+
 * Fri Feb 07 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.7-1
 - Fix jinja2 for RHEL7/RHEL8
 - Update slurm cluster definition
