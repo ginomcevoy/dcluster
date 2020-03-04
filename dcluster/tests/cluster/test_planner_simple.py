@@ -6,8 +6,8 @@ import unittest
 from dcluster.node import SimplePlannedNode
 from dcluster.cluster.planner import SimpleClusterPlan
 
-from . import base_stubs
-from . import simple_stubs as stubs
+from dcluster.tests.stubs import infra_stubs
+from dcluster.tests.stubs import simple_stubs as stubs
 
 
 class TestSimpleBuildSpecs(unittest.TestCase):
@@ -192,7 +192,7 @@ class CreateSimpleClusterPlanTest(unittest.TestCase):
         # given
         creation_request = stubs.simple_request_stub('test', 2)
         simple_config = stubs.simple_config()
-        cluster_network = base_stubs.network_stub('test', u'172.30.0.0/24')
+        cluster_network = infra_stubs.network_stub('test', u'172.30.0.0/24')
 
         # when
         cluster_plan = SimpleClusterPlan.create(creation_request, simple_config, cluster_network)

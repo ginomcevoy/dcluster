@@ -2,7 +2,7 @@ import unittest
 
 from dcluster.node import SimplePlannedNode
 
-from . import simple_stubs as stubs
+from dcluster.tests.stubs import simple_stubs as stubs
 
 
 class CreateComputeHostname(unittest.TestCase):

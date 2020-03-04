@@ -5,7 +5,7 @@ from dcluster.cluster.planner import simple_plan_data, ExtendedClusterPlan
 from dcluster.node.planner import ExtendedNodePlanner
 
 
-from . import base_stubs
+from . import infra_stubs
 
 
 def slurm_config():
@@ -35,11 +35,11 @@ def extended_node_planner_stub(cluster_name, subnet_str):
     '''
     This extended node planner is meant to use the slurm_plan_data in tests.
     '''
-    network = base_stubs.network_stub(cluster_name, subnet_str)
+    network = infra_stubs.network_stub(cluster_name, subnet_str)
     return ExtendedNodePlanner(network)
 
 
 def slurm_cluster_plan_stub(cluster_name, subnet_str, compute_count):
     creation_request = simple_slurm_request_stub(cluster_name, compute_count)
-    cluster_network = base_stubs.network_stub(cluster_name, subnet_str)
+    cluster_network = infra_stubs.network_stub(cluster_name, subnet_str)
     return ExtendedClusterPlan.create(creation_request, slurm_config(), cluster_network)

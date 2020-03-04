@@ -4,7 +4,7 @@ from dcluster.cluster.request import SimpleCreationRequest
 from dcluster.cluster.planner import SimpleClusterPlan, simple_plan_data
 from dcluster.node.planner import SimpleNodePlanner
 
-from . import base_stubs
+from . import infra_stubs
 
 
 def simple_config():
@@ -21,11 +21,11 @@ def simple_plan_data_stub(cluster_name, compute_count):
 
 
 def simple_node_planner_stub(cluster_name, subnet_str):
-    network = base_stubs.network_stub(cluster_name, subnet_str)
+    network = infra_stubs.network_stub(cluster_name, subnet_str)
     return SimpleNodePlanner(network)
 
 
 def simple_cluster_plan_stub(cluster_name, subnet_str, compute_count):
     creation_request = simple_request_stub(cluster_name, compute_count)
-    cluster_network = base_stubs.network_stub(cluster_name, subnet_str)
+    cluster_network = infra_stubs.network_stub(cluster_name, subnet_str)
     return SimpleClusterPlan.create(creation_request, simple_config(), cluster_network)

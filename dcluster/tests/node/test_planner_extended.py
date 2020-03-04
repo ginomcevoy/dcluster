@@ -1,6 +1,6 @@
 import unittest
 
-from . import extended_stubs as stubs
+from dcluster.tests.stubs import extended_stubs as stubs
 
 
 class CreateExtendedHeadPlan(unittest.TestCase):

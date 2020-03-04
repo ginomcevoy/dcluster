@@ -1,7 +1,7 @@
 import unittest
 
 from dcluster.node import ExtendedPlannedNode
-from . import extended_stubs as stubs
+from dcluster.tests.stubs import extended_stubs as stubs
 
 
 class TestExtendedBuildSpecs(unittest.TestCase):
