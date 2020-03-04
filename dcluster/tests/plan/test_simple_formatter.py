@@ -2,12 +2,12 @@ import collections
 import unittest
 
 
-from dcluster.plan.simple import SimpleFormatter
+from dcluster.cluster.format import SimpleFormatter
 
 
 class SimpleFormatterTest(unittest.TestCase):
     '''
-    Unit tests for plan.simple.SimpleFormatter
+    Unit tests for cluster.format.SimpleFormatter
     '''
 
     def setUp(self):

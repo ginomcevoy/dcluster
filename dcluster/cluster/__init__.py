@@ -1,15 +1,14 @@
-from dcluster import config
-
-from .deploy import DockerComposeDeployer
-from .render import JinjaRenderer
+from .planner import SimpleClusterPlan, ExtendedClusterPlan
 
 
-def get_renderer(creation_request):
+def create_plan(creation_request, flavor_config, cluster_network):
     '''
+    Build plan based on user request, existing configuration and a existing network.
+    The parameters in the user request are merged with existing configuration.
     '''
-    # only one type for now
-    templates_dir = config.paths('templates')
-    return JinjaRenderer(templates_dir)
-
-
-__all__ = ['DockerComposeDeployer']
+    if creation_request.flavor == 'simple':
+        return SimpleClusterPlan.create(creation_request, flavor_config, cluster_network)
+    elif creation_request.flavor == 'build':
+        return SimpleClusterPlan.create(creation_request, flavor_config, cluster_network)
+    elif creation_request.flavor == 'slurm':
+        return ExtendedClusterPlan.create(creation_request, flavor_config, cluster_network)

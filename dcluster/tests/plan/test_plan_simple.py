@@ -3,8 +3,8 @@ Unit tests for plan.simple
 '''
 import unittest
 
-from dcluster.plan import SimplePlannedNode
-from dcluster.plan.simple import SimpleClusterPlan
+from dcluster.node import SimplePlannedNode
+from dcluster.cluster.planner import SimpleClusterPlan
 
 from . import base_stubs
 from . import simple_stubs as stubs
@@ -12,7 +12,7 @@ from . import simple_stubs as stubs
 
 class TestSimpleBuildSpecs(unittest.TestCase):
     '''
-    Unit tests for plan.simple.SimpleClusterPlan.build_specs()
+    Unit tests for cluster.planner.SimpleClusterPlan.build_specs()
     '''
 
     def setUp(self):
@@ -185,7 +185,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
 
 class CreateSimpleClusterPlanTest(unittest.TestCase):
     '''
-    Unit tests for plan.simple.SimpleClusterPlan.create()
+    Unit tests for cluster.planner.SimpleClusterPlan.create()
     '''
 
     def test_create(self):

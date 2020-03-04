@@ -9,9 +9,7 @@ import docker
 import ipaddress
 import logging
 
-from operator import attrgetter
-
-from . import config
+from dcluster import config
 
 __docker_client = None
 

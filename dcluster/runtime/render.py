@@ -1,6 +1,6 @@
 import jinja2
 
-from dcluster import config, logger
+from dcluster.util import logger
 
 
 class JinjaRenderer(logger.LoggerMixin):

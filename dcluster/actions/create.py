@@ -1,6 +1,8 @@
-from dcluster import config, cluster, dansible, networking, plan
+from . import display
 
-from dcluster.actions import display
+from dcluster import config, cluster, dansible, runtime
+
+from dcluster.infra import networking
 
 
 def create_simple_cluster(creation_request):
@@ -15,15 +17,15 @@ def create_simple_cluster(creation_request):
 
     # develop the cluster plan given request + config
     cluster_config = config.for_cluster(creation_request.flavor)
-    cluster_plan = plan.create_plan(creation_request, cluster_config, cluster_network)
+    cluster_plan = cluster.create_plan(creation_request, cluster_config, cluster_network)
 
     # get the blueprints with plans for all nodes
     cluster_blueprints = cluster_plan.create_blueprints()
 
     # deploy the cluster
-    renderer = cluster.get_renderer(creation_request)
+    renderer = runtime.get_renderer(creation_request)
     composer_workpath = config.composer_workpath(creation_request.name)
-    deployer = cluster.DockerComposeDeployer(composer_workpath)
+    deployer = runtime.DockerComposeDeployer(composer_workpath)
 
     cluster_blueprints.deploy(renderer, deployer)
 

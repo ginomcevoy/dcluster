@@ -1,11 +1,11 @@
 import os
 
+from .inventory import AnsibleInventory
+from .playbook import execute_playbook
+
 from dcluster import config
 
 from dcluster.util import fs as fs_util
-
-from .inventory import AnsibleInventory
-from .playbook import execute_playbook
 
 
 def create_inventory(cluster_specs, inventory_workpath):

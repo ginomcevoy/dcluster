@@ -1,6 +1,6 @@
 import ipaddress
 
-from dcluster import networking
+from dcluster.infra import networking
 
 
 def network_stub(cluster_name, subnet_str):

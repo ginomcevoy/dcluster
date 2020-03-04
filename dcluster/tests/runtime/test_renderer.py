@@ -1,7 +1,7 @@
 import unittest
 
 from dcluster import config
-from dcluster.cluster import render
+from dcluster.runtime import render
 
 from dcluster.tests import test_resources
 

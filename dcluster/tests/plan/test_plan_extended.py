@@ -1,12 +1,12 @@
 import unittest
 
-from dcluster.plan import ExtendedPlannedNode
+from dcluster.node import ExtendedPlannedNode
 from . import extended_stubs as stubs
 
 
 class TestExtendedBuildSpecs(unittest.TestCase):
     '''
-    Unit tests for plan.simple.ExtendedClusterPlan.build_specs()
+    Unit tests for cluster.planner.ExtendedClusterPlan.build_specs()
     '''
 
     def setUp(self):

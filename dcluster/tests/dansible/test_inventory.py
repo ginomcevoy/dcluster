@@ -4,7 +4,7 @@ import yaml
 from dcluster.tests import test_resources
 
 from dcluster.dansible import inventory
-from dcluster.plan import SimplePlannedNode
+from dcluster.node import SimplePlannedNode
 
 
 class TestCreateAnsibleInventory(unittest.TestCase):

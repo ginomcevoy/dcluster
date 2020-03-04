@@ -2,8 +2,8 @@ import os
 
 from runitmockit import runit
 
-from dcluster import logger
 from dcluster.util import fs as fs_util
+from dcluster.util import logger
 
 
 class ComposeFailure(Exception):

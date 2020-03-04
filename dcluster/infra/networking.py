@@ -11,8 +11,9 @@ import unittest
 
 from six.moves import input
 
+from dcluster import config
+
 from .docker_facade import DockerNaming, DockerNetworking, NetworkSubnetTaken
-from . import config
 
 SUPERNET = config.networking('supernet')
 CIDR_BITS = config.networking('cidr_bits')

@@ -1,65 +1,14 @@
-from operator import attrgetter
+from .blueprint import ClusterBlueprint
 
-from dcluster import logger
 from dcluster.util import collection as collection_util
-from dcluster.docker_facade import DockerNaming
+from dcluster.util import logger
 
-from . import SimplePlannedNode
+from dcluster.node.planner import SimpleNodePlanner, ExtendedNodePlanner
 
 
 def simple_plan_data(simple_config, creation_request):
     # keep merge simple for now
     return collection_util.defensive_merge(simple_config, creation_request._asdict())
-
-
-class SimpleNodePlanner(object):
-    '''
-    Creates node entries for the ClusterBlueprint (cluster_specs dictionary).
-    Requires a cluster plan that already has all the necessary information (config + request)
-    to design the cluster specifications.
-    '''
-
-    def __init__(self, cluster_network):
-        self.cluster_network = cluster_network
-
-    def create_head_plan(self, plan_data):
-        head_ip = self.cluster_network.head_ip()
-        head_hostname = plan_data['head']['hostname']
-        head_image = plan_data['head']['image']
-
-        head_plan = self.create_node_plan(plan_data['name'], head_hostname, head_ip,
-                                          head_image, 'head')
-
-        return head_plan
-
-    def create_compute_plan(self, plan_data, index, compute_ip):
-        compute_hostname = self.create_compute_hostname(plan_data, index)
-        compute_image = plan_data['compute']['image']
-        compute_plan = self.create_node_plan(plan_data['name'], compute_hostname, compute_ip,
-                                             compute_image, 'compute')
-        return compute_plan
-
-    def create_node_plan(self, cluster_name, hostname, ip_address, image, role):
-        container_name = self.create_container_name(cluster_name, hostname)
-        return SimplePlannedNode(hostname, container_name, image, ip_address, role)
-
-    def create_container_name(self, cluster_name, hostname):
-        return DockerNaming.create_container_name(cluster_name, hostname)
-
-    def create_compute_hostname(self, plan_data, index):
-        '''
-        Returns the hostname of a compute node given its index.
-
-        Ex.
-        0 -> node001
-        1 -> node002
-        '''
-        name_prefix = plan_data['compute']['hostname']['prefix']
-        suffix_len = plan_data['compute']['hostname']['suffix_len']
-
-        suffix_str = '{0:0%sd}' % str(suffix_len)
-        suffix = suffix_str.format(index + 1)
-        return name_prefix + suffix
 
 
 class SimpleClusterPlan(logger.LoggerMixin):
@@ -89,11 +38,11 @@ class SimpleClusterPlan(logger.LoggerMixin):
 
     def create_blueprints(self):
         '''
-        Creates an instance of SimpleClusterBlueprint
+        Creates an instance of ClusterBlueprint
         '''
         cluster_specs = self.build_specs()
         self.logger.debug(cluster_specs)
-        return SimpleClusterBlueprint(self.cluster_network, cluster_specs)
+        return ClusterBlueprint(self.cluster_network, cluster_specs)
 
     def build_specs(self):
         '''
@@ -212,95 +161,50 @@ class SimpleClusterPlan(logger.LoggerMixin):
         return SimpleClusterPlan(cluster_network, plan_data, node_planner)
 
 
-class SimpleClusterBlueprint(logger.LoggerMixin):
-
-    def __init__(self, cluster_network, cluster_specs):
-        self.cluster_network = cluster_network
-        self.cluster_specs = cluster_specs
-
-        # small initialization to have a list of nodes handy
-        ordered_node_ips = sorted(cluster_specs['nodes'].keys())
-        self.ordered_nodes = [
-            cluster_specs['nodes'][ordered_ip]
-            for ordered_ip
-            in ordered_node_ips
-        ]
-
-    def deploy(self, renderer, deployer):
-        template = self.cluster_specs['template']
-        cluster_definition = renderer.render_blueprint(self.as_dict(), template)
-        deployer.deploy(cluster_definition)
-        # deployed_cluster = cluster.from_docker(name)
-
-        log_msg = 'Docker cluster %s -  %s created!'
-        self.logger.info(log_msg % (self.name, self.cluster_network))
-
-    @property
-    def name(self):
-        return self.cluster_specs['name']
-
-    def nodes_by_role(self, role):
-        '''
-        Returns a list of the nodes that are of some role
-        '''
-        return [
-            n
-            for n in self.ordered_nodes
-            if n.role == role
-        ]
-
-    @property
-    def head_node(self):
-        return self.nodes_by_role('head')[0]
-
-    @property
-    def gateway_node(self):
-        return self.nodes_by_role('gateway')[0]
-
-    @property
-    def compute_nodes(self):
-        return self.nodes_by_role('compute')
-
-    def format(self, formatter):
-        '''
-        Format the cluster to some representation, e.g. as text.
-        '''
-        return formatter.format(self.as_dict())
-
-    def as_dict(self):
-        '''
-        Dictionary version of SimpleClusterBlueprint
-        '''
-        return self.cluster_specs
-
-
-class SimpleFormatter(object):
+class ExtendedClusterPlan(SimpleClusterPlan):
     '''
-    Formats a simple cluster as text.
+    as_dict= {
+        'name': 'test',
+        'head': {
+            'hostname': 'head',
+            'image': 'centos7:ssh'
+        },
+        'compute': {
+            'hostname': {
+                'prefix': 'node',
+                'suffix_len': 3
+            },
+            'image': 'centos7:ssh'
+        },
+        'network': cluster_network.as_dict(),
+        'template': 'cluster-simple.yml.j2'
+    }
     '''
 
-    def format(self, cluster_dict):
-        lines = [''] * 6
-        lines[0] = 'Cluster: %s' % cluster_dict['name']
-        lines[1] = '-' * 24
-        lines[2] = 'Network: %s' % cluster_dict['network']['subnet']
-        lines[3] = ''
+    def build_specs(self):
+        # build the 'simple' specs, noting that the ExtendedNodePlanner will be used
+        simple_cluster_specs = super(ExtendedClusterPlan, self).build_specs()
 
-        node_format = '  {:15}{:16}{:25}'
+        # the specs are missing the docker volumes at the bottom.
+        # For now just get the docker volumes from the head role
+        # TODO add volumes from other roles (compute) when we have a proper test
+        docker_volumes_head = self.plan_data['head']['docker_volumes']
 
-        # header of nodes
-        lines[4] = node_format.format('hostname', 'ip_address', 'container')
-        lines[5] = '  ' + '-' * 48
-
-        sorted_node_info = sorted(cluster_dict['nodes'].values(), key=attrgetter('hostname'))
-
-        node_lines = [
-            # format namedtuple contents
-            node_format.format(node.hostname, node.ip_address, node.container.name)
-            for node
-            in sorted_node_info
+        volumes_entry = [
+            docker_volume[0:docker_volume.find(':')]
+            for docker_volume
+            in docker_volumes_head
         ]
+        simple_cluster_specs['volumes'] = volumes_entry
 
-        lines.extend(node_lines)
-        lines.append('')
-        return '\n'.join(lines)
+        return simple_cluster_specs
+
+    @classmethod
+    def create(cls, creation_request, extended_config, cluster_network):
+        '''
+        Build plan based on user request, existing configuration and a existing network.
+        The parameters in the user request are merged with existing configuration.
+        '''
+        plan_data = simple_plan_data(extended_config, creation_request)
+        node_planner = ExtendedNodePlanner(cluster_network)
+        return ExtendedClusterPlan(cluster_network, plan_data, node_planner)

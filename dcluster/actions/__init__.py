@@ -1,6 +1,7 @@
-from dcluster import config, logger
+from dcluster import config
 
 from dcluster.util import fs as fs_util
+from dcluster.util import logger
 
 
 def get_workpath(args):

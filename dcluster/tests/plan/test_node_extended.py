@@ -1,12 +1,11 @@
 import unittest
-from collections import OrderedDict
 
 from . import extended_stubs as stubs
 
 
 class CreateExtendedHeadPlan(unittest.TestCase):
     '''
-    Unit test for plan.extended.ExtendedNodePlanner.create_head_plan
+    Unit tests for node.plan_extended.ExtendedNodePlanner
     '''
 
     def setUp(self):

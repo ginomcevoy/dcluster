@@ -1,8 +1,9 @@
 from operator import attrgetter
 
-from dcluster.docker_facade import DockerContainers, DockerNetworking
-from dcluster.plan.simple import SimplePlannedNode
-from dcluster import logger
+from . import SimplePlannedNode
+
+from dcluster.infra.docker_facade import DockerContainers, DockerNetworking
+from dcluster.util import logger
 
 
 def planned_from_docker(docker_container, docker_network):

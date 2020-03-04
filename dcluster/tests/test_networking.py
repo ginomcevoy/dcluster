@@ -1,10 +1,9 @@
-import ipaddress
 import random
 import string
 import unittest
 
 
-from dcluster import networking
+from dcluster.infra import networking
 
 
 DEFAULT_DOCKER_NETWORK = 'bridge'

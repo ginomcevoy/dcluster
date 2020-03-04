@@ -1,11 +1,13 @@
 import logging
 import os
 
-from dcluster import config, logger, networking
+from .blueprint import ClusterBlueprint
 
-from dcluster.cluster import node
-from dcluster.plan import simple as simple_plan
-from dcluster.docker_facade import DockerNaming, DockerNetworking
+from dcluster.node import instance as node_instance
+from dcluster.infra.docker_facade import DockerNaming, DockerNetworking
+from dcluster.infra import networking
+
+from dcluster.util import logger
 
 
 class RunningClusterMixin(logger.LoggerMixin):
@@ -83,7 +85,7 @@ class RunningClusterMixin(logger.LoggerMixin):
             n.inject_public_ssh_key(ssh_target_path, public_key)
 
 
-class DeployedCluster(simple_plan.SimpleClusterBlueprint, RunningClusterMixin):
+class DeployedCluster(ClusterBlueprint, RunningClusterMixin):
 
     @classmethod
     def from_docker(cls, cluster_name):
@@ -102,7 +104,7 @@ class DeployedCluster(simple_plan.SimpleClusterBlueprint, RunningClusterMixin):
 
         # find the nodes in the cluster
         docker_network = cluster_network.docker_network
-        deployed_nodes = node.DeployedNode.find_for_cluster(cluster_name, docker_network)
+        deployed_nodes = node_instance.DeployedNode.find_for_cluster(cluster_name, docker_network)
 
         # TODO recover everything (missing network details)?
         partial_cluster_specs = {

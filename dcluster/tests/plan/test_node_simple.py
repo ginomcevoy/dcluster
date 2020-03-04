@@ -1,6 +1,6 @@
 import unittest
 
-from dcluster.plan import SimplePlannedNode
+from dcluster.node import SimplePlannedNode
 
 from . import simple_stubs as stubs
 
