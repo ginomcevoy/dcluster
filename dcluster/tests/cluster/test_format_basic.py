@@ -2,16 +2,16 @@ import collections
 import unittest
 
 
-from dcluster.cluster.format import SimpleFormatter
+from dcluster.cluster.format import TextFormatterBasic
 
 
-class SimpleFormatterTest(unittest.TestCase):
+class TextFormatterBasicTest(unittest.TestCase):
     '''
-    Unit tests for cluster.format.SimpleFormatter
+    Unit tests for cluster.format.TextFormatterBasic
     '''
 
     def setUp(self):
-        self.formatter = SimpleFormatter()
+        self.formatter = TextFormatterBasic()
 
     def test_format_no_nodes(self):
         # given

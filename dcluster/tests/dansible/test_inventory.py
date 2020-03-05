@@ -4,7 +4,7 @@ import yaml
 from dcluster.tests import test_resources
 
 from dcluster.dansible import inventory
-from dcluster.node import SimplePlannedNode
+from dcluster.node import BasicPlannedNode
 
 
 class TestCreateAnsibleInventory(unittest.TestCase):
@@ -60,25 +60,25 @@ class TestCreateAnsibleInventory(unittest.TestCase):
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': SimplePlannedNode(
+                '172.30.0.253': BasicPlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
                     ip_address='172.30.0.253',
                     role='head'),
-                '172.30.0.1': SimplePlannedNode(
+                '172.30.0.1': BasicPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
                     image='centos7:ssh',
                     ip_address='172.30.0.1',
                     role='compute'),
-                '172.30.0.2': SimplePlannedNode(
+                '172.30.0.2': BasicPlannedNode(
                     hostname='node002',
                     container='mycluster-node002',
                     image='centos7:ssh',
                     ip_address='172.30.0.2',
                     role='compute'),
-                '172.30.0.3': SimplePlannedNode(
+                '172.30.0.3': BasicPlannedNode(
                     hostname='node003',
                     container='mycluster-node003',
                     image='centos7:ssh',
@@ -91,5 +91,5 @@ class TestCreateAnsibleInventory(unittest.TestCase):
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
-            'template': 'cluster-simple.yml.j2'
+            'template': 'cluster-basic.yml.j2'
         }

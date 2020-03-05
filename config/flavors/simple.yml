@@ -1,0 +1,13 @@
+simple:
+  cluster_type: basic
+  template: cluster-basic.yml.j2
+
+  head:
+    hostname: 'head'
+    image: 'centos7:ssh'
+
+  compute:
+    hostname:
+        prefix: 'node'
+        suffix_len: 3          
+    image:  'centos7:ssh'

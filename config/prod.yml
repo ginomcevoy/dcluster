@@ -4,6 +4,8 @@ paths:
   templates: '/usr/share/dcluster/templates'
   work: $HOME/.dcluster
   ansible_static: '/usr/share/dcluster/ansible_static'
+  flavors:
+    - /usr/share/dcluster/flavors
 
 prefs:
   log_level: INFO

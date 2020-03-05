@@ -1,6 +1,6 @@
 import unittest
 
-from dcluster import config
+from dcluster.config import main_config
 from dcluster.runtime import render
 
 from dcluster.tests import test_resources
@@ -12,11 +12,11 @@ class TestJinjaRenderer(unittest.TestCase):
         self.resources = test_resources.ResourcesForTest()
         self.maxDiff = None
 
-        templates_dir = config.paths('templates')
+        templates_dir = main_config.paths('templates')
         self.renderer = render.JinjaRenderer(templates_dir)
 
-    def test_simple_render(self):
-        # given a simple cluster specification
+    def test_basic_render(self):
+        # given a basic cluster specification
         cluster_specs = {
             'nodes': {
                 '172.30.0.253': {
@@ -48,13 +48,13 @@ class TestJinjaRenderer(unittest.TestCase):
                 'gateway_ip': '172.30.0.254'
             }
         }
-        template_filename = 'cluster-simple.yml.j2'
+        template_filename = 'cluster-basic.yml.j2'
 
         # when
         result = self.renderer.render_blueprint(cluster_specs, template_filename)
 
         # then matches a saved file
-        expected = self.resources.expected_docker_compose_simple
+        expected = self.resources.expected_docker_compose_basic
         self.assertEqual(result, expected)
 
     def test_slurm_render(self):

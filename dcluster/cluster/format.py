@@ -1,9 +1,9 @@
 from operator import attrgetter
 
 
-class SimpleFormatter(object):
+class TextFormatterBasic(object):
     '''
-    Formats a simple cluster as text.
+    Formats a basic cluster as text.
     '''
 
     def format(self, cluster_dict):

@@ -10,7 +10,7 @@ import sys
 
 # from six.moves import input
 
-from dcluster import config
+from dcluster.config import main_config
 
 from dcluster.cli import create as create_cli
 from dcluster.cli import display as display_cli
@@ -60,7 +60,7 @@ def processRequest():
 
 if __name__ == "__main__":
 
-    log_level_str = config.prefs('log_level')
+    log_level_str = main_config.prefs('log_level')
     log_level = getattr(logging, log_level_str)
     logging.basicConfig(format='%(asctime)s - %(levelname)6s | %(message)s',
                         level=log_level, datefmt='%d-%b-%y %H:%M:%S')

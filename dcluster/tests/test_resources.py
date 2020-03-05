@@ -22,7 +22,7 @@ class ResourcesForTest(object):
         return self.read_yaml_file('inventory.yml')
 
     @property
-    def expected_docker_compose_simple(self):
+    def expected_docker_compose_basic(self):
         return self.read_text_file('docker-compose-simple.yml')
 
     @property

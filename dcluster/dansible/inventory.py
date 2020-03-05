@@ -21,28 +21,28 @@ class AnsibleInventory:
         Function that takes the following dictionary:
 
         cluster_specs = {
-            'flavor': 'simple',
+            'flavor': 'basic',
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': SimplePlannedNode(
+                '172.30.0.253': BasicPlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
                     ip_address='172.30.0.253',
                     role='head'),
-                '172.30.0.1': SimplePlannedNode(
+                '172.30.0.1': BasicPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
                     image='centos7:ssh',
                     ip_address='172.30.0.1',
                     role='compute'),
-                '172.30.0.2': SimplePlannedNode(
+                '172.30.0.2': BasicPlannedNode(
                     hostname='node002',
                     container='mycluster-node002',
                     image='centos7:ssh',
                     ip_address='172.30.0.2',
                     role='compute'),
-                '172.30.0.3': SimplePlannedNode(
+                '172.30.0.3': BasicPlannedNode(
                     hostname='node003',
                     container='mycluster-node003',
                     image='centos7:ssh',
@@ -55,7 +55,7 @@ class AnsibleInventory:
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
-            'template': 'cluster-simple.yml.j2'
+            'template': 'cluster-basic.yml.j2'
         }
         then creates an Ansible inventory in dictionary form:
 
@@ -94,14 +94,14 @@ class AnsibleInventory:
                         172.30.0.3:
 
             vars:
-                cluster_flavor: simple
+                cluster_flavor: basic
                 cluster_name: mycluster
                 cluster_network:
                     address: 172.30.0.0/24
                     gateway: gateway
                     gateway_ip: 172.30.0.254
                     name: mycluster
-                cluster_template: cluster-simple.yml.j2
+                cluster_template: cluster-basic.yml.j2
 
         '''
         self.inventory_dict = {

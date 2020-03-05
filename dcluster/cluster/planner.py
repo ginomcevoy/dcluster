@@ -3,15 +3,15 @@ from .blueprint import ClusterBlueprint
 from dcluster.util import collection as collection_util
 from dcluster.util import logger
 
-from dcluster.node.planner import SimpleNodePlanner, ExtendedNodePlanner
+from dcluster.node.planner import BasicNodePlanner, ExtendedNodePlanner
 
 
-def simple_plan_data(simple_config, creation_request):
-    # keep merge simple for now
-    return collection_util.defensive_merge(simple_config, creation_request._asdict())
+def basic_plan_data(basic_config, creation_request):
+    # keep merge basic for now
+    return collection_util.defensive_merge(basic_config, creation_request._asdict())
 
 
-class SimpleClusterPlan(logger.LoggerMixin):
+class BasicClusterPlan(logger.LoggerMixin):
     '''
     as_dict= {
         'name': 'test',
@@ -27,7 +27,7 @@ class SimpleClusterPlan(logger.LoggerMixin):
             'image': 'centos7:ssh'
         },
         'network': cluster_network.as_dict(),
-        'template': 'cluster-simple.yml.j2'
+        'template': 'cluster-basic.yml.j2'
     }
     '''
 
@@ -48,34 +48,34 @@ class SimpleClusterPlan(logger.LoggerMixin):
         '''
         Creates a dictionary of node specs that will be used for the cluster blueprint.
 
-        A 'simple' cluster always has a single head, and zero or more compute nodes, depending
+        A 'basic' cluster always has a single head, and zero or more compute nodes, depending
         on compute_count.
 
         Example output: for compute_count = 3, add a head node and 3 compute nodes:
 
         cluster_specs = {
-            'flavor': 'simple',
+            'flavor': 'basic',
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': SimplePlannedNode(
+                '172.30.0.253': BasicPlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
                     ip_address='172.30.0.253',
                     role='head'),
-                '172.30.0.1': SimplePlannedNode(
+                '172.30.0.1': BasicPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
                     image='centos7:ssh',
                     ip_address='172.30.0.1',
                     role='compute'),
-                '172.30.0.2': SimplePlannedNode(
+                '172.30.0.2': BasicPlannedNode(
                     hostname='node002',
                     container='mycluster-node002',
                     image='centos7:ssh',
                     ip_address='172.30.0.2',
                     role='compute'),
-                '172.30.0.3': SimplePlannedNode(
+                '172.30.0.3': BasicPlannedNode(
                     hostname='node003',
                     container='mycluster-node003',
                     image='centos7:ssh',
@@ -88,38 +88,9 @@ class SimpleClusterPlan(logger.LoggerMixin):
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
-            'template': 'cluster-simple.yml.j2'
+            'template': 'cluster-basic.yml.j2'
         }
         '''
-        # head_ip = self.cluster_network.head_ip()
-        # head_hostname = self.head['hostname']
-        # head_image = self.head['image']
-
-        # head_plan = self.create_node_plan(self.name, head_hostname, head_ip,
-        #                                     head_image, 'head')
-
-        # # begin from existing entries, include head node spec
-        # # this allows keeping 'extra' entries in the plan
-        # undesired_keys = ('head', 'compute', 'compute_count')
-        # cluster_specs = collection_util.defensive_subtraction(self.plan_entries, undesired_keys)
-
-        # # always have a head and the network
-        # cluster_specs['network'] = self.cluster_network.as_dict()
-        # cluster_specs['nodes'] = {head_ip: head_plan}
-
-        # # add compute nodes, should raise NetworkSubnetTooSmall if there are not enough IPs
-        # compute_ips = self.cluster_network.compute_ips(self.compute_count)
-        # compute_image = self.compute['image']
-
-        # for index, compute_ip in enumerate(compute_ips):
-
-        #     compute_hostname = self.create_compute_hostname(index)
-        #     node_plan = self.create_node_plan(self.name, compute_hostname,
-        #                                         compute_ip, compute_image, 'compute')
-        #     cluster_specs['nodes'][compute_ip] = node_plan
-
-        # return cluster_specs
-
         plan_data = self.plan_data
         cluster_network = self.cluster_network
         node_planner = self.node_planner
@@ -150,24 +121,26 @@ class SimpleClusterPlan(logger.LoggerMixin):
         return d
 
     @classmethod
-    def create(cls, creation_request, simple_config, cluster_network):
+    def create(cls, creation_request, basic_config, cluster_network):
         '''
         Build plan based on user request, existing configuration and a existing network.
         The parameters in the user request are merged with existing configuration.
         '''
 
-        plan_data = simple_plan_data(simple_config, creation_request)
-        node_planner = SimpleNodePlanner(cluster_network)
-        return SimpleClusterPlan(cluster_network, plan_data, node_planner)
+        plan_data = basic_plan_data(basic_config, creation_request)
+        node_planner = BasicNodePlanner(cluster_network)
+        return BasicClusterPlan(cluster_network, plan_data, node_planner)
 
 
-class ExtendedClusterPlan(SimpleClusterPlan):
+class ExtendedClusterPlan(BasicClusterPlan):
     '''
     as_dict= {
         'name': 'test',
         'head': {
             'hostname': 'head',
             'image': 'centos7:ssh'
+            'docker_volumes': ...
+            'shared_volumes': ...
         },
         'compute': {
             'hostname': {
@@ -175,15 +148,18 @@ class ExtendedClusterPlan(SimpleClusterPlan):
                 'suffix_len': 3
             },
             'image': 'centos7:ssh'
+            'docker_volumes': ...
+            'shared_volumes': ...
         },
+        'volumes': ...
         'network': cluster_network.as_dict(),
-        'template': 'cluster-simple.yml.j2'
+        'template': 'cluster-extended.yml.j2'
     }
     '''
 
     def build_specs(self):
-        # build the 'simple' specs, noting that the ExtendedNodePlanner will be used
-        simple_cluster_specs = super(ExtendedClusterPlan, self).build_specs()
+        # build the 'basic' specs, noting that the ExtendedNodePlanner will be used
+        basic_cluster_specs = super(ExtendedClusterPlan, self).build_specs()
 
         # the specs are missing the docker volumes at the bottom.
         # For now just get the docker volumes from the head role
@@ -195,9 +171,9 @@ class ExtendedClusterPlan(SimpleClusterPlan):
             for docker_volume
             in docker_volumes_head
         ]
-        simple_cluster_specs['volumes'] = volumes_entry
+        basic_cluster_specs['volumes'] = volumes_entry
 
-        return simple_cluster_specs
+        return basic_cluster_specs
 
     @classmethod
     def create(cls, creation_request, extended_config, cluster_network):
@@ -205,6 +181,6 @@ class ExtendedClusterPlan(SimpleClusterPlan):
         Build plan based on user request, existing configuration and a existing network.
         The parameters in the user request are merged with existing configuration.
         '''
-        plan_data = simple_plan_data(extended_config, creation_request)
+        plan_data = basic_plan_data(extended_config, creation_request)
         node_planner = ExtendedNodePlanner(cluster_network)
         return ExtendedClusterPlan(cluster_network, plan_data, node_planner)

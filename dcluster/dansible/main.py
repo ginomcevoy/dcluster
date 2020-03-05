@@ -2,11 +2,12 @@ import argparse
 import logging
 import sys
 
-from dcluster import config, dansible
+from dcluster.config import main_config
+from dcluster import dansible
 
 
 def process_playbook(args):
-    inventory_file = config.default_inventory(args.cluster_name)
+    inventory_file = main_config.default_inventory(args.cluster_name)
     dansible.run_playbook(args.cluster_name, args.playbook_name, inventory_file)
 
 
@@ -41,7 +42,7 @@ def processRequest():
 
 if __name__ == "__main__":
 
-    log_level_str = config.prefs('log_level')
+    log_level_str = main_config.prefs('log_level')
     log_level = getattr(logging, log_level_str)
     logging.basicConfig(format='%(asctime)s - %(levelname)6s | %(message)s',
                         level=log_level, datefmt='%d-%b-%y %H:%M:%S')

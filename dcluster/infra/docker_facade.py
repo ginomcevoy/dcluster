@@ -9,7 +9,7 @@ import docker
 import ipaddress
 import logging
 
-from dcluster import config
+from dcluster.config import main_config
 
 __docker_client = None
 
@@ -50,7 +50,7 @@ class DockerNaming:
         '''
         Single place to define how network name is built based on cluster name.
         '''
-        return '-'.join((config.networking('prefix'), cluster_name))
+        return '-'.join((main_config.networking('prefix'), cluster_name))
 
     @classmethod
     def deduce_cluster_name(cls, network):
@@ -75,7 +75,7 @@ class DockerNaming:
         assert network_name_is_string, 'Could not understand %s' % network_name
 
         # now we have a string, dcluster networks are preceded by the prefix
-        prefix = config.networking('prefix')
+        prefix = main_config.networking('prefix')
         cls.logger().debug('Looking in %s for %s' % (network_name, prefix))
 
         if network_name.find(prefix) != 0:
@@ -83,7 +83,7 @@ class DockerNaming:
             raise NotFromDcluster()
 
         # this is a dcluster string
-        return network_name[(len(config.networking('prefix')) + 1):]
+        return network_name[(len(main_config.networking('prefix')) + 1):]
 
     @classmethod
     def is_dcluster_network(cls, network):

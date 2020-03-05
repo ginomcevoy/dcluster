@@ -4,7 +4,7 @@ from dcluster.cluster import instance, format
 def show_cluster(cluster_name):
 
     cluster = instance.DeployedCluster.from_docker(cluster_name)
-    formatter = format.SimpleFormatter()
+    formatter = format.TextFormatterBasic()
     output = cluster.format(formatter)
     print(output)
     return cluster

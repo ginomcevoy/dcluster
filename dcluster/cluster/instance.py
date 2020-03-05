@@ -90,7 +90,7 @@ class DeployedCluster(ClusterBlueprint, RunningClusterMixin):
     @classmethod
     def from_docker(cls, cluster_name):
         '''
-        Returns an instance of SimpleCluster using the name and querying docker for the
+        Returns an instance of DeployedCluster using the name and querying docker for the
         missing data.
 
         Raises NotDclusterElement if cluster network is not found.

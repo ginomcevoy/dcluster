@@ -1,8 +1,8 @@
 import unittest
 
-from dcluster.node import SimplePlannedNode
+from dcluster.node import BasicPlannedNode
 
-from dcluster.tests.stubs import simple_stubs as stubs
+from dcluster.tests.stubs import basic_stubs as stubs
 
 
 class CreateComputeHostname(unittest.TestCase):
@@ -11,8 +11,8 @@ class CreateComputeHostname(unittest.TestCase):
         cluster_name = 'test'
         subnet_str = u'172.30.0.0/24'
         compute_count = 3
-        self.plan_data = stubs.simple_plan_data_stub(cluster_name, compute_count)
-        self.node_planner = stubs.simple_node_planner_stub(cluster_name, subnet_str)
+        self.plan_data = stubs.basic_plan_data_stub(cluster_name, compute_count)
+        self.node_planner = stubs.basic_node_planner_stub(cluster_name, subnet_str)
 
     def test_hostname_0(self):
         # given
@@ -35,14 +35,14 @@ class CreateComputeHostname(unittest.TestCase):
         self.assertEqual(result, 'node011')
 
 
-class CreateSimpleComputeNode(unittest.TestCase):
+class CreateBasicComputeNode(unittest.TestCase):
 
     def setUp(self):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 3
-        self.plan_data = stubs.simple_plan_data_stub(cluster_name, compute_count)
-        self.node_planner = stubs.simple_node_planner_stub(cluster_name, subnet_str)
+        self.plan_data = stubs.basic_plan_data_stub(cluster_name, compute_count)
+        self.node_planner = stubs.basic_node_planner_stub(cluster_name, subnet_str)
 
     def test_compute_index_1(self):
         # given
@@ -52,7 +52,7 @@ class CreateSimpleComputeNode(unittest.TestCase):
         result = self.node_planner.create_compute_plan(self.plan_data, index, '172.30.0.2')
 
         # then
-        expected = SimplePlannedNode(hostname='node002',
+        expected = BasicPlannedNode(hostname='node002',
                                      container='mycluster-node002',
                                      image='centos7:ssh',
                                      ip_address='172.30.0.2',

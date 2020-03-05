@@ -1,7 +1,8 @@
 import os
 import unittest
 
-from dcluster import config
+from dcluster.config import main_config
+from dcluster.config import flavor_config
 
 
 class ConfigTest(unittest.TestCase):
@@ -18,24 +19,24 @@ class ConfigTest(unittest.TestCase):
         base cluster config.
         '''
         # when using simple config
-        simple_config = config.for_cluster('simple')
+        simple_config = flavor_config.cluster_config_for_flavor('simple')
         simple_value = simple_config['template']
 
         # given that an extended config is requested
-        _ = config.for_cluster('slurm')
+        _ = flavor_config.cluster_config_for_flavor('slurm')
 
         # then it should not affect the base config
-        simple_config_again = config.for_cluster('simple')
+        simple_config_again = flavor_config.cluster_config_for_flavor('simple')
         simple_value_again = simple_config_again['template']
         self.assertEqual(simple_value, simple_value_again)
 
     def test_config_composer_workpath(self):
         # given
         cluster_name = 'mycluster'
-        workpath = config.paths('work')
+        workpath = main_config.paths('work')
 
         # when
-        composer_workpath = config.composer_workpath(cluster_name)
+        composer_workpath = main_config.composer_workpath(cluster_name)
 
         # then
         expected = os.path.join(workpath, 'clusters/mycluster')

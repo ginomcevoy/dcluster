@@ -1,13 +1,13 @@
 from operator import attrgetter
 
-from . import SimplePlannedNode
+from . import BasicPlannedNode
 
 from dcluster.infra.docker_facade import DockerContainers, DockerNetworking
 from dcluster.util import logger
 
 
 def planned_from_docker(docker_container, docker_network):
-    return SimplePlannedNode(
+    return BasicPlannedNode(
         hostname=DockerContainers.hostname(docker_container),
         container=docker_container.name,
         image=docker_container.image.tags[0],
@@ -22,7 +22,7 @@ class DeployedNode(logger.LoggerMixin):
     Encapsulates docker-specific implementation of a container and its attributes.
     Assumes it is part of a docker cluster.
 
-    TODO extend SimplePlannedNode like this
+    TODO extend BasicPlannedNode like this
     https://stackoverflow.com/questions/42385916/inheriting-from-a-namedtuple-base-class-python
 
     but ONLY if it is worth it...

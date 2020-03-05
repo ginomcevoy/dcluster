@@ -39,4 +39,4 @@ all:
             gateway: gateway
             gateway_ip: 172.30.0.254
             name: dcluster-mycluster
-        cluster_template: cluster-simple.yml.j2
+        cluster_template: cluster-basic.yml.j2

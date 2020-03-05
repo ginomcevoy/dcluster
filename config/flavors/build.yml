@@ -1,0 +1,9 @@
+---
+build:
+  extend: simple
+
+  head:
+    image: 'centos7:build'
+
+  compute:
+    image: 'centos7:build'  

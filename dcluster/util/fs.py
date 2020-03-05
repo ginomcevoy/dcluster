@@ -63,6 +63,17 @@ def copytree(src, dst, symlinks=False, ignore=None):
         # pass
 
 
+def find_files_with_extension(dirpath, extension):
+    '''
+    list all files in directory (not-recursive) that have an extension, e.g. '.txt'
+    '''
+    return [
+        file
+        for file in os.listdir(dirpath)
+        if file.endswith(extension)
+    ]
+
+
 if __name__ == '__main__':
 
     real_path = evaluate_shell_path('$HOME/.dcluster')
@@ -70,3 +81,16 @@ if __name__ == '__main__':
 
     real_path = evaluate_shell_path('$PWD')
     print(real_path)
+
+    # find config/flavors with YAML files
+    dir_of_this_module = get_module_directory('dcluster.util.fs')
+    dcluster_dir = os.path.dirname(os.path.dirname(dir_of_this_module))
+    flavor_dir = os.path.join(dcluster_dir, 'config/flavors')
+
+    # find YAML files there
+    yaml_files = find_files_with_extension(flavor_dir, '.yml')
+    print('flavor files: %s' % str(yaml_files))
+
+    # attempt to find where there are none (here)
+    no_files = find_files_with_extension(dir_of_this_module, '.yml')
+    print('no files here: %s' % str(no_files))

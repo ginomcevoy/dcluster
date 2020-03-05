@@ -74,10 +74,12 @@ def read_deployed_config(config_source, dcluster_root):
 def config_dir_from_source():
     '''
     Calculate <dcluster_source>/config directory using the fact that it is one level above
-    this module, outside the dcluster package (dcluster/config.py -> dcluster/../config)
+    this module, outside the dcluster package
+    (dcluster/config/main_config.py -> dcluster/../config)
     '''
     dir_of_this_module = fs_util.get_module_directory('dcluster.config')
-    return os.path.join(os.path.dirname(dir_of_this_module), 'config')
+    dcluster_dir = os.path.dirname(os.path.dirname(dir_of_this_module))
+    return os.path.join(dcluster_dir, 'config')
 
 
 def get_config():
@@ -126,7 +128,18 @@ def paths(key):
     '''
     Configuration sub-element for paths. These paths may be prefixed by dcluster_root.
     '''
-    return os.path.expandvars(get_config()['paths'][key])
+
+    one_or_more_paths = get_config()['paths'][key]
+
+    # handle lists
+    if isinstance(one_or_more_paths, list):
+        return [
+            os.path.expandvars(a_path)
+            for a_path
+            in one_or_more_paths
+        ]
+    else:
+        return os.path.expandvars(one_or_more_paths)
 
 
 def composer_workpath(cluster_name):
@@ -157,37 +170,14 @@ def playbook_workpath(cluster_name):
     return os.path.join(workpath, 'ansible')
 
 
-def for_cluster(key):
-    '''
-    Configuration sub-element for cluster properties.
-    '''
-    # read YAML
-    cluster_config = get_config()['clusters'][key]
-
-    # check if the cluster config extends another
-    if 'extend' in cluster_config:
-
-        # read the parent, but don't modify it!
-        parent_config = get_config()['clusters'][cluster_config['extend']]
-        parent_config = collection_util.defensive_copy(parent_config)
-
-        # merge parent with current config
-        cluster_config = collection_util.update_recursively(parent_config, cluster_config)
-
-        # no need anymore
-        del cluster_config['extend']
-
-    return cluster_config
-
-
 if __name__ == '__main__':
     import pprint
     print('*** ALL ***')
     pprint.pprint(get_config())
     pprint.pprint(paths('work'))
 
-    print('*** SIMPLE ***')
-    pprint.pprint(for_cluster('simple'))
+    # print('*** SIMPLE ***')
+    # pprint.pprint(for_cluster('simple'))
 
-    print('*** SLURM ***')
-    pprint.pprint(for_cluster('slurm'))
+    # print('*** SLURM ***')
+    # pprint.pprint(for_cluster('slurm'))

@@ -1,4 +1,4 @@
 from collections import namedtuple
 
 
-SimpleCreationRequest = namedtuple('SimpleCreationRequest', ['name', 'compute_count', 'flavor'])
+BasicCreationRequest = namedtuple('BasicCreationRequest', ['name', 'compute_count', 'flavor'])

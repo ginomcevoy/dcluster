@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 
-SimplePlannedNode = namedtuple('SimplePlannedNode', 'hostname, container, image, ip_address, role')
+BasicPlannedNode = namedtuple('BasicPlannedNode', 'hostname, container, image, ip_address, role')
 
 ExtendedPlannedNode = namedtuple('ExtendedPlannedNode',
                                  'hostname, container, image, ip_address, role, volumes, \

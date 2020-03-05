@@ -4,6 +4,8 @@ paths:
   templates: 'templates'
   work: $PWD/.dcluster
   ansible_static: 'ansible_static'
+  flavors:
+    - config/flavors
 
 prefs:
   log_level: DEBUG

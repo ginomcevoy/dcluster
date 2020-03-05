@@ -1,5 +1,4 @@
-from dcluster import config
-
+from dcluster.config import main_config
 from dcluster.actions import ssh as ssh_action
 
 
@@ -59,7 +58,7 @@ def interpret_ssh_args(args):
     if '@' in args.target:
         (username, hostname) = args.target.split('@')
     else:
-        username = config.prefs('ssh_user')
+        username = main_config.prefs('ssh_user')
         hostname = args.target
 
     # handle scp target dir

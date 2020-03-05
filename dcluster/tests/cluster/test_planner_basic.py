@@ -1,18 +1,18 @@
 '''
-Unit tests for plan.simple
+Unit tests for cluster.plan_basic
 '''
 import unittest
 
-from dcluster.node import SimplePlannedNode
-from dcluster.cluster.planner import SimpleClusterPlan
+from dcluster.node import BasicPlannedNode
+from dcluster.cluster.planner import BasicClusterPlan
 
 from dcluster.tests.stubs import infra_stubs
-from dcluster.tests.stubs import simple_stubs as stubs
+from dcluster.tests.stubs import basic_stubs as stubs
 
 
-class TestSimpleBuildSpecs(unittest.TestCase):
+class TestBasicBuildSpecs(unittest.TestCase):
     '''
-    Unit tests for cluster.planner.SimpleClusterPlan.build_specs()
+    Unit tests for cluster.planner.BasicClusterPlan.build_specs()
     '''
 
     def setUp(self):
@@ -26,7 +26,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 0
-        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.basic_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()
@@ -36,7 +36,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': SimplePlannedNode(
+                '172.30.0.253': BasicPlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
@@ -49,7 +49,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
-            'template': 'cluster-simple.yml.j2'
+            'template': 'cluster-basic.yml.j2'
         }
         self.assertEqual(result, expected)
 
@@ -61,7 +61,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.1.0/25'
         compute_count = 0
-        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.basic_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()
@@ -71,7 +71,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
-                '172.30.1.125': SimplePlannedNode(
+                '172.30.1.125': BasicPlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
@@ -84,7 +84,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.1.126'
             },
-            'template': 'cluster-simple.yml.j2'
+            'template': 'cluster-basic.yml.j2'
         }
         self.assertEqual(result, expected)
 
@@ -96,7 +96,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 1
-        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.basic_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()
@@ -106,13 +106,13 @@ class TestSimpleBuildSpecs(unittest.TestCase):
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': SimplePlannedNode(
+                '172.30.0.253': BasicPlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
                     ip_address='172.30.0.253',
                     role='head'),
-                '172.30.0.1': SimplePlannedNode(
+                '172.30.0.1': BasicPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
                     image='centos7:ssh',
@@ -125,7 +125,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
-            'template': 'cluster-simple.yml.j2'
+            'template': 'cluster-basic.yml.j2'
         }
         self.assertEqual(result, expected)
 
@@ -137,7 +137,7 @@ class TestSimpleBuildSpecs(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 3
-        cluster_plan = stubs.simple_cluster_plan_stub(cluster_name, subnet_str, compute_count)
+        cluster_plan = stubs.basic_cluster_plan_stub(cluster_name, subnet_str, compute_count)
 
         # when
         result = cluster_plan.build_specs()
@@ -147,25 +147,25 @@ class TestSimpleBuildSpecs(unittest.TestCase):
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
-                '172.30.0.253': SimplePlannedNode(
+                '172.30.0.253': BasicPlannedNode(
                     hostname='head',
                     container='mycluster-head',
                     image='centos7:ssh',
                     ip_address='172.30.0.253',
                     role='head'),
-                '172.30.0.1': SimplePlannedNode(
+                '172.30.0.1': BasicPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
                     image='centos7:ssh',
                     ip_address='172.30.0.1',
                     role='compute'),
-                '172.30.0.2': SimplePlannedNode(
+                '172.30.0.2': BasicPlannedNode(
                     hostname='node002',
                     container='mycluster-node002',
                     image='centos7:ssh',
                     ip_address='172.30.0.2',
                     role='compute'),
-                '172.30.0.3': SimplePlannedNode(
+                '172.30.0.3': BasicPlannedNode(
                     hostname='node003',
                     container='mycluster-node003',
                     image='centos7:ssh',
@@ -178,24 +178,24 @@ class TestSimpleBuildSpecs(unittest.TestCase):
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
-            'template': 'cluster-simple.yml.j2'
+            'template': 'cluster-basic.yml.j2'
         }
         self.assertEqual(result, expected)
 
 
-class CreateSimpleClusterPlanTest(unittest.TestCase):
+class CreateBasicClusterPlanTest(unittest.TestCase):
     '''
-    Unit tests for cluster.planner.SimpleClusterPlan.create()
+    Unit tests for cluster.planner.BasicClusterPlan.create()
     '''
 
     def test_create(self):
         # given
-        creation_request = stubs.simple_request_stub('test', 2)
-        simple_config = stubs.simple_config()
+        creation_request = stubs.basic_request_stub('test', 2)
+        basic_config = stubs.basic_config()
         cluster_network = infra_stubs.network_stub('test', u'172.30.0.0/24')
 
         # when
-        cluster_plan = SimpleClusterPlan.create(creation_request, simple_config, cluster_network)
+        cluster_plan = BasicClusterPlan.create(creation_request, basic_config, cluster_network)
 
         # then
         result = cluster_plan.as_dict()
@@ -213,7 +213,7 @@ class CreateSimpleClusterPlanTest(unittest.TestCase):
                 'image': 'centos7:ssh'
             },
             'network': cluster_network.as_dict(),
-            'template': 'cluster-simple.yml.j2'
+            'template': 'cluster-basic.yml.j2'
         }
 
         print(result)

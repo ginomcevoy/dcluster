@@ -3,8 +3,7 @@ import os
 from .inventory import AnsibleInventory
 from .playbook import execute_playbook
 
-from dcluster import config
-
+from dcluster.config import main_config
 from dcluster.util import fs as fs_util
 
 
@@ -19,10 +18,10 @@ def create_inventory(cluster_specs, inventory_workpath):
 
 def run_playbook(cluster_name, playbook_name, inventory_file):
     # copy from ansible_static
-    ansible_static_path = config.paths('ansible_static')
+    ansible_static_path = main_config.paths('ansible_static')
     playbook_path = os.path.join(ansible_static_path, playbook_name)
 
-    ansible_home = config.playbook_workpath(cluster_name)
+    ansible_home = main_config.playbook_workpath(cluster_name)
     playbook_target = os.path.join(ansible_home, playbook_name)
     fs_util.create_dir_dont_complain(playbook_target)
     fs_util.copytree(playbook_path, playbook_target)

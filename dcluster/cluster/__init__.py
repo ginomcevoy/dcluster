@@ -1,14 +1,24 @@
-from .planner import SimpleClusterPlan, ExtendedClusterPlan
+from .planner import BasicClusterPlan, ExtendedClusterPlan
+
+from dcluster.config import flavor_config
 
 
-def create_plan(creation_request, flavor_config, cluster_network):
+# this matches the type to a plan
+plans_by_type = {
+    'basic': BasicClusterPlan,
+    'extended': ExtendedClusterPlan
+}
+
+
+def create_plan(creation_request, cluster_network):
     '''
     Build plan based on user request, existing configuration and a existing network.
     The parameters in the user request are merged with existing configuration.
     '''
-    if creation_request.flavor == 'simple':
-        return SimpleClusterPlan.create(creation_request, flavor_config, cluster_network)
-    elif creation_request.flavor == 'build':
-        return SimpleClusterPlan.create(creation_request, flavor_config, cluster_network)
-    elif creation_request.flavor == 'slurm':
-        return ExtendedClusterPlan.create(creation_request, flavor_config, cluster_network)
+    cluster_config = flavor_config.cluster_config_for_flavor(creation_request.flavor)
+
+    # the configuration specifies the type of cluster, use plans_by_type to match
+    plan_for_type = plans_by_type[cluster_config['cluster_type']]
+
+    # call the factory method of the right class
+    return plan_for_type.create(creation_request, cluster_config, cluster_network)
