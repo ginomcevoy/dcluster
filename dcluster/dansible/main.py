@@ -8,12 +8,18 @@ from dcluster import dansible
 
 def process_playbook(args):
     inventory_file = main_config.default_inventory(args.cluster_name)
-    dansible.run_playbook(args.cluster_name, args.playbook_name, inventory_file)
+
+    extra_vars = None
+    if args.yum:
+        extra_vars = '@%s' % args.yum
+
+    dansible.run_playbook(args.cluster_name, args.playbook_name, inventory_file, extra_vars)
 
 
 def configure_playbook_parser(playbook_parser):
     playbook_parser.add_argument('cluster_name', help='name of the Docker cluster')
     playbook_parser.add_argument('playbook_name', help='playbook identifier (TODO: show list?)')
+    playbook_parser.add_argument('--yum', default=None, help='JSON file with yum repositories')
 
     playbook_parser.set_defaults(func=process_playbook)
 

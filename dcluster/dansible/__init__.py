@@ -16,7 +16,7 @@ def create_inventory(cluster_specs, inventory_workpath):
     return (ansible_inventory, inventory_file)
 
 
-def run_playbook(cluster_name, playbook_name, inventory_file):
+def run_playbook(cluster_name, playbook_name, inventory_file, extra_vars=None):
     # copy from ansible_static
     ansible_static_path = main_config.paths('ansible_static')
     playbook_path = os.path.join(ansible_static_path, playbook_name)
@@ -28,4 +28,4 @@ def run_playbook(cluster_name, playbook_name, inventory_file):
 
     playbook_filename = playbook_name + '-playbook.yml'
     playbook_file = os.path.join(playbook_target, playbook_filename)
-    execute_playbook(playbook_file, inventory_file)
+    execute_playbook(playbook_file, inventory_file, extra_vars)

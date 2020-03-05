@@ -36,7 +36,9 @@ def create_basic_cluster(creation_request):
                                                     inventory_workpath)
 
     # test
-    dansible.run_playbook(cluster_name, 'hello', inventory_file)
+    # dansible.run_playbook(cluster_name, 'hello', inventory_file)
+    extra_vars = 'hostname=OMG'
+    dansible.run_playbook(cluster_name, 'hello', inventory_file, extra_vars)
 
     # show newly created
     live_cluster = display.show_cluster(creation_request.name)

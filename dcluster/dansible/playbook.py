@@ -11,7 +11,7 @@ def execute_playbook(playbook_file, inventory_file, extra_vars=None):
     logger = logging.getLogger()
     extra_vars_str = ''
     if extra_vars is not None:
-        extra_vars_str = '--extra-vars %s' % extra_vars
+        extra_vars_str = '--extra-vars "%s"' % extra_vars
 
     (playbook_path, playbook_filename) = os.path.split(playbook_file)
 
