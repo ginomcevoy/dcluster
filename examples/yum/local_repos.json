@@ -1,0 +1,8 @@
+{
+    "yum": {
+        "repositories": {
+            "centos-everything": "http://{{ cluster_network.gateway_ip }}/iso/CentOS-7.7.1908",
+            "ansible-repo": "http://{{ cluster_network.gateway_ip }}/ansible-repo"
+        }    
+    }
+} 

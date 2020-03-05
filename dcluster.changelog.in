@@ -1,4 +1,9 @@
 %changelog
+* Thu Mar 05 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.9-1
+- Separate flavor configuration into individual files
+- Allow users to override YUM repository with dcluster-ansible --yum option
+- Rename DCLUSTER_ROOT to DCLUSTER_INSTALL_PREFIX
+
 * Wed Mar 04 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.8-1
 - Allow scp to recursively copy directories
 - Use a local yum repository, still hard-coded

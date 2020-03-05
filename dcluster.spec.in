@@ -105,9 +105,9 @@ python3 setup.py build
 # install the python code to RPM_BUILD_ROOT
 python2 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
 
-# create the production configuration, need DCLUSTER_ROOT environment variable to deploy
+# create the production configuration, need DCLUSTER_INSTALL_PREFIX environment variable to deploy
 export PYTHONPATH=.
-export DCLUSTER_ROOT=$RPM_BUILD_ROOT
+export DCLUSTER_INSTALL_PREFIX=$RPM_BUILD_ROOT
 python2 -m deployment.deploy
 
 # deployment script has done its job
@@ -121,9 +121,9 @@ rm -rf %{buildroot}%{python2_sitelib}/deployment
 # install the python code to RPM_BUILD_ROOT
 python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
 
-# create the production configuration, need DCLUSTER_ROOT environment variable to deploy
+# create the production configuration, need DCLUSTER_INSTALL_PREFIX environment variable to deploy
 export PYTHONPATH=.
-export DCLUSTER_ROOT=$RPM_BUILD_ROOT
+export DCLUSTER_INSTALL_PREFIX=$RPM_BUILD_ROOT
 python3 -m deployment.deploy
 
 # deployment script has done its job
@@ -145,7 +145,7 @@ cp usr/bin/dcluster-ansible $RPM_BUILD_ROOT/usr/bin
 %if 0%{?with_python2}
 
 # this is needed to find deployed files for testing, but before the RPM is installed
-export DCLUSTER_ROOT=%{buildroot}
+export DCLUSTER_INSTALL_PREFIX=%{buildroot}
 
 # run the tests
 export PYTHONPATH=%{buildroot}%{python2_sitelib}
@@ -158,7 +158,7 @@ rm -rf %{buildroot}%{python2_sitelib}/%{mod_name}/tests/__pycache__
 %if 0%{?with_python3}
 
 # this is needed to find deployed files for testing, but before the RPM is installed
-export DCLUSTER_ROOT=%{buildroot}
+export DCLUSTER_INSTALL_PREFIX=%{buildroot}
 
 # run the tests
 export PYTHONPATH=%{buildroot}%{python3_sitelib}

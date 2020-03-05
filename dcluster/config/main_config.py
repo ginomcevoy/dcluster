@@ -49,24 +49,37 @@ def create_prod_config():
     return collection_util.update_recursively(common_config, prod_only_config)
 
 
-def read_deployed_config(config_source, dcluster_root):
+def read_deployed_config(config_source, dcluster_install_prefix):
     '''
     Configuration from a deployed source, e.g. /etc/dcluster/config.yml
-    The paths may be prefixed by dcluster_root
+    The paths may be prefixed by dcluster_install_prefix
     '''
 
     (config_dir, config_filename) = os.path.split(config_source)
 
-    if dcluster_root:
+    if dcluster_install_prefix:
         # prefix configuration path
-        config_dir = dcluster_root + config_dir
+        config_dir = dcluster_install_prefix + config_dir
 
     deployed_config = read_config(config_dir, config_filename)
 
-    if dcluster_root and 'paths' in deployed_config:
+    if dcluster_install_prefix and 'paths' in deployed_config:
+
         # prefix paths with the supplied root
-        for entry, value in deployed_config['paths'].items():
-            deployed_config['paths'][entry] = dcluster_root + deployed_config['paths'][entry]
+        for entry, one_or_more_paths in deployed_config['paths'].items():
+
+            # handle lists
+            if isinstance(one_or_more_paths, list):
+
+                # entry in paths is a list
+                deployed_config['paths'][entry] = [
+                    dcluster_install_prefix + item_path
+                    for item_path
+                    in one_or_more_paths
+                ]
+            else:
+                # just one path in the entry
+                deployed_config['paths'][entry] = dcluster_install_prefix + one_or_more_paths
 
     return deployed_config
 
@@ -91,10 +104,11 @@ def get_config():
             # override to use development config from source code
             __dcluster_config = create_dev_config()
 
-        elif 'DCLUSTER_ROOT' in os.environ:
+        elif 'DCLUSTER_INSTALL_PREFIX' in os.environ:
             # override the root of production dcluster configuration (default is '/')
             # useful when doing rpmbuild testing
-            __dcluster_config = read_deployed_config(CONFIG_FILE, os.environ['DCLUSTER_ROOT'])
+            __dcluster_config = read_deployed_config(CONFIG_FILE,
+                                                     os.environ['DCLUSTER_INSTALL_PREFIX'])
 
         else:
             # use the config file that dcluster is expected to have deployed (after installing RPM)
@@ -126,7 +140,7 @@ def prefs(key):
 
 def paths(key):
     '''
-    Configuration sub-element for paths. These paths may be prefixed by dcluster_root.
+    Configuration sub-element for paths. These paths may be prefixed by dcluster_install_prefix.
     '''
 
     one_or_more_paths = get_config()['paths'][key]

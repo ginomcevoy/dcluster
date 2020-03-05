@@ -13,17 +13,17 @@ import sys
 import yaml
 
 from dcluster import CONFIG_FILE
-from dcluster import config
+from dcluster.config import main_config
 from dcluster.util import fs as fs_util
 
 
-def create_production_config(sandbox_dir):
+def install_production_config(sandbox_dir):
     '''
-    Development environment is obtained by reading both config/common.yml and config/dev.yml
+    Production environment is obtained by reading both config/common.yml and config/prod.yml
     '''
 
     # create from sources
-    production_config = config.create_prod_config()
+    production_config = main_config.create_prod_config()
 
     (config_deploy_dir, config_deploy_filename) = os.path.split(CONFIG_FILE)
 
@@ -41,67 +41,60 @@ def create_production_config(sandbox_dir):
     return sandboxed_config_file
 
 
-def templates_dir_from_source():
+def root_source_dir():
     '''
-    Calculate <dcluster_source>/templates directory using the fact that it is one level above
-    this module, outside the deployment package (deployment/deploy.py -> deployment/../templates)
-    '''
-    dir_of_this_module = fs_util.get_module_directory('deployment.deploy')
-    return os.path.join(os.path.dirname(dir_of_this_module), 'templates')
-
-
-def ansible_static_dir_from_source():
-    '''
-    Calculate <dcluster_source>/ansible_static directory using the fact that it is one level above
-    this module, outside the deployment package (deployment/deploy.py ->
-    deployment/../ansible_static)
+    Calculate <dcluster_source> directory using the fact that it is one level above
+    this module, outside the deployment package (deployment/deploy.py -> deployment/../)
     '''
     dir_of_this_module = fs_util.get_module_directory('deployment.deploy')
-    return os.path.join(os.path.dirname(dir_of_this_module), 'ansible_static')
+    return os.path.dirname(dir_of_this_module)
 
 
-def copy_templates(sandbox_dir):
+def install_source_artifact(artifact_relative_dir, sandboxed_target_dir):
     '''
-    Copy templates to the path specified in the production configuration file
-    Note that we have set DCLUSTER_ROOT, so the path is already prefixed here!
+    Copies a source artifact to the path specified in the deployed (production) configuration file
+    Note that DCLUSTER_INSTALL_PREFIX should have been exported, so that the paths in the deployed
+    configuration have already been prefixed by DCLUSTER_INSTALL_PREFIX.
+
+    The sandboxed_target_dir should have the final directory, e.g.
+    templates (artifact_relative_dir) -> /usr/share/dcluster/templates (sandboxed_target_dir)
     '''
-    # read templates from here
-    template_source = templates_dir_from_source()
 
-    # where the production template will be at build time (the paths are also sandboxed...)
-    # production_config_at_sandbox = config.get_config(dcluster_root=sandbox_dir)
-    # production_template_dir = production_config_at_sandbox['paths']['templates']
-    sandboxed_production_template_dir = config.paths('templates')
+    # find the artifact within dcluster source
+    artifact_source = os.path.join(root_source_dir(), artifact_relative_dir)
 
-    # copy the entire directory (assumes that the production target ends with 'templates')
-    # don't copy anything if the target dir exists, assume it was already done
-    if not os.path.isdir(sandboxed_production_template_dir):
-        shutil.copytree(template_source, sandboxed_production_template_dir)
+    # copy the entire directory if target does not exist, assume it was done if target is present
+    if not os.path.isdir(sandboxed_target_dir):
+        shutil.copytree(artifact_source, sandboxed_target_dir)
 
 
-def copy_ansible_static(sandbox_dir):
-    '''
-    same as templates but for ansible_static...
-    '''
-    ansible_static_source = ansible_static_dir_from_source()
-    sandboxed_production_ansible_dir = config.paths('ansible_static')
-    if not os.path.isdir(sandboxed_production_ansible_dir):
-        shutil.copytree(ansible_static_source, sandboxed_production_ansible_dir)
+def install_dcluster(sandbox_dir):
+
+    # e.g. /etc/dcluster/config.yml
+    sandboxed_config_file = install_production_config(sandbox_dir)
+
+    # for debugging/testing purposes
+    print(sandboxed_config_file)
+
+    # install templates and ansible_static folders
+    install_source_artifact('templates', main_config.paths('templates'))
+    install_source_artifact('ansible_static', main_config.paths('ansible_static'))
+
+    # install cluster flavors, note that the entry is a list
+    # assuming the first element has the dcluster-supplied path
+    install_source_artifact('config/flavors', main_config.paths('flavors')[0])
 
 
 if __name__ == '__main__':
 
-    # DCLUSTER_ROOT is required for deployment, even if it is '/'
-    if 'DCLUSTER_ROOT' not in os.environ:
-        print('Need to set DCLUSTER_ROOT environment variable for deployment!', file=sys.stderr)
-        print('Export "DCLUSTER_ROOT=/" to install directly to filesystem.', file=sys.stderr)
+    # DCLUSTER_INSTALL_PREFIX is required for deployment, even if it is '/'
+    if 'DCLUSTER_INSTALL_PREFIX' not in os.environ:
+        print('Need to set DCLUSTER_INSTALL_PREFIX environment variable for deployment!',
+              file=sys.stderr)
+        print('Run "export DCLUSTER_INSTALL_PREFIX=/" to install directly to filesystem.',
+              file=sys.stderr)
         exit(1)
 
     # If we are working within rpmbuild, we should get RPM_BUILD_ROOT
-    sandbox_dir = os.environ['DCLUSTER_ROOT']
-    sandboxed_config_file = create_production_config(sandbox_dir)
-    copy_templates(sandbox_dir)
-    copy_ansible_static(sandbox_dir)
-
-    # this can be picked up by the external build process, e.g. for testing (?)
-    print(sandboxed_config_file)
+    sandbox_dir = os.environ['DCLUSTER_INSTALL_PREFIX']
+    install_dcluster(sandbox_dir)
