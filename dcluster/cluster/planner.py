@@ -7,12 +7,30 @@ from dcluster.node.planner import BasicNodePlanner, ExtendedNodePlanner
 
 
 def basic_plan_data(basic_config, creation_request):
-    # keep merge basic for now
+    '''
+    Build a plan for creating a basic cluster.
+    This is achieved by merging default dcluster configuration in the 'basic' flavor
+    with user-supplied information, e.g. the name of the cluster, etc
+    '''
+    # keep merge simplified for now
     return collection_util.defensive_merge(basic_config, creation_request._asdict())
 
 
 class BasicClusterPlan(logger.LoggerMixin):
     '''
+    A place to build and realize the plan for a cluster.
+    The strategy is to build a dictionary with all the available details of the cluster,
+    and to create a ClusterBlueprint instance that will actually deploy the cluster.
+
+    This plan assumes that the 'basic' template will be used, along with cluster flavors that are
+    marked with the 'basic' type.
+
+    The tasks of building the plan and deploying the clusters are kept in different classes,
+    in order to reutilize blueprint code for clusters already deployed and retrieved later, while
+    at the same time not including the code for building a cluster.
+
+    Here follows an example of the plan_data that is received at input:
+
     as_dict= {
         'name': 'test',
         'head': {
@@ -134,6 +152,11 @@ class BasicClusterPlan(logger.LoggerMixin):
 
 class ExtendedClusterPlan(BasicClusterPlan):
     '''
+    Similar to BasicClusterPlan, but here we assume that the 'extended' template will be used,
+    along with cluster flavors that are marked with the 'extended' type.
+
+    Here follows an example of the plan_data that is received at input:
+
     as_dict= {
         'name': 'test',
         'head': {
@@ -158,6 +181,11 @@ class ExtendedClusterPlan(BasicClusterPlan):
     '''
 
     def build_specs(self):
+        '''
+        Creates a dictionary of node specs that will be used for the cluster blueprint.
+
+        An 'extended' cluster is similar to a 'basic' cluster, but also handles docker volumes.
+        '''
         # build the 'basic' specs, noting that the ExtendedNodePlanner will be used
         basic_cluster_specs = super(ExtendedClusterPlan, self).build_specs()
 

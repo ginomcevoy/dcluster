@@ -15,6 +15,9 @@ def create_plan(creation_request, cluster_network):
     Build plan based on user request, existing configuration and a existing network.
     The parameters in the user request are merged with existing configuration.
     '''
+
+    # find the configuration given the flavor
+    # TODO let the user specify a place to also look for flavor files
     cluster_config = flavor_config.cluster_config_for_flavor(creation_request.flavor)
 
     # the configuration specifies the type of cluster, use plans_by_type to match

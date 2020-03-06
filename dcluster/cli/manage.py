@@ -3,7 +3,7 @@ from dcluster.actions import manage as manage_action
 
 def configure_stop_parser(stop_parser):
     '''
-    Configure argument parser for stop subcommand
+    Configure argument parser for stop subcommand.
     '''
     stop_parser.add_argument('cluster_name', help='name of the virtual cluster')
 
@@ -13,7 +13,7 @@ def configure_stop_parser(stop_parser):
 
 def configure_rm_parser(rm_parser):
     '''
-    Configure argument parser for rm subcommand
+    Configure argument parser for rm subcommand.
     '''
     rm_parser.add_argument('cluster_name', help='name of the Docker cluster')
 
@@ -23,13 +23,13 @@ def configure_rm_parser(rm_parser):
 
 def process_stop_cli_call(args):
     '''
-    Process the stop request through command line
+    Process the stop request through command line.
     '''
     manage_action.stop_cluster(args.cluster_name)
 
 
 def process_rm_cli_call(args):
     '''
-    Process the remove request through command line
+    Process the remove request through command line.
     '''
     manage_action.remove_cluster(args.cluster_name)

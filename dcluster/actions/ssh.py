@@ -6,7 +6,6 @@ def ssh(cluster_name, username, hostname):
     Performs SSH to a node in the cluster. The target can have username@hostname, or only hostname
     (uses default ssh_user)
     '''
-
     # delegate ssh to cluster object
     # TODO bring some SSH stuff here
     cluster = manage.get(cluster_name)

@@ -4,7 +4,7 @@ from dcluster.actions import ssh as ssh_action
 
 def configure_ssh_parser(ssh_parser):
     '''
-    Configure argument parser for ssh subcommand
+    Configure argument parser for ssh subcommand.
     '''
     ssh_parser.add_argument('cluster_name', help='name of the Docker cluster')
     ssh_parser.add_argument('target', help='hostname of the cluster node, can be user@hostname')
@@ -15,7 +15,7 @@ def configure_ssh_parser(ssh_parser):
 
 def configure_scp_parser(scp_parser):
     '''
-    Configure argument parser for scp subcommand
+    Configure argument parser for scp subcommand.
     '''
     scp_parser.add_argument('cluster_name', help='name of the Docker cluster')
     scp_parser.add_argument('target', help='hostname of the cluster node, can be user@hostname')
@@ -28,7 +28,7 @@ def configure_scp_parser(scp_parser):
 def process_ssh_cli_call(args):
     '''
     Performs SSH to a node in the cluster.
-    The node can have username@hostname, or only hostname (uses default ssh_user)
+    The node can have username@hostname, or only hostname (uses default ssh_user).
     '''
     (cluster_name, username, hostname, _) = interpret_ssh_args(args)
     ssh_action.ssh(cluster_name, username, hostname)
@@ -38,7 +38,7 @@ def process_scp_cli_call(args):
     '''
     Copies via SSH to a node in the cluster.
     The node can have username@hostname, or only hostname (uses default ssh_user)
-    Can send one or more files
+    Can send one or more files.
     '''
     (cluster_name, username, hostname, target_dir) = interpret_ssh_args(args)
 
@@ -51,6 +51,10 @@ def process_scp_cli_call(args):
 
 
 def interpret_ssh_args(args):
+    '''
+    Parses the arguments received for SSH/scp.
+    Takes care of username@container as a target, and the target path for scp.
+    '''
     cluster_name = args.cluster_name
     target_dir = ''
 

@@ -26,6 +26,7 @@ def get_all_available_flavors(user_places_to_look=None):
     candidate_yaml_files = find_candidate_yaml_files(user_places_to_look)
 
     # TODO enforce restrictions and handle collisions
+    # here we overwrite any repeated yaml file without consideration of where they were found
     flavor_yaml_files = []
     for location, candidates in candidate_yaml_files.items():
         for candidate in candidates:
@@ -47,7 +48,7 @@ def get_all_available_flavors(user_places_to_look=None):
 
 def find_candidate_yaml_files(user_places_to_look=None):
     '''
-    Finds YAML files in the specified paths
+    Finds YAML files in the specified paths. Allows the user to pass custom directories.
     '''
 
     # look in default places
@@ -89,33 +90,11 @@ def cluster_config_for_flavor(flavor, user_places_to_look=None):
         # merge parent with current config
         cluster_config = collection_util.update_recursively(parent_config, cluster_config)
 
-        # no need for this
+        # no need for this anymore
         del cluster_config['extend']
 
     return cluster_config
 
-
-# def for_cluster(key):
-#     '''
-#     Configuration sub-element for cluster properties.
-#     '''
-#     # read YAML
-#     cluster_config = get_config()['clusters'][key]
-
-#     # check if the cluster config extends another
-#     if 'extend' in cluster_config:
-
-#         # read the parent, but don't modify it!
-#         parent_config = get_config()['clusters'][cluster_config['extend']]
-#         parent_config = collection_util.defensive_copy(parent_config)
-
-#         # merge parent with current config
-#         cluster_config = collection_util.update_recursively(parent_config, cluster_config)
-
-#         # no need anymore
-#         del cluster_config['extend']
-
-#     return cluster_config
 
 if __name__ == '__main__':
     default_flavor_files = find_candidate_yaml_files(None)

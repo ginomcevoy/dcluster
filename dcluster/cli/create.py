@@ -12,9 +12,8 @@ from dcluster.cluster import request
 
 def configure_parser(create_parser):
     '''
-    Configure argument parser for create subcommand
+    Configure argument parser for create subcommand.
     '''
-
     create_parser.add_argument('cluster_name', help='name of the virtual cluster')
     create_parser.add_argument('compute_count', help='number of compute nodes in cluster')
 
@@ -32,7 +31,7 @@ def configure_parser(create_parser):
 
 def process_cli_call(args):
     '''
-    Process the creation request through command line
+    Process the creation request issued via the command line.
     '''
     log = logging.getLogger()
     log.debug('Got create parameters %s %s %s %s' % (args.cluster_name, args.compute_count,
