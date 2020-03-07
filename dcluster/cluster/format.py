@@ -7,6 +7,7 @@ class TextFormatterBasic(object):
     '''
 
     def format(self, cluster_dict):
+        # cluster-wide information
         lines = [''] * 6
         lines[0] = 'Cluster: %s' % cluster_dict['name']
         lines[1] = '-' * 24
@@ -28,6 +29,7 @@ class TextFormatterBasic(object):
             in sorted_node_info
         ]
 
+        # add node information to output
         lines.extend(node_lines)
         lines.append('')
         return '\n'.join(lines)

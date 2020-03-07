@@ -91,7 +91,7 @@ class DockerNaming:
 
         if network_name.find(prefix) != 0:
             # this is not a dcluster network
-            raise NotFromDcluster()
+            raise NotFromDcluster('Docker network not associated with dcluster: %s' % network_name)
 
         # this is a dcluster string
         return network_name[(len(main_config.networking('prefix')) + 1):]

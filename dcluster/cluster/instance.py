@@ -11,6 +11,10 @@ from dcluster.util import logger
 
 
 class RunningClusterMixin(logger.LoggerMixin):
+    '''
+    A mixin class that adds functionality applicable to clusters that have already been
+    deployed (as opposed to planned clusters).
+    '''
 
     def stop(self):
         '''
@@ -86,6 +90,16 @@ class RunningClusterMixin(logger.LoggerMixin):
 
 
 class DeployedCluster(ClusterBlueprint, RunningClusterMixin):
+    '''
+    Represents a cluster that has already been deployed by docker.
+
+    This means that the cluster has already been planned and deployed, and the creation command
+    exited. As a result (since dcluster is not a daemon and keeps no state), any information about
+    the cluster needs to be retrieved from Docker. This limits the amount of information we can
+    retrieve.
+
+    It only makes sense to create an instance of this class using from_docker() factory method.
+    '''
 
     @classmethod
     def from_docker(cls, cluster_name):
@@ -128,6 +142,12 @@ class DeployedCluster(ClusterBlueprint, RunningClusterMixin):
 
 
 def recursive_flag(files):
+    '''
+    Detects whether to add '-r' to scp to handle recursive copy.
+    Will add -r if at least one of the inputs is a directory.
+
+    TODO move this to a better place. (dcluster.node.ssh?)
+    '''
 
     # by default don't pass "-r"
     recursive = ''

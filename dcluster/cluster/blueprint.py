@@ -20,16 +20,21 @@ class ClusterBlueprint(logger.LoggerMixin):
         ]
 
     def deploy(self, renderer, deployer):
+        '''
+        Deploys a planned cluster, based on a deployment template, e.g. docker-compose.
+        '''
         template = self.cluster_specs['template']
         cluster_definition = renderer.render_blueprint(self.as_dict(), template)
         deployer.deploy(cluster_definition)
-        # deployed_cluster = cluster.from_docker(name)
 
         log_msg = 'Docker cluster %s -  %s created!'
         self.logger.info(log_msg % (self.name, self.cluster_network))
 
     @property
     def name(self):
+        '''
+        Name of the cluster.
+        '''
         return self.cluster_specs['name']
 
     def nodes_by_role(self, role):
@@ -44,14 +49,23 @@ class ClusterBlueprint(logger.LoggerMixin):
 
     @property
     def head_node(self):
+        '''
+        Returns a handle for the head node of this cluster.
+        '''
         return self.nodes_by_role('head')[0]
 
     @property
     def gateway_node(self):
+        '''
+        Returns a handle for the gateway (physical host) of this cluster.
+        '''
         return self.nodes_by_role('gateway')[0]
 
     @property
     def compute_nodes(self):
+        '''
+        Returns a list of handles for the compute nodes of this cluster.
+        '''
         return self.nodes_by_role('compute')
 
     def format(self, formatter):
@@ -62,6 +76,6 @@ class ClusterBlueprint(logger.LoggerMixin):
 
     def as_dict(self):
         '''
-        Dictionary version of ClusterBlueprint
+        Dictionary version of ClusterBlueprint, see BasicClusterPlan.
         '''
         return self.cluster_specs
