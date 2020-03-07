@@ -19,6 +19,9 @@ from dcluster.cli import ssh as ssh_cli
 
 
 def processRequest():
+    '''
+    Handle 'dcluster' requests using argparse and subparsers for each subcommand.
+    '''
 
     # top level parser
     desc = 'dcluster: deploy clusters of Docker containers'

@@ -1,4 +1,12 @@
 #!/bin/bash
 
+#
+# Issues the 'dcluster' command within production environment.
+# Should use production configuration.
+#
+# Giacomo Mc Evoy <giacomo.valenzano@atos.net>
+# Atos 2019
+#
+
 # call dcluster.main, let bash decide which python to use
 python -m dcluster.main $@

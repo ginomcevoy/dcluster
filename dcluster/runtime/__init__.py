@@ -6,6 +6,7 @@ from dcluster.config import main_config
 
 def get_renderer(creation_request):
     '''
+    Used for template rendering.
     '''
     # only one type for now
     templates_dir = main_config.paths('templates')

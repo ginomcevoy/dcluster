@@ -1,3 +1,7 @@
+'''
+Main entry point for dcluster-ansible.
+'''
+
 import argparse
 import logging
 import sys
@@ -7,16 +11,28 @@ from dcluster import dansible
 
 
 def process_playbook(args):
+    '''
+    Process the request to execute an Ansible playbook.
+    '''
     inventory_file = main_config.default_inventory(args.cluster_name)
 
+    # handle additional inventory data (variables)
     extra_vars = None
     if args.yum:
+
+        # load the '--yum <file>' as a JSON with extra variables for Ansible.
+        # TODO reuse this for other optional arguments?
         extra_vars = '@%s' % args.yum
 
     dansible.run_playbook(args.cluster_name, args.playbook_name, inventory_file, extra_vars)
 
 
 def configure_playbook_parser(playbook_parser):
+    '''
+    Adds the required and optional arguments for the 'playbook' subcommand.
+
+    TODO: reuse some/all optional arguments for 'dcluster create' command?
+    '''
     playbook_parser.add_argument('cluster_name', help='name of the Docker cluster')
     playbook_parser.add_argument('playbook_name', help='playbook identifier (TODO: show list?)')
     playbook_parser.add_argument('--yum', default=None, help='JSON file with yum repositories')
@@ -25,7 +41,11 @@ def configure_playbook_parser(playbook_parser):
 
 
 def processRequest():
+    '''
+    Handle the program execution using argparse.
 
+    For now, only the 'playbook' subcommand is supported.
+    '''
     # top level parser
     desc = 'dcluster-ansible: run/manage Ansible playbooks on dcluster containers'
     parser = argparse.ArgumentParser(prog='dcluster-ansible', description=desc)

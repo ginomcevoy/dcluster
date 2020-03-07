@@ -1,7 +1,10 @@
 '''
-Used when creating the RPM:
+Used when deploying using a package builder such as rpmbuild:
 
 - create the production configuration
+- install the production configuration to CONFIG_FILE (specified in root __init__.py)
+- copy non-python artifacts (e.g. yml files) to their proper location within
+  the path indicated by the DCLUSTER_INSTALL_PREFIX environment variable.
 '''
 
 # print to stderr - https://stackoverflow.com/a/14981125

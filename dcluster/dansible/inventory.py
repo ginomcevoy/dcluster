@@ -10,6 +10,7 @@ from dcluster.util import collection as collection_util
 class AnsibleInventory:
     '''
     Creates an Ansible YAML file given the cluster specification (ClusterBlueprint).
+    See create_dict() for the expected output.
     '''
 
     def __init__(self, cluster_specs):
@@ -103,6 +104,9 @@ class AnsibleInventory:
                     name: mycluster
                 cluster_template: cluster-basic.yml.j2
 
+        The IP addresses are used instead of the hostnames, because the hostnames are not expected
+        to be resolvable by the host (gateway). However, the names will be resolvable within the
+        cluster.
         '''
         self.inventory_dict = {
             'all': {
@@ -123,8 +127,8 @@ class AnsibleInventory:
             # add node to hosts
             self.inventory_dict['all']['hosts'][node_ip] = self.dict_for_node(planned_node)
 
-            # check for new roles
-            self.add_role_if_needed(planned_node.role)
+            # check for new groups
+            self.add_group_if_needed(planned_node.role)
 
             # add node to its type
             self.children[planned_node.role]['hosts'][node_ip] = None
@@ -132,14 +136,26 @@ class AnsibleInventory:
         return self.inventory_dict
 
     def dict_for_node(self, planned_node):
+        '''
+        Returns a dictionary that represents the data of a node inside the inventory.
+        The node may contain additional information that is not required for this inventory,
+        e.g. Docker volumes, these are left out.
+        '''
         keys = ('hostname', 'container', 'image', 'ip_address')
         return collection_util.defensive_subset(planned_node._asdict(), keys)
 
-    def add_role_if_needed(self, role):
+    def add_group_if_needed(self, role):
+        '''
+        Insert a new child for the 'children' dictionary (Ansible group).
+        Ansible groups match cluster roles.
+        '''
         if role not in self.children:
             self.children[role] = {'hosts': {}}
 
     def to_yaml(self, filename):
+        '''
+        Saves the inventory as a YAML file.
+        '''
         if self.inventory_dict is None:
             self.create_dict()
 

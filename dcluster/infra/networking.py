@@ -75,10 +75,16 @@ class ClusterNetwork(object):
         return [str(compute_address) for compute_address in compute_addresses]
 
     def ip_address(self):
+        '''
+        IP address of the subnet, as string.
+        '''
         return str(self.subnet)
 
     @property
     def network_name(self):
+        '''
+        Name of the network that matches the specified cluster name.
+        '''
         return DockerNaming.create_network_name(self.cluster_name)
 
     def as_dict(self):
@@ -98,14 +104,21 @@ class ClusterNetwork(object):
     @classmethod
     def from_first_subnet(cls, supernet, cidr_bits, cluster_name):
         '''
-        Given a supernet, return the first ClusterNetwork. This subnet will start at the same
-        address as the supernet, and have cidr_bits available.
+        Given a supernet and the CIDR of the desired subnets, return the first ClusterNetwork.
+        This subnet will start at the same address as the supernet, and have cidr_bits available.
+
+        This does not create an actual container network in the system.
         '''
         # get the first item yielded by the generator
         return next(cls.generator(supernet, cidr_bits, cluster_name))
 
     @classmethod
     def from_subnet_str(cls, subnet_str, cluster_name):
+        '''
+        Create an instance of ClusterNetwork given a cluster name and a subnet.
+
+        This does not create an actual container network in the system.
+        '''
         subnet = ipaddress.ip_network(subnet_str)
         return ClusterNetwork(subnet, cluster_name)
 
@@ -115,7 +128,8 @@ class ClusterNetwork(object):
         Returns a generator of ClusterNetwork, based on the subnet generator for all possible
         subnets given the supernet and cidr_bits.
         '''
-        # python2 wants unicode, python3 does not like using decode...
+        # python2 wants unicode, python3 does not like using decode
+        # this works on both
         if hasattr(supernet, 'decode'):
             supernet = supernet.decode('unicode-escape')
 
@@ -131,7 +145,7 @@ class ClusterNetwork(object):
 
 class DockerClusterNetwork(ClusterNetwork):
     '''
-    Cluster network that encapsulates a docker network, once it has been created in Docker
+    Cluster network that encapsulates an actual Docker network, once it has been created in Docker.
     (docker.models.networks.Network).
     '''
 
@@ -145,32 +159,67 @@ class DockerClusterNetwork(ClusterNetwork):
 
     @classmethod
     def from_subnet_and_name(cls, subnet, cluster_name, docker_network):
+        '''
+        Create an instance of this class using its components.
+        '''
         cluster_network = ClusterNetwork(subnet, cluster_name)
         return DockerClusterNetwork(cluster_network, docker_network)
 
     @property
     def id(self):
+        '''
+        ID of the network
+
+        TODO is this used at all?
+        '''
         return self.docker_network.id
 
     @property
     def containers(self):
+        '''
+        List containers in the network.
+
+        TODO relate this with docker_facade.DockerNetworking.containers_in_network()
+        '''
         return self.docker_network.containers
 
     def remove(self):
+        '''
+        Removes the actual network from the host system.
+        '''
         self.docker_network.remove()
         self.log.debug('Removed network %s of cluster %s' % (self.network_name, self.cluster_name))
 
     def container_name(self, hostname):
+        '''
+        Create a name for a container given its hostname.
+
+        TODO do we really need two places for this?
+        '''
         return DockerNaming.create_container_name(self.cluster_name, hostname)
 
 
 class DockerClusterNetworkFactory:
+    '''
+    Creates instances of DockerClusterNetwork.
+
+    It works by attempting to create a Docker network with a subnet range within a specified
+    supernet. If the subnet is taken, the attempt fails but no exception is returned to the caller
+    yet. Instead, the next subnets are tried iteratively.
+
+    This continues until a subnet is successfully created or all subnets are tried. In the latter
+    scenario, the request fails and NoNetworkSubnetsAvaialble is raised to the caller.
+    '''
 
     def __init__(self, supernet=SUPERNET, cidr_bits=CIDR_BITS):
         self.supernet = supernet
         self.cidr_bits = cidr_bits
 
     def validate_network_name(self, network_name):
+        '''
+        Try to use a network name. Failure to use the name is propagated to the caller, we don't
+        try a new name.
+        '''
         used_names = [network.name for network in DockerNetworking.all_docker_networks()]
         if network_name in used_names:
             raise NameExistsException('Network name is already in use: %s' % network_name)
@@ -179,6 +228,10 @@ class DockerClusterNetworkFactory:
         return network_name
 
     def cluster_network_candidates(self, cluster_name):
+        '''
+        Get all possible networks to be created, as a generator.
+        This does not create any network in the system.
+        '''
         return ClusterNetwork.generator(self.supernet, self.cidr_bits, cluster_name)
 
     def attempt_create(self, cluster_network):
@@ -210,9 +263,11 @@ class DockerClusterNetworkFactory:
         Calls 'attempt_create' iteratively until a network is created, or until
         all possible subnets have been exhausted. Returns DockerClusterNetwork instance
 
-        If the cluster_name exists, NameExistsException is raised.
+        If the cluster_name exists, NameExistsException is raised immediately, and no further
+        attempts are made.
+
         If it is not possible to create a network (all IP ranges for the specified main network
-        are taken) then NoNetworkSubnetsAvaialble is raised.
+        are taken) then NoNetworkSubnetsAvaialble is raised to the caller.
         '''
         docker_cluster_network = None
         cluster_network_candidates = self.cluster_network_candidates(cluster_name)
@@ -223,14 +278,16 @@ class DockerClusterNetworkFactory:
                 cluster_network_candidate = next(cluster_network_candidates)
                 docker_cluster_network = self.attempt_create(cluster_network_candidate)
             except NetworkSubnetTaken:
-                # this subnet is taken, keep trying
+                # this subnet is taken, keep trying before giving up
                 continue
 
             except StopIteration:
-                # there are no more subnets to try
+                # there are no more subnets to try, give up
                 msg = 'No more subnets available for network %s and CIDR bits %s'
                 raise NoNetworkSubnetsAvaialble(msg % (str(self.supernet),
                                                        str(self.cidr_bits)))
+
+            # note the lack of 'except NameExistsException'
 
         return docker_cluster_network
 
@@ -238,6 +295,8 @@ class DockerClusterNetworkFactory:
     def from_existing(cls, cluster_name):
         '''
         Recreate a cluster network given that it exists in Docker.
+
+        Raises NotFromDcluster is no network is found using the cluster name.
         '''
         docker_network = DockerNetworking.find_network(cluster_name)
         subnet = DockerNetworking.get_subnet(docker_network)
@@ -246,8 +305,18 @@ class DockerClusterNetworkFactory:
 
 
 class TestDockerClusterNetworkFactory(unittest.TestCase):
+    '''
+    Some tests that affect the system.
+
+    This should not destroy existing networks, but better to make sure that the system is 'clean'
+    before executing these tests!
+    '''
 
     def test_create_network_then_try_creating_it_again(self):
+        '''
+        Tries to create a named network, then tries again (expect error message), then remove
+        the network. If the test succeeds, the system returns to the original state.
+        '''
 
         supernet = '172.31.0.0/16'
         cidr_bits = 17
@@ -285,6 +354,12 @@ class TestDockerClusterNetworkFactory(unittest.TestCase):
         print('Removed first network %s' % str(first_subnet))
 
     def test_create_until_no_more_available(self):
+        '''
+        Tries to crete three networks using a supernet that only allows for two subnets.
+        The first two should succeed, the third should fail.
+
+        The two networks are removed, and the system should return to the original state.
+        '''
 
         supernet = '172.31.0.0/16'
         cidr_bits = 17

@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# Run tests for dcluster
-
+#
+# Run tests for dcluster.
+# Add '--pytest' to use pytest if available.
+#
 # Giacomo Mc Evoy <giacomo.valenzano@atos.net>
 # Atos 2019
+#
 
 # Calculate directory local to script
 BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"

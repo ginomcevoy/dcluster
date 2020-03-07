@@ -1,7 +1,8 @@
 #!/bin/bash -x
 
+#
 # Build the RPMs our own way
-
+#
 # Giacomo Mc Evoy <giacomo.valenzano@atos.net>
 # Atos 2019
 #

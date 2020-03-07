@@ -15,6 +15,10 @@ __docker_client = None
 
 
 def get_client():
+    '''
+    Singleton for a Docker client, keeps the same connection active throughout a process execution.
+    Multiple Docker calls may be issued through the same client.
+    '''
     global __docker_client
     if __docker_client is None:
         __docker_client = docker.from_env()
@@ -38,9 +42,15 @@ class NotFromDcluster(Exception):
 
 
 class DockerNaming:
+    '''
+    Single place to enforce naming policies, e.g. network and cluster names given supplied inputs.
+    '''
 
     @classmethod
     def logger(cls):
+        '''
+        Logger for this class.
+        '''
         if not hasattr(cls, 'log'):
             cls.log = logging.getLogger()
         return cls.log
@@ -50,6 +60,7 @@ class DockerNaming:
         '''
         Single place to define how network name is built based on cluster name.
         '''
+        # get the prefix from configuration file
         return '-'.join((main_config.networking('prefix'), cluster_name))
 
     @classmethod
@@ -109,20 +120,40 @@ class DockerNaming:
 
 
 class DockerContainers:
+    '''
+    Some class methods regarding actual Docker containers.
+    Assumes that a handle for a Docker container was obtained via the Docker API.
+
+    TODO find a better place for these.
+    '''
 
     @classmethod
     def hostname(cls, docker_container):
+        '''
+        Retrieve the hostname of a Docker container.
+        '''
         return docker_container.attrs['Config']['Hostname']
 
     @classmethod
     def ip_address(cls, docker_container, docker_network):
+        '''
+        Retrieve the IP address of a Docker container.
+        '''
         container_networks = docker_container.attrs['NetworkSettings']['Networks']
         return container_networks[docker_network.name]['IPAddress']
 
     @classmethod
     def role(cls, docker_container):
+        '''
+        Retrieve the role of a cluster node. Since dcluster is stateless, we use the 'labels'
+        attribute available in Docker, that were set when the container instance was created.
+
+        Requires Docker 17.06.0+.
+        '''
         labels = docker_container.attrs['Config']['Labels']
         role = None
+
+        # TODO make this configurable, probably change it
         role_label = 'bull.com.dcluster.role'
         if role_label in labels:
             role = labels[role_label]
@@ -131,9 +162,16 @@ class DockerContainers:
 
 
 class DockerNetworking:
+    '''
+    Some class methods regarding actual Docker networks.
 
+    TODO find a better place for these?
+    '''
     @classmethod
     def logger(cls):
+        '''
+        Logger for this class.
+        '''
         if not hasattr(cls, 'log'):
             cls.log = logging.getLogger()
         return cls.log
@@ -171,6 +209,11 @@ class DockerNetworking:
         Returns a docker.models.networks.Network for the network name.
         Assumes it exists in dcluster.
         '''
+
+        # we rely on naming policy, as we don't have another way to determine the nature
+        # of existing Docker networks (dcluster is stateless)
+
+        # TODO is there useful metadata that can be inserted into networks?
         network_name = DockerNaming.create_network_name(cluster_name)
         networks = cls.all_dcluster_networks()
 
@@ -181,7 +224,9 @@ class DockerNetworking:
                 break
 
         if not with_name:
-            raise NotFromDcluster()
+            # a network matching the cluster name was not found.
+            msg = 'A matching network was not found for %s! (tried %s)'
+            raise NotFromDcluster(msg % (cluster_name, network_name))
 
         return with_name
 
@@ -195,11 +240,15 @@ class DockerNetworking:
 
     @classmethod
     def containers_in_network(cls, docker_network):
+        '''
+        Lists all containers that are attached to the provided Docker network.
+        '''
+
         client = get_client()
 
         # match the network, create the instances
         # Finding containers for a network should be as easy as docker_network.containers,
-        # but the API is returning an empty list sometimes...
+        # but the API is returning an empty list sometimes, this is more reliable
         docker_containers = [
             docker_container
             for docker_container
@@ -212,6 +261,9 @@ class DockerNetworking:
 
     @classmethod
     def create_network(cls, planned_network):
+        '''
+        Create a new Docker network given its information provided as a ClusterNetwork instance.
+        '''
         client = get_client()
         try:
             # from docker.models.networks.create() help

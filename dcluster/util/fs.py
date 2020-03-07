@@ -1,6 +1,7 @@
 '''
 Utility functions for filesystem and paths.
 '''
+
 import importlib
 import os
 import shutil
@@ -11,6 +12,9 @@ from runitmockit import runit
 
 
 def get_module_filename(module_name):
+    '''
+    Given a Python module, returns the full path where its source code is located.
+    '''
 
     # if module not available, try to import it manually
     if module_name not in sys.modules:
@@ -21,11 +25,17 @@ def get_module_filename(module_name):
 
 
 def get_module_directory(module_name):
+    '''
+    Given a Python module, returns the directory where its source code is located.
+    '''
     module_filename = get_module_filename(module_name)
     return os.path.dirname(module_filename)
 
 
 def create_dir_dont_complain(directory):
+    '''
+    Create a directory structure, stay silent if the directory exists.
+    '''
     try:
         os.makedirs(directory)
     except OSError:
@@ -46,19 +56,22 @@ def evaluate_shell_path(path_str):
 
 
 def copytree(src, dst, symlinks=False, ignore=None):
+    '''
+    Copies path/to/src/* to path/to/dst/, recursively.
+    '''
     # try:
-        for item in os.listdir(src):
-            s = os.path.join(src, item)
-            d = os.path.join(dst, item)
-            if os.path.exists(d):
-                if os.path.isdir(d):
-                    shutil.rmtree(d)
-                else:
-                    os.remove(d)
-            if os.path.isdir(s):
-                shutil.copytree(s, d, symlinks, ignore)
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.exists(d):
+            if os.path.isdir(d):
+                shutil.rmtree(d)
             else:
-                shutil.copy2(s, d)
+                os.remove(d)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore)
+        else:
+            shutil.copy2(s, d)
     # except FileExistsError:
         # pass
 

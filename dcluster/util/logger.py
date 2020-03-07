@@ -2,6 +2,10 @@ import logging
 
 
 class LoggerMixin(object):
+    '''
+    Mixin for adding logging capabilities to a class.
+    Only works on instance methods.
+    '''
 
     @property
     def logger(self):
@@ -13,6 +17,9 @@ class LoggerMixin(object):
 
 
 def logger_for_me(func):
+    '''
+    Return a logger for the supplied function.
+    '''
     name = '.'.join([
         func.__module__,
         func.__name__

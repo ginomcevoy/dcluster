@@ -35,9 +35,8 @@ def create_basic_cluster(creation_request):
     (_, inventory_file) = dansible.create_inventory(cluster_blueprints.as_dict(),
                                                     inventory_workpath)
 
-    # test
-    # dansible.run_playbook(cluster_name, 'hello', inventory_file)
-    extra_vars = 'hostname=OMG'
+    # no extra_vars by default...
+    extra_vars = None
     dansible.run_playbook(cluster_name, 'hello', inventory_file, extra_vars)
 
     # show newly created

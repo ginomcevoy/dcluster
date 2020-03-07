@@ -6,8 +6,10 @@ from runitmockit import runit
 
 def execute_playbook(playbook_file, inventory_file, extra_vars=None):
     '''
-    Ugly for now...
+    Run an Ansible playbook using a cluster as the inventory nodes.
+    This will call 'ansible-playbook' command and print the output.
     '''
+    # Ugly for now, until we add more functionality
     logger = logging.getLogger()
     extra_vars_str = ''
     if extra_vars is not None:

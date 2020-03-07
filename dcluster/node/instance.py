@@ -7,6 +7,11 @@ from dcluster.util import logger
 
 
 def planned_from_docker(docker_container, docker_network):
+    '''
+    Reconstruct the details of a node given the actual container.
+    This is useful when recreating the information for a 'show' subcommand, and when working with
+    Ansible inventories.
+    '''
     return BasicPlannedNode(
         hostname=DockerContainers.hostname(docker_container),
         container=docker_container.name,
@@ -35,28 +40,45 @@ class DeployedNode(logger.LoggerMixin):
 
     @property
     def hostname(self):
+        '''
+        Encapsulates the hostname.
+        '''
         return self.planned.hostname
 
     @property
     def container(self):
+        '''
+        A handle for the Docker container.
+        '''
         return self.docker_container
 
     @property
     def image(self):
+        '''
+        A handle for the Docker image.
+        '''
         return self.docker_container.image
 
     @property
     def ip_address(self):
+        '''
+        Encapsulates the IP address.
+        '''
         return self.planned.ip_address
 
     @property
     def role(self):
+        '''
+        Encapsulates the role, e.g. head/compute.
+        '''
         return self.planned.role
 
     def inject_public_ssh_key(self, ssh_target_path, public_key):
         '''
         Injects the SSH public_key (provided as string), and injects it to the node container.
         This is done by executing the echo command on the .ssh/authorized_keys.
+
+        TODO move this to some 'ssh' module.
         '''
         run_cmd_template = '/bin/bash -c "mkdir -p %s && echo %s >> %s/authorized_keys"'
         run_cmd = run_cmd_template % (ssh_target_path, public_key, ssh_target_path)
@@ -68,6 +90,11 @@ class DeployedNode(logger.LoggerMixin):
 
     @classmethod
     def find_for_cluster(cls, cluster_name, docker_network=None):
+        '''
+        Creates list of instances of DeployedCluster, by finding all the containers attached to
+        a docker network. If the network is not supplied, then it is retrieved from Docker API
+        using the cluster name.
+        '''
         if not docker_network:
             docker_network = DockerNetworking.find_network(cluster_name)
 

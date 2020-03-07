@@ -10,10 +10,14 @@ class BasicNodePlanner(object):
     Requires a cluster plan that already has all the necessary information (config + request)
     to design the cluster specifications.
     '''
+
     def __init__(self, cluster_network):
         self.cluster_network = cluster_network
 
     def create_head_plan(self, plan_data):
+        '''
+        Creates an instance of BasicPlannedNode for the head of the cluster.
+        '''
         head_ip = self.cluster_network.head_ip()
         head_hostname = plan_data['head']['hostname']
         head_image = plan_data['head']['image']
@@ -24,6 +28,9 @@ class BasicNodePlanner(object):
         return head_plan
 
     def create_compute_plan(self, plan_data, index, compute_ip):
+        '''
+        Creates an instance of BasicPlannedNode for one of the compute nodes in the cluster.
+        '''
         compute_hostname = self.create_compute_hostname(plan_data, index)
         compute_image = plan_data['compute']['image']
         compute_plan = self.create_node_plan(plan_data['name'], compute_hostname, compute_ip,
@@ -31,11 +38,11 @@ class BasicNodePlanner(object):
         return compute_plan
 
     def create_node_plan(self, cluster_name, hostname, ip_address, image, role):
-        container_name = self.create_container_name(cluster_name, hostname)
+        '''
+        Creates an instance of BasicPlannedNode for some node of the cluster.
+        '''
+        container_name = DockerNaming.create_container_name(cluster_name, hostname)
         return BasicPlannedNode(hostname, container_name, image, ip_address, role)
-
-    def create_container_name(self, cluster_name, hostname):
-        return DockerNaming.create_container_name(cluster_name, hostname)
 
     def create_compute_hostname(self, plan_data, index):
         '''
@@ -60,17 +67,29 @@ class ExtendedNodePlanner(BasicNodePlanner):
     a chunk of 'static' text that is added to the specification without parsing, but with the
     proper indentation for a later renderization.
     '''
+    def __init__(self):
+        self.basic = super(ExtendedNodePlanner, self)
 
     def create_head_plan(self, plan_data):
-        basic_planned_head = super(ExtendedNodePlanner, self).create_head_plan(plan_data)
+        '''
+        Creates an instance of ExtendedNodePlanner for the head of the cluster.
+        '''
+        # reuse BasicPlannedNode for the basic details
+        basic_planned_head = self.basic.create_head_plan(plan_data)
         return self.extend_plan(plan_data, basic_planned_head)
 
     def create_compute_plan(self, plan_data, index, compute_ip):
-        my_super = super(ExtendedNodePlanner, self)
-        basic_planned_compute = my_super.create_compute_plan(plan_data, index, compute_ip)
+        '''
+        Creates an instance of ExtendedNodePlanner for the head of the cluster.
+        '''
+        # reuse BasicPlannedNode for the basic details
+        basic_planned_compute = self.basic.create_compute_plan(plan_data, index, compute_ip)
         return self.extend_plan(plan_data, basic_planned_compute)
 
     def extend_plan(self, plan_data, basic_planned_node):
+        '''
+        Promotes an instance of BasicNodePlanner to ExtendedNodePlanner, by adding more details.
+        '''
         role = basic_planned_node.role
 
         # join the two type of volumes
