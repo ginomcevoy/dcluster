@@ -1,4 +1,4 @@
- import os
+import os
 
 from .inventory import AnsibleInventory
 from .playbook import execute_playbook

@@ -67,7 +67,8 @@ class ExtendedNodePlanner(BasicNodePlanner):
     a chunk of 'static' text that is added to the specification without parsing, but with the
     proper indentation for a later renderization.
     '''
-    def __init__(self):
+    def __init__(self, cluster_network):
+        super(ExtendedNodePlanner, self).__init__(cluster_network)
         self.basic = super(ExtendedNodePlanner, self)
 
     def create_head_plan(self, plan_data):
