@@ -1,0 +1,7 @@
+# --- to generate documentation
+sphinx
+sphinx-autoapi
+
+# this avoids ImportError: cannot import name 'NullTranslations'
+# happened in Centos7.7 + pip3
+python-gettext

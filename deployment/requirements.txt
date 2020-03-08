@@ -1,5 +1,6 @@
 # --- package dependecies in source
 jinja2
+PyYAML
 ansible # can be omitted if dcluster ansible is not used (TODO... use selective installation)
 
 # --- to execute setup.py whatever the goal
@@ -13,4 +14,3 @@ pytest  #$PYTEST_VERSION
 # pytest-cov==2.6.0  # after 2.6.1 it requires pytest 3.6
 # pytest-html==1.9.0  # otherwise requires pytest 5
 # xunitparser
-

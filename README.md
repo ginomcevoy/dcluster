@@ -15,7 +15,7 @@ Run the binary supplied in the source code, requires `pytest`. Note: a developme
 where the configuration files have not been yet deployed to the target filesystem.
 
 ```bash
-PYTHONPATH=. DCLUSTER_DEV=true pytest -v dcluster/tests
+./scripts/dcluster-test --pytest
 ```
 
 The tests may be run after the installation via RPM as follows:
@@ -31,30 +31,30 @@ Note: the tests may fail if the parameters of the original configuration are cha
 Please use the provided script to generate the RPMs in addition to the egg-info package:
 
 ```bash
-./build-rpm.sh
+./scripts/build-rpm.sh
 ```
 
-(TODO) You may need to install requirements for setup beforehand, using 
+You may need to install requirements for setup beforehand, using 
 
 ```bash
-pip install -r ci_tools/requirements-setup.txt
+pip install --user -r deployment/requirements.txt
 ```
 
-## (TODO) Generating the documentation page
+## Generating the documentation page
 
-This project uses `mkdocs` to generate its documentation page. Therefore building a local copy of the doc page may be done using:
+This project uses Sphinx and AutoAPI to generate its documentation page.
 
 ```bash
-mkdocs build -f docs/mkdocs.yml
+cd docs && make html
 ```
 
-(TODO) You may need to install requirements for doc beforehand, using 
+You may need to install requirements for docs beforehand, using 
 
 ```bash
-pip install -r ci_tools/requirements-doc.txt
+pip install --user -r deployment/requirements-docs.txt
 ```
 
-## Generating the test reports
+## (TODO) Generating the test reports
 
 The following commands generate the html test report and the associated badge. 
 
