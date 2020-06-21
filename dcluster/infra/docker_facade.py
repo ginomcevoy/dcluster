@@ -239,14 +239,12 @@ class DockerNetworking:
         return ipaddress.ip_network(subnet_str)
 
     @classmethod
-    def containers_in_network(cls, docker_network):
+    def running_containers_for_network(cls, docker_network):
         '''
-        Lists all containers that are attached to the provided Docker network.
+        Lists all running containers that are attached to the provided Docker network.
         '''
-
         client = get_client()
 
-        # match the network, create the instances
         # Finding containers for a network should be as easy as docker_network.containers,
         # but the API is returning an empty list sometimes, this is more reliable
         docker_containers = [
@@ -254,6 +252,26 @@ class DockerNetworking:
             for docker_container
             in client.containers.list()
             if docker_network.name in docker_container.attrs['NetworkSettings']['Networks']
+        ]
+
+        # return sorted(cluster_nodes, key=attrgetter('ip_address'))
+        return docker_containers
+
+    @classmethod
+    def stopped_containers_for_network(cls, docker_network):
+        '''
+        Lists all stopped containers that are attached to the provided Docker network.
+        '''
+        client = get_client()
+
+        # Filter containers that are attached to the given network name,
+        # but which have State->Running = False.
+        docker_containers = [
+            docker_container
+            for docker_container
+            in client.containers.list(all=True)
+            if docker_network.name in docker_container.attrs['NetworkSettings']['Networks'] and
+            not docker_container.attrs['State']['Running']
         ]
 
         # return sorted(cluster_nodes, key=attrgetter('ip_address'))

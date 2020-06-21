@@ -11,6 +11,16 @@ def configure_stop_parser(stop_parser):
     stop_parser.set_defaults(func=process_stop_cli_call)
 
 
+def configure_start_parser(start_parser):
+    '''
+    Configure argument parser for start subcommand.
+    '''
+    start_parser.add_argument('cluster_name', help='name of the virtual cluster')
+
+    # default function to call
+    start_parser.set_defaults(func=process_start_cli_call)
+
+
 def configure_rm_parser(rm_parser):
     '''
     Configure argument parser for rm subcommand.
@@ -26,6 +36,13 @@ def process_stop_cli_call(args):
     Process the stop request through command line.
     '''
     manage_action.stop_cluster(args.cluster_name)
+
+
+def process_start_cli_call(args):
+    '''
+    Process the start request through command line.
+    '''
+    manage_action.start_cluster(args.cluster_name)
 
 
 def process_rm_cli_call(args):
