@@ -9,6 +9,15 @@ def get(cluster_name):
     return cluster_instance.DeployedCluster.from_docker(cluster_name)
 
 
+def start_cluster(cluster_name):
+    '''
+    Finds stopped containers belonging to a cluster and starts them (docker start <container>).
+    If there are no stopped containers, then fails with an error message.
+    '''
+    cluster = get(cluster_name)
+    cluster.start()
+
+
 def stop_cluster(cluster_name):
     '''
     Stops the containers of a deployed cluster given its name.

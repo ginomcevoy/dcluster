@@ -2,6 +2,7 @@ import logging
 import os
 
 from .blueprint import ClusterBlueprint
+from .format import TextFormatterBasic
 
 from dcluster.node import instance as node_instance
 from dcluster.infra.docker_facade import DockerNaming, DockerNetworking
@@ -18,11 +19,53 @@ class RunningClusterMixin(logger.LoggerMixin):
 
     def stop(self):
         '''
-        Stop the docker cluster, by stopping each container.
-        TODO: start this manually again
+        Stop the docker cluster, by stopping each container. Does not remove the cluster network.
+        The stopped containers can be started again either by Docker CLI (docker start <container>)
+        or by using the start() method.
         '''
         for n in self.ordered_nodes:
             n.container.stop()
+
+    def start(self):
+        self.logger.debug('Starting containers of cluster: {}'.format(self.name))
+
+        for node in self.ordered_nodes:
+            self.logger.debug('Found running node for [{}]: {}'.format(self.name, node))
+
+        # get stopped containers by querying containers attached to the network
+        stopped_containers = self.cluster_network.stopped_containers
+        self.logger.debug('Found stopped containers: {}'.format(stopped_containers))
+
+        if not stopped_containers:
+            # there are no stopped containers
+            # no new containers will get started
+            # output depends on existing running containers
+            if self.ordered_nodes:
+
+                # inform user that there are no stopped containers, cluster is already up
+                self.logger.info('No stopped containers found for [{}]'.format(self.name))
+
+                for node in self.ordered_nodes:
+                    self.logger.info('Found running node for [{}]: {}'.format(self.name, node))
+
+            else:
+
+                # no stopped containers and no running containers, probably something isn't right
+                log_msg = 'No stopped containers and no running containers found for {}!'
+                self.logger.warn(log_msg.format(self.name))
+
+        else:
+            # Found stopped containers, start them without mentioning previously running containers
+            for c in stopped_containers:
+                c.start()
+
+        # create a new instance of this cluster, and output it
+        # hopefully failed attempts at starting containers will be 'caught' here by not showing
+        # the failed containers...
+        updated_cluster = DeployedCluster.from_docker(self.name)
+        formatter = TextFormatterBasic()
+        updated_state = updated_cluster.format(formatter)
+        print(updated_state)
 
     def remove(self):
         '''

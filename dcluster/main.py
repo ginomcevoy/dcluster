@@ -44,6 +44,9 @@ def processRequest():
     stop_parser = subparsers.add_parser('stop', help='stop a running cluster')
     manage_cli.configure_stop_parser(stop_parser)
 
+    start_parser = subparsers.add_parser('start', help='start a stopped cluster')
+    manage_cli.configure_start_parser(start_parser)
+
     rm_parser = subparsers.add_parser('rm', help='remove a running or stopped cluster')
     manage_cli.configure_rm_parser(rm_parser)
 

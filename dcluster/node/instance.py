@@ -88,17 +88,20 @@ class DeployedNode(logger.LoggerMixin):
 
         self.docker_container.exec_run(run_cmd)
 
+    def __str__(self):
+        return 'DeployedNode: {}->{}'.format(self.planned.image, self.planned.hostname)
+
     @classmethod
     def find_for_cluster(cls, cluster_name, docker_network=None):
         '''
-        Creates list of instances of DeployedCluster, by finding all the containers attached to
+        Creates list of instances of DeployedNode, by finding all the containers attached to
         a docker network. If the network is not supplied, then it is retrieved from Docker API
         using the cluster name.
         '''
         if not docker_network:
             docker_network = DockerNetworking.find_network(cluster_name)
 
-        cluster_containers = DockerNetworking.containers_in_network(docker_network)
+        cluster_containers = DockerNetworking.running_containers_for_network(docker_network)
         deployed_nodes = [
             DeployedNode(docker_container, docker_network)
             for docker_container

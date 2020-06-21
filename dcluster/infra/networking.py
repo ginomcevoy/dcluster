@@ -175,13 +175,18 @@ class DockerClusterNetwork(ClusterNetwork):
         return self.docker_network.id
 
     @property
-    def containers(self):
+    def running_containers(self):
         '''
-        List containers in the network.
+        Lists running containers that are attached to this network.
+        '''
+        return DockerNetworking.running_containers_for_network(self.docker_network)
 
-        TODO relate this with docker_facade.DockerNetworking.containers_in_network()
+    @property
+    def stopped_containers(self):
         '''
-        return self.docker_network.containers
+        Lists running containers that are attached to this network.
+        '''
+        return DockerNetworking.stopped_containers_for_network(self.docker_network)
 
     def remove(self):
         '''
