@@ -1,5 +1,5 @@
 # Single place to define the software version
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 # Environment variable used to determine if we want a development environment.
 # For a dev setting, set the environment variable to 'True' when calling a dcluster script
