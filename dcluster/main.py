@@ -16,6 +16,7 @@ from dcluster.cli import create as create_cli
 from dcluster.cli import display as display_cli
 from dcluster.cli import manage as manage_cli
 from dcluster.cli import ssh as ssh_cli
+from dcluster.cli import init as init_cli
 
 
 def processRequest():
@@ -52,6 +53,9 @@ def processRequest():
 
     list_parser = subparsers.add_parser('list', help='list current clusters')
     display_cli.configure_list_parser(list_parser)
+
+    init_parser = subparsers.add_parser('init', help='setup dcluster dependencies')
+    init_cli.configure_init_parser(init_parser)
 
     # show help if no subcommand is given
     if len(sys.argv) == 1:
