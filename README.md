@@ -2,12 +2,57 @@
 
 *Create and manage Docker clusters, optionally run Ansible on the cluster.*
 
+## Features
+
+* Creates a docker network, ensures that the network subnet is available.
+* Uses a template to create a Dockerfile for docker-compose, then calls docker-compose to instantiate containers attached to the docker network.
+* Can choose a cluster "flavor" from existing templates at /usr/share/dcluster/flavors.
+* The cluster "flavors" can be customized and extended to use specific containers and environment variables. The user may add more flavors.
+
+## Usage
+
+* Create a cluster of 2 compute nodes identified by "my\_cluster":
+
+  ```dcluster create my_cluster 2```
+
+* Create a cluster with a custom flavor:
+
+  ```dcluster create -f slurm slurm_cluster 3```
+
+* List current clusters:
+
+  ```dcluster list```
+
+* Details about a cluster:
+
+  ```dcluster show my_cluster```
+
+* Stop a cluster (will stop containers and leave the network active):
+
+  ```dcluster stop my_cluster```
+
+* Start a previously stopped cluster: 
+
+  ```dcluster start my_cluster```
+
+* Remove a cluster (will remove containers and  the network):
+
+  ```dcluster rm my_cluster```
+
 ## Requirements
 
-docker-compose
+* Docker 17.06.0+
 
-```sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose && chmod +x /usr/bin/docker-compose
-```
+* docker-compose 1.25.0+
+
+  ```sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -m)" -o /usr/bin/docker-compose && chmod +x /usr/bin/docker-compose```
+
+  
+* docker python API 4.0.0+
+
+  ```pip install --user docker```
+
+Note: use ```dcluster init``` to attempt to download docker API and docker-compose automatically.
 
 ## Running the tests
 
@@ -66,7 +111,7 @@ python ci_tools/generate-junit-badge.py
 
 ### Merging pull requests with edits - memo
 
-Ax explained in github ('get commandline instructions'):
+As explained in github ('get commandline instructions'):
 
 ```bash
 git checkout -b <git_name>-<feature_branch> master
@@ -78,5 +123,3 @@ if the second step does not work, do a normal auto-merge (do not use **rebase**!
 ```bash
 git pull https://github.com/ginomcevoy/dcluster.git <feature_branch> --no-commit
 ```
-
-Finally review the changes, possibly perform some modifications, and commit.
