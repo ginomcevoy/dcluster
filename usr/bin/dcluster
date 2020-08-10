@@ -8,5 +8,8 @@
 # Atos 2019
 #
 
+# add downloadable programs to PATH
+export PATH=$HOME/.dcluster/bin:$PATH
+
 # call dcluster.main, let bash decide which python to use
 python -m dcluster.main $@
