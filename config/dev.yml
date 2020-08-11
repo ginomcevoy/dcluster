@@ -6,6 +6,7 @@ paths:
   ansible_static: 'ansible_static'
   flavors:
     - config/flavors
+    - ~/.dcluster/flavors
 
 prefs:
   log_level: DEBUG

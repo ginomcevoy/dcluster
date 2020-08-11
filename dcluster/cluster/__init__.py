@@ -17,8 +17,9 @@ def create_plan(creation_request, cluster_network):
     '''
 
     # find the configuration given the flavor
-    # TODO let the user specify a place to also look for flavor files
-    cluster_config = flavor_config.cluster_config_for_flavor(creation_request.flavor)
+    # let the user specify additional places to look for flavor files
+    cluster_config = flavor_config.cluster_config_for_flavor(creation_request.flavor,
+                                                             creation_request.flavor_paths)
 
     # the configuration specifies the type of cluster, use plans_by_type to match
     plan_for_type = plans_by_type[cluster_config['cluster_type']]

@@ -25,6 +25,9 @@ def configure_parser(create_parser):
     msg = 'directory where cluster files are created (default: %(default)s)'
     create_parser.add_argument('--workpath', help=msg, default=main_config.paths('work'))
 
+    msg = 'additional directories with flavors in YAML files (can be specified multiple times)'
+    create_parser.add_argument('--flavor-path', help=msg, action='append')
+
     # default function to call
     create_parser.set_defaults(func=process_cli_call)
 
@@ -41,8 +44,11 @@ def process_cli_call(args):
     cluster_name = args.cluster_name
     flavor = args.flavor
     count = int(args.compute_count)
+    flavor_paths = args.flavor_path  # append will create a list
+    if flavor_paths is None:
+        flavor_paths = []
 
     # dispatch a creation request
     # for now, all creation requests that pass through this CLI are 'basic'
-    creation_request = request.BasicCreationRequest(cluster_name, count, flavor)
+    creation_request = request.BasicCreationRequest(cluster_name, count, flavor, flavor_paths)
     create_action.create_basic_cluster(creation_request)

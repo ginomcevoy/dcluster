@@ -87,6 +87,15 @@ def find_files_with_extension(dirpath, extension):
     ]
 
 
+def check_directories_exist(directories):
+    '''
+    Fails if one directory in the list does not exist.
+    '''
+    for directory in directories:
+        if not os.path.isdir(directory):
+            raise OSError('Directory does not exist: {}'.format(directory))
+
+
 if __name__ == '__main__':
 
     real_path = evaluate_shell_path('$HOME/.dcluster')
