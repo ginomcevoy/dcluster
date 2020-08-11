@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import os
 import yaml
 
@@ -32,12 +33,11 @@ def get_all_available_flavors(user_places_to_look):
       (having both is allowed)
 
     TODO
-    - enforce restrictions
+    - enforce restrictions?
     '''
     logger = log_util.logger_for_me(get_all_available_flavors)
     candidate_yaml_files = find_candidate_yaml_files(user_places_to_look)
 
-    # TODO enforce restrictions and handle collisions
     # here we overwrite any repeated yaml file without consideration of where they were found
     flavor_yaml_files = []
     for location, candidates in candidate_yaml_files.items():
@@ -45,7 +45,7 @@ def get_all_available_flavors(user_places_to_look):
             flavor_yaml_path = os.path.join(location, candidate)
             flavor_yaml_files.append(flavor_yaml_path)
 
-    available_flavors = {}
+    available_flavors = OrderedDict()
     for flavor_file in flavor_yaml_files:
 
         with open(flavor_file, 'r') as ff:
@@ -75,6 +75,11 @@ def find_candidate_yaml_files(user_places_to_look=None):
     # look in default places
     dcluster_places_to_look = main_config.paths('flavors')
     places_to_look = collection_util.defensive_copy(dcluster_places_to_look)
+
+    # also include user-specified places
+    if user_places_to_look is not None and isinstance(user_places_to_look, list):
+        places_to_look.extend(user_places_to_look)
+
     logger.debug('places to look for flavors: {}'.format(places_to_look))
 
     # convert '~' to user's home directory
@@ -84,12 +89,8 @@ def find_candidate_yaml_files(user_places_to_look=None):
         in places_to_look
     ]
 
-    # also include user-specified places
-    if user_places_to_look is not None and isinstance(user_places_to_look, list):
-        places_to_look.extend(user_places_to_look)
-
     # find all the yaml files, remember found place
-    yaml_files = {}
+    yaml_files = OrderedDict()
     for place_to_look in places_to_look:
         with_yml = fs.find_files_with_extension(place_to_look, '.yml')
         with_yaml = fs.find_files_with_extension(place_to_look, '.yaml')

@@ -5,6 +5,8 @@ from dcluster import cluster, dansible, runtime
 from dcluster.config import main_config
 from dcluster.infra import networking
 
+from dcluster.util import fs as fs_util
+
 
 def create_basic_cluster(creation_request):
     '''
@@ -13,6 +15,9 @@ def create_basic_cluster(creation_request):
     - compute_count
     - flavor
     '''
+    # ensure that user-specified flavor paths exist before attempting anything
+    fs_util.check_directories_exist(creation_request.flavor_paths)
+
     # go ahead and create the network using Docker
     cluster_network = networking.create(creation_request.name)
 
