@@ -160,16 +160,15 @@ def paths(key):
 
     one_or_more_paths = get_config()['paths'][key]
 
-    # handle single path
-    if not isinstance(one_or_more_paths, list):
-        one_or_more_paths = [one_or_more_paths]
-
-    # handle environment variables and HOME directories
-    return [
-        os.path.expanduser(os.path.expandvars(a_path))
-        for a_path
-        in one_or_more_paths
-    ]
+    # handle lists
+    if isinstance(one_or_more_paths, list):
+        return [
+            os.path.expanduser(os.path.expandvars(a_path))
+            for a_path
+            in one_or_more_paths
+        ]
+    else:
+        return os.path.expanduser(os.path.expandvars(one_or_more_paths))
 
 
 def composer_workpath(cluster_name):
