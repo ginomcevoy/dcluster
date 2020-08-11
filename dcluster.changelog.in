@@ -1,4 +1,11 @@
 %changelog
+* Mon Aug 10 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.12-1
+- Allow user-specified flavors, in HOME/.dcluster/flavors and user-defined
+- Read all flavors in the flavor YAML files
+- Use dcluster init to ensure docker and docker-compose
+- Build docs with Sphinx
+- Improve README
+
 * Thu Mar 05 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.9-1
 - Separate flavor configuration into individual files
 - Allow users to override YUM repository with dcluster-ansible --yum option
