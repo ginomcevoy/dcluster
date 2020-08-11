@@ -40,9 +40,11 @@ def get_all_available_flavors(user_places_to_look=None):
         with open(flavor_file, 'r') as ff:
             yaml_dict = yaml.load(ff)
 
-            # TODO more flavors, for now only getting the first
-            flavor_name = list(yaml_dict)[0]
-            available_flavors[flavor_name] = yaml_dict[flavor_name]
+            # a YAML file may have many flavors, this will add all of them
+            available_flavors.update(yaml_dict)
+
+    logger = log_util.logger_for_me(get_all_available_flavors)
+    logger.debug('Found flavors: {}'.format(list(available_flavors.keys())))
 
     return available_flavors
 
