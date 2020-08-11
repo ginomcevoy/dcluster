@@ -5,6 +5,7 @@ from . import main_config
 
 from dcluster.util import collection as collection_util
 from dcluster.util import fs
+from dcluster.util import logger as log_util
 
 
 def get_all_available_flavors(user_places_to_look=None):
@@ -50,10 +51,19 @@ def find_candidate_yaml_files(user_places_to_look=None):
     '''
     Finds YAML files in the specified paths. Allows the user to pass custom directories.
     '''
+    logger = log_util.logger_for_me(find_candidate_yaml_files)
 
     # look in default places
     dcluster_places_to_look = main_config.paths('flavors')
     places_to_look = collection_util.defensive_copy(dcluster_places_to_look)
+    logger.debug('places to look for flavors: {}'.format(places_to_look))
+
+    # convert '~' to user's home directory
+    places_to_look = [
+        os.path.expanduser(place_to_look)
+        for place_to_look
+        in places_to_look
+    ]
 
     # also include user-specified places
     if user_places_to_look is not None and isinstance(user_places_to_look, list):
@@ -97,6 +107,11 @@ def cluster_config_for_flavor(flavor, user_places_to_look=None):
 
 
 if __name__ == '__main__':
+    import logging
+    log_level = getattr(logging, 'DEBUG')
+    logging.basicConfig(format='%(asctime)s - %(levelname)6s | %(message)s',
+                        level=log_level, datefmt='%d-%b-%y %H:%M:%S')
+
     default_flavor_files = find_candidate_yaml_files(None)
     print('flavor files: %s' % str(default_flavor_files))
 
