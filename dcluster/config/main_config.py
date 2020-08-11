@@ -80,11 +80,21 @@ def read_deployed_config(config_source, dcluster_install_prefix):
             if isinstance(one_or_more_paths, list):
 
                 # entry in paths is a list
-                deployed_config['paths'][entry] = [
-                    dcluster_install_prefix + item_path
-                    for item_path
+                deployed_config['paths'][entry] = []
+
+                # convert $HOME, ~, etc
+                converted_paths = [
+                    os.path.expanduser(os.path.expandvars(a_path))
+                    for a_path
                     in one_or_more_paths
                 ]
+
+                # handle cases where the prefix should not be added, (/home)
+                for converted_path in converted_paths:
+                    if '/home' not in converted_path:
+                        converted_path = dcluster_install_prefix + converted_path
+                    deployed_config['paths'][entry].append(converted_path)
+
             else:
                 # just one path in the entry
                 deployed_config['paths'][entry] = dcluster_install_prefix + one_or_more_paths
