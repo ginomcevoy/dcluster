@@ -7,8 +7,21 @@ from dcluster.util import collection as collection_util
 from dcluster.util import fs
 from dcluster.util import logger as log_util
 
+# read flavors only once
+__all_flavors__ = None
 
-def get_all_available_flavors(user_places_to_look=None):
+
+def all_available_flavors(user_places_to_look=None):
+    '''
+    Singleton pattern for available flavors.
+    '''
+    global __all_flavors__
+    if __all_flavors__ is None:
+        __all_flavors__ = get_all_available_flavors(user_places_to_look)
+    return __all_flavors__
+
+
+def get_all_available_flavors(user_places_to_look):
     '''
     Finds the YAML files with cluster information.
     The YAML files *must* have one of the following items:
@@ -20,10 +33,8 @@ def get_all_available_flavors(user_places_to_look=None):
 
     TODO
     - enforce restrictions
-    - allow more entries in file
-    - handle collisions: user-specified places have priority
-
     '''
+    logger = log_util.logger_for_me(get_all_available_flavors)
     candidate_yaml_files = find_candidate_yaml_files(user_places_to_look)
 
     # TODO enforce restrictions and handle collisions
@@ -40,10 +51,16 @@ def get_all_available_flavors(user_places_to_look=None):
         with open(flavor_file, 'r') as ff:
             yaml_dict = yaml.load(ff)
 
+            # inform the user if a flavor is to be updated
+            for flavor_name in yaml_dict.keys():
+                if flavor_name in available_flavors:
+                    log_msg = 'Flavor \"{}\" will be updated with definition at: {}'
+                    logger.info(log_msg.format(flavor_name, flavor_file))
+
             # a YAML file may have many flavors, this will add all of them
+            # allow override of previously defined flavors
             available_flavors.update(yaml_dict)
 
-    logger = log_util.logger_for_me(get_all_available_flavors)
     logger.debug('Found flavors: {}'.format(list(available_flavors.keys())))
 
     return available_flavors
@@ -87,14 +104,17 @@ def cluster_config_for_flavor(flavor, user_places_to_look=None):
     '''
     Cluster properties given its flavor name.
     '''
-
-    available_flavors = get_all_available_flavors(user_places_to_look)
+    available_flavors = all_available_flavors(user_places_to_look)
     cluster_config = available_flavors[flavor]
 
     # if the requested flavor extends another, recursively extend
     if 'extend' in cluster_config.keys():
 
-        # really bad if circular references
+        # stop self-references
+        if flavor == cluster_config['extend']:
+            raise ValueError('Self reference found for flavor {}!'.format(flavor))
+
+        # really bad if a more complex circular reference exists
         parent_flavor = cluster_config['extend']
         parent_config = cluster_config_for_flavor(parent_flavor)
         parent_config = collection_util.defensive_copy(parent_config)
@@ -117,7 +137,7 @@ if __name__ == '__main__':
     default_flavor_files = find_candidate_yaml_files(None)
     print('flavor files: %s' % str(default_flavor_files))
 
-    default_flavors = get_all_available_flavors(None)
+    default_flavors = all_available_flavors(None)
     print('============\n')
     print('raw flavors:')
 
