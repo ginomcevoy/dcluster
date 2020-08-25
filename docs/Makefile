@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 #SPHINXBUILD   = sphinx-build
-SPHINXBUILD   = python -m sphinx.cmd.build
+SPHINXBUILD   = python3 -m sphinx.cmd.build
 SPHINXPROJ    = dcluster
 SOURCEDIR     = source
 BUILDDIR      = build
