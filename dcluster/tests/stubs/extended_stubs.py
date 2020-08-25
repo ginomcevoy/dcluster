@@ -19,7 +19,7 @@ def basic_slurm_request_stub(cluster_name, compute_count):
     '''
     Use the basic request (no additional parameters) but ask for slurm flavor
     '''
-    return BasicCreationRequest(cluster_name, compute_count, 'slurm', [], [])
+    return BasicCreationRequest(cluster_name, compute_count, 'slurm', [], [], [])
 
 
 def slurm_plan_data_stub(cluster_name, compute_count):

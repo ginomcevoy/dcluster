@@ -31,6 +31,9 @@ def configure_parser(create_parser):
     msg = 'run these ansible playbooks immediately after creating the cluster (list)'
     create_parser.add_argument('--playbooks', help=msg, nargs='+')
 
+    msg = 'extra-vars passed to ansible-playbook as-is'
+    create_parser.add_argument('-e', '--extra-vars', help=msg, nargs='+')
+
     # default function to call
     create_parser.set_defaults(func=process_cli_call)
 
@@ -54,8 +57,12 @@ def process_cli_call(args):
     if playbooks is None:
         playbooks = []
 
+    extra_vars_list = args.extra_vars
+    if extra_vars_list is None:
+        extra_vars_list = []
+
     # dispatch a creation request
     # for now, all creation requests that pass through this CLI are 'basic'
     creation_request = request.BasicCreationRequest(cluster_name, count, flavor, flavor_paths,
-                                                    playbooks)
+                                                    playbooks, extra_vars_list)
     create_action.create_basic_cluster(creation_request)

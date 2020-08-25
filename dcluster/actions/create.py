@@ -52,6 +52,6 @@ def create_basic_cluster(creation_request):
         live_cluster.inject_public_ssh_key(public_key_path)
 
     # no extra_vars yet...
-    extra_vars = None
     for playbook in creation_request.playbooks:
-        dansible.run_playbook(cluster_name, playbook, inventory_file, extra_vars)
+        dansible.run_playbook(cluster_name, playbook, inventory_file,
+                              creation_request.extra_vars_list)
