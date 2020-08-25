@@ -17,14 +17,18 @@ def process_playbook(args):
     inventory_file = main_config.default_inventory(args.cluster_name)
 
     # handle additional inventory data (variables)
-    extra_vars = None
-    if args.yum:
+    extra_vars_list = args.extra_vars
+    if extra_vars_list is None:
+        extra_vars_list = []
 
-        # load the '--yum <file>' as a JSON with extra variables for Ansible.
-        # TODO reuse this for other optional arguments?
-        extra_vars = '@%s' % args.yum
+    # extra_vars = None
+    # if args.yum:
 
-    dansible.run_playbook(args.cluster_name, args.playbook_name, inventory_file, extra_vars)
+    #     # load the '--yum <file>' as a JSON with extra variables for Ansible.
+    #     # TODO reuse this for other optional arguments?
+    #     extra_vars = '@%s' % args.yum
+
+    dansible.run_playbook(args.cluster_name, args.playbook_name, inventory_file, extra_vars_list)
 
 
 def configure_playbook_parser(playbook_parser):
@@ -35,7 +39,10 @@ def configure_playbook_parser(playbook_parser):
     '''
     playbook_parser.add_argument('cluster_name', help='name of the Docker cluster')
     playbook_parser.add_argument('playbook_name', help='playbook identifier (TODO: show list?)')
-    playbook_parser.add_argument('--yum', default=None, help='JSON file with yum repositories')
+    # playbook_parser.add_argument('--yum', default=None, help='JSON file with yum repositories')
+
+    msg = 'extra-vars passed to ansible-playbook as-is'
+    playbook_parser.add_argument('-e', '--extra-vars', help=msg, nargs='+')
 
     playbook_parser.set_defaults(func=process_playbook)
 
