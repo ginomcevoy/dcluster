@@ -28,6 +28,12 @@ def configure_parser(create_parser):
     msg = 'additional directories with flavors in YAML files (can be specified multiple times)'
     create_parser.add_argument('--flavor-path', help=msg, action='append')
 
+    msg = 'run these ansible playbooks immediately after creating the cluster (list)'
+    create_parser.add_argument('--playbooks', help=msg, nargs='+')
+
+    msg = 'extra-vars passed to ansible-playbook as-is'
+    create_parser.add_argument('-e', '--extra-vars', help=msg, nargs='+')
+
     # default function to call
     create_parser.set_defaults(func=process_cli_call)
 
@@ -37,8 +43,7 @@ def process_cli_call(args):
     Process the creation request issued via the command line.
     '''
     log = logging.getLogger()
-    log.debug('Got create parameters %s %s %s %s' % (args.cluster_name, args.compute_count,
-                                                     args.flavor, args.workpath))
+    log.debug('Got create parameters: {}'.format(args))
 
     # get arguments
     cluster_name = args.cluster_name
@@ -48,7 +53,16 @@ def process_cli_call(args):
     if flavor_paths is None:
         flavor_paths = []
 
+    playbooks = args.playbooks
+    if playbooks is None:
+        playbooks = []
+
+    extra_vars_list = args.extra_vars
+    if extra_vars_list is None:
+        extra_vars_list = []
+
     # dispatch a creation request
     # for now, all creation requests that pass through this CLI are 'basic'
-    creation_request = request.BasicCreationRequest(cluster_name, count, flavor, flavor_paths)
+    creation_request = request.BasicCreationRequest(cluster_name, count, flavor, flavor_paths,
+                                                    playbooks, extra_vars_list)
     create_action.create_basic_cluster(creation_request)
