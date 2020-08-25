@@ -40,10 +40,6 @@ def create_basic_cluster(creation_request):
     (_, inventory_file) = dansible.create_inventory(cluster_blueprints.as_dict(),
                                                     inventory_workpath)
 
-    # no extra_vars by default...
-    extra_vars = None
-    dansible.run_playbook(cluster_name, 'hello', inventory_file, extra_vars)
-
     # show newly created
     live_cluster = display.show_cluster(creation_request.name)
 
@@ -54,3 +50,8 @@ def create_basic_cluster(creation_request):
         # public_key_path = fs_util.evaluate_shell_path(public_key_with_shell_vars)
         public_key_path = main_config.paths('ssh_public_key')
         live_cluster.inject_public_ssh_key(public_key_path)
+
+    # no extra_vars yet...
+    extra_vars = None
+    for playbook in creation_request.playbooks:
+        dansible.run_playbook(cluster_name, playbook, inventory_file, extra_vars)

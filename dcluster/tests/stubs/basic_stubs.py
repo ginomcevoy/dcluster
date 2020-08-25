@@ -11,7 +11,7 @@ def basic_config():
 
 
 def basic_request_stub(cluster_name, compute_count):
-    return BasicCreationRequest(cluster_name, compute_count, 'simple', [])
+    return BasicCreationRequest(cluster_name, compute_count, 'simple', [], [])
 
 
 def basic_plan_data_stub(cluster_name, compute_count):
