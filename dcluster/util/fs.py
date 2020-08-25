@@ -80,11 +80,17 @@ def find_files_with_extension(dirpath, extension):
     '''
     list all files in directory (not-recursive) that have an extension, e.g. '.txt'
     '''
-    return [
-        file
-        for file in os.listdir(dirpath)
-        if file.endswith(extension)
-    ]
+    # only for actual dirs
+    files = []
+
+    if os.path.isdir(dirpath):
+        files = [
+            file
+            for file in os.listdir(dirpath)
+            if file.endswith(extension)
+        ]
+
+    return files
 
 
 def check_directories_exist(directories):
