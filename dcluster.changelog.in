@@ -1,4 +1,9 @@
 %changelog
+* Tue Aug 25 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.13-1
+- Fix error when HOME/.dcluster/flavors does not exist
+- Enable ansible playbooks when calling dcluster command with --playbooks
+- Pass --extra-vars to ansible-playbooks
+
 * Mon Aug 10 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.12-1
 - Allow user-specified flavors, in HOME/.dcluster/flavors and user-defined
 - Read all flavors in the flavor YAML files
