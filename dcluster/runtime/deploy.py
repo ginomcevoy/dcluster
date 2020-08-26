@@ -42,7 +42,8 @@ class DockerComposeDeployer(logger.LoggerMixin):
 
         # always show the output of the docker-compose call
         print(run[1])
+        print(run[0])
 
-        if run[2]:
+        if run[2] or run[0]:
             # return code is different than 0, something went wrong
             raise ComposeFailure('docker-compose command failed, check output')
