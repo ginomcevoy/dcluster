@@ -27,6 +27,13 @@ class ClusterBlueprint(logger.LoggerMixin):
         cluster_definition = renderer.render_blueprint(self.as_dict(), template)
         deployer.deploy(cluster_definition)
 
+        # check for containers
+        if deployer.a_container_has_exited():
+
+            # a container has exited, not what we want
+            deployer.show_logs()
+            raise ValueError('A container failed to start, see output')
+
         log_msg = 'Docker cluster %s -  %s created!'
         self.logger.info(log_msg % (self.name, self.cluster_network))
 

@@ -47,3 +47,26 @@ class DockerComposeDeployer(logger.LoggerMixin):
         if run[2] or run[0]:
             # return code is different than 0, something went wrong
             raise ComposeFailure('docker-compose command failed, check output')
+
+    def a_container_has_exited(self):
+        '''
+        Calls docker-compose ps to check if a container has already exited
+        Returns True iff a container has exited, the output is saved as ps_stdout member variable.
+        '''
+        # run docker-compose ps, save output
+        cmd = 'docker-compose -f docker-cluster.yml ps'
+        run = runit.execute(cmd, cwd=self.compose_path)
+        self.ps_stdout = run[0]
+
+        # look for 'Exit'
+        return 'Exit' in self.ps_stdout
+
+    def show_logs(self):
+        '''
+        Prints the docker-compose logs to the screen.
+        '''
+        # run docker-compose logs
+        cmd = 'docker-compose -f docker-cluster.yml logs'
+        run = runit.execute(cmd, cwd=self.compose_path)
+
+        print(run[0])
