@@ -1,10 +1,12 @@
-version: '3.3'
+version: '3.7'
 services:
 {% for node_ip, node in nodes.items() | sort(attribute='1.hostname') %}
 
     {{node.container}}:
         container_name: {{node.container}}
         image: {{node.image}}
+        init: true
+        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
         hostname: {{node.hostname}}
         labels:
             bull.com.dcluster.role: {{node.role}}
