@@ -9,6 +9,27 @@
 * The containers are spinned up with an SSH server and tini (--init) for proper zombie process reaping.
 * Can choose a cluster "flavor" from existing templates at /usr/share/dcluster/flavors.
 * The cluster "flavors" can be customized and extended to use specific containers and environment variables. The user may add more cluster flavors.
+* Example:
+
+  ```
+  $ dcluster create --flavor simple my_cluster 2
+  (...)
+
+  $ dcluster show my_cluster
+
+Cluster: my_cluster
+------------------------
+Network: 172.30.0.0/24
+
+  hostname       ip_address      container
+  ------------------------------------------------
+  head           172.30.0.253    my_cluster-head
+  node001        172.30.0.1      my_cluster-node001
+  node002        172.30.0.2      my_cluster-node002
+
+  $ dcluster ssh my_cluster head
+  [root@head ~]#
+  ```
 
 ## Requirements
 
