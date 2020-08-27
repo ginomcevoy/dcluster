@@ -17,15 +17,15 @@
 
   $ dcluster show my_cluster
 
-Cluster: my_cluster
-------------------------
-Network: 172.30.0.0/24
-
-  hostname       ip_address      container
-  ------------------------------------------------
-  head           172.30.0.253    my_cluster-head
-  node001        172.30.0.1      my_cluster-node001
-  node002        172.30.0.2      my_cluster-node002
+  Cluster: my_cluster
+  ------------------------
+  Network: 172.30.0.0/24
+  
+    hostname       ip_address      container
+    ------------------------------------------------
+    head           172.30.0.253    my_cluster-head
+    node001        172.30.0.1      my_cluster-node001
+    node002        172.30.0.2      my_cluster-node002
 
   $ dcluster ssh my_cluster head
   [root@head ~]#
