@@ -1,4 +1,4 @@
-from . import BasicPlannedNode, ExtendedPlannedNode
+from . import BasicPlannedNode, DefaultPlannedNode
 
 from dcluster.infra.docker_facade import DockerNaming
 from dcluster.util import dyaml
@@ -6,9 +6,8 @@ from dcluster.util import dyaml
 
 class BasicNodePlanner(object):
     '''
-    Creates node entries for the ClusterBlueprint (cluster_specs dictionary).
-    Requires a cluster plan that already has all the necessary information (config + request)
-    to design the cluster specifications.
+    Basic class for DefaultNodePlanner, used to describe a container from information retrieved
+    from Docker, after the default cluster has been instantiated.
     '''
 
     def __init__(self, cluster_network):
@@ -60,20 +59,23 @@ class BasicNodePlanner(object):
         return name_prefix + suffix
 
 
-class ExtendedNodePlanner(BasicNodePlanner):
+class DefaultNodePlanner(BasicNodePlanner):
     '''
-    Creates extended node entries for the ClusterBlueprint (cluster_specs dictionary).
+    Creates node entries for the ClusterBlueprint (cluster_specs dictionary).
+    Requires a cluster plan that already has all the necessary information (config + request)
+    to design the cluster specifications.
+
     The entries can include Docker volumes (both docker-specific and filesystem binds), and
     a chunk of 'static' text that is added to the specification without parsing, but with the
     proper indentation for a later renderization.
     '''
     def __init__(self, cluster_network):
-        super(ExtendedNodePlanner, self).__init__(cluster_network)
-        self.basic = super(ExtendedNodePlanner, self)
+        super(DefaultNodePlanner, self).__init__(cluster_network)
+        self.basic = super(DefaultNodePlanner, self)
 
     def create_head_plan(self, plan_data):
         '''
-        Creates an instance of ExtendedNodePlanner for the head of the cluster.
+        Creates an instance of DefaultNodePlanner for the head of the cluster.
         '''
         # reuse BasicPlannedNode for the basic details
         basic_planned_head = self.basic.create_head_plan(plan_data)
@@ -81,7 +83,7 @@ class ExtendedNodePlanner(BasicNodePlanner):
 
     def create_compute_plan(self, plan_data, index, compute_ip):
         '''
-        Creates an instance of ExtendedNodePlanner for the head of the cluster.
+        Creates an instance of DefaultNodePlanner for the head of the cluster.
         '''
         # reuse BasicPlannedNode for the basic details
         basic_planned_compute = self.basic.create_compute_plan(plan_data, index, compute_ip)
@@ -89,20 +91,25 @@ class ExtendedNodePlanner(BasicNodePlanner):
 
     def extend_plan(self, plan_data, basic_planned_node):
         '''
-        Promotes an instance of BasicNodePlanner to ExtendedNodePlanner, by adding more details.
+        Promotes an instance of BasicNodePlanner to DefaultNodePlanner, by adding more details.
         '''
         role = basic_planned_node.role
 
         # join the two type of volumes
-        volumes = list(plan_data[role]['shared_volumes'])
-        volumes.extend(plan_data[role]['docker_volumes'])
+        volumes = []
+        if 'shared_volumes' in plan_data[role]:
+            volumes.extend(plan_data[role]['shared_volumes'])
+        if 'docker_volumes' in plan_data[role]:
+            volumes.extend(plan_data[role]['docker_volumes'])
 
         # the static text needs to be indented to show up properly
-        static_without_offset = plan_data[role]['static']
-        static_text = dyaml.dump_with_offset_indent(static_without_offset, 4)
+        static_text = ''
+        if 'static' in plan_data[role]:
+            static_without_offset = plan_data[role]['static']
+            static_text = dyaml.dump_with_offset_indent(static_without_offset, 4)
 
         # reuse basic plan and add to it
         extended_dict = basic_planned_node._asdict()
         extended_dict['volumes'] = volumes
         extended_dict['static_text'] = static_text
-        return ExtendedPlannedNode(**extended_dict)
+        return DefaultPlannedNode(**extended_dict)

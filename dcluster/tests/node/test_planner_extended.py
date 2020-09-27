@@ -1,11 +1,11 @@
 import unittest
 
-from dcluster.tests.stubs import extended_stubs as stubs
+from dcluster.tests.stubs import extended_stubs
 
 
 class CreateExtendedHeadPlan(unittest.TestCase):
     '''
-    Unit tests for node.plan_extended.ExtendedNodePlanner
+    Unit tests for node.planner.DefaultNodePlanner with extended stubs
     '''
 
     def setUp(self):
@@ -16,10 +16,10 @@ class CreateExtendedHeadPlan(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 3
-        plan_data = stubs.slurm_plan_data_stub(cluster_name, compute_count)
+        plan_data = extended_stubs.slurm_plan_data_stub(cluster_name, compute_count)
 
         # under test
-        node_planner = stubs.extended_node_planner_stub(cluster_name, subnet_str)
+        node_planner = extended_stubs.extended_node_planner_stub(cluster_name, subnet_str)
 
         # when
         result = node_planner.create_head_plan(plan_data)

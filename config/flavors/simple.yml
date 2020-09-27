@@ -1,6 +1,6 @@
 simple:
-  cluster_type: basic
-  template: cluster-basic.yml.j2
+  cluster_type: default
+  template: cluster-default.yml.j2
 
   head:
     hostname: 'head'

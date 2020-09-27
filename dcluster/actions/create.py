@@ -8,12 +8,16 @@ from dcluster.infra import networking
 from dcluster.util import fs as fs_util
 
 
-def create_basic_cluster(creation_request):
+def create_default_cluster(creation_request):
     '''
-    Creates a new basic cluster, the request should have:
+    Creates a new default cluster, the request must have:
     - name
     - compute_count
     - flavor
+
+    other optional arguments:
+    - playbooks
+    - extra_vars_list 
     '''
     # ensure that user-specified flavor paths exist before attempting anything
     fs_util.check_directories_exist(creation_request.flavor_paths)
@@ -51,7 +55,7 @@ def create_basic_cluster(creation_request):
         public_key_path = main_config.paths('ssh_public_key')
         live_cluster.inject_public_ssh_key(public_key_path)
 
-    # no extra_vars yet...
+    # run requested Ansible playbooks with optional extra vars
     for playbook in creation_request.playbooks:
         dansible.run_playbook(cluster_name, playbook, inventory_file,
                               creation_request.extra_vars_list)

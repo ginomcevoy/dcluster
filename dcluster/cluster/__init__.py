@@ -1,12 +1,12 @@
-from .planner import BasicClusterPlan, ExtendedClusterPlan
+from .planner import DefaultClusterPlan
+# BasicClusterPlan, ExtendedClusterPlan
 
 from dcluster.config import flavor_config
 
 
 # this matches the type to a plan
 plans_by_type = {
-    'basic': BasicClusterPlan,
-    'extended': ExtendedClusterPlan
+    'default': DefaultClusterPlan
 }
 
 
