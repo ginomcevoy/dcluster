@@ -162,7 +162,10 @@ export DCLUSTER_INSTALL_PREFIX=%{buildroot}
 
 # run the tests
 export PYTHONPATH=%{buildroot}%{python3_sitelib}
-pytest-3 --pyargs %{mod_name}
+
+#FIXME think how to do this better
+#pytest-3 --pyargs %{mod_name}
+py.test --pyargs %{mod_name}
 
 # cleanup pycache so that pytest does not complain later
 rm -rf %{buildroot}%{python3_sitelib}/%{mod_name}/tests/__pycache__

@@ -1,4 +1,8 @@
 %changelog
+* Sun Sep 27 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.14-1
+- #12: Merge basic and extended templates into a single default template
+- Resolve deprecation warnings
+
 * Tue Aug 25 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.13-1
 - Fix error when HOME/.dcluster/flavors does not exist
 - Enable ansible playbooks when calling dcluster command with --playbooks
