@@ -9,8 +9,9 @@
 #
 
 # Calculate directory local to script
-BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
+SCRIPTS_DIR="$( cd "$( dirname "$0" )" && pwd )"
+PYTHON=$(${SCRIPTS_DIR}/find-python.sh)
 
-cd $BIN_DIR/..
+cd $SCRIPTS_DIR/..
 
-PYTHONPATH=. python -m dcluster.infra.networking
+PYTHONPATH=. $PYTHON -m dcluster.infra.networking

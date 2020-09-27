@@ -17,11 +17,13 @@ cd $SRC_HOME_DIR
 # start clean
 rm -rf build
 
+PYTHON=$(${SCRIPTS_DIR}/find-python.sh)
+
 # get the name of this package
-PKG_NAME=$(python setup.py --name)
+PKG_NAME=$($PYTHON setup.py --name)
 
 # call the default RPM builder
-python setup.py bdist_rpm
+$PYTHON setup.py bdist_rpm
 
 cd build/*/rpm
 

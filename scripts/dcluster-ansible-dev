@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 #
 # Reproduce the functionality of dcluster-ansible command within development environment.
@@ -12,5 +12,7 @@
 SCRIPTS_DIR="$( cd "$( dirname "$0" )" && pwd )"
 SRC_HOME_DIR=$SCRIPTS_DIR/..
 
-# call dcluster.dansible.main, let bash decide which python to use
-DCLUSTER_DEV=True PYTHONPATH=$SRC_HOME_DIR python -m dcluster.dansible.main $@
+PYTHON=$(${SCRIPTS_DIR}/find-python.sh)
+
+# call dcluster.dansible.main
+DCLUSTER_DEV=True PYTHONPATH=$SRC_HOME_DIR $PYTHON -m dcluster.dansible.main $@
