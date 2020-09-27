@@ -52,7 +52,7 @@ class ResourcesForTest(object):
         expected_filename = os.path.join(self.resources_dir, filename)
         expected_dict = None
         with open(expected_filename, 'r') as ef:
-            expected_dict = yaml.load(ef)
+            expected_dict = yaml.load(ef, Loader=yaml.SafeLoader)
         return expected_dict
 
 

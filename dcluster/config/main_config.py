@@ -19,7 +19,7 @@ def read_config(config_dir, config_filename):
     config_file = os.path.join(config_dir, config_filename)
     config_dict = None
     with open(config_file, 'r') as cf:
-        config_dict = yaml.load(cf)
+        config_dict = yaml.load(cf, Loader=yaml.SafeLoader)
 
     return config_dict
 
