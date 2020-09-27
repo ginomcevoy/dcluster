@@ -2,7 +2,7 @@ import unittest
 
 from dcluster.node import BasicPlannedNode
 
-from dcluster.tests.stubs import basic_stubs as stubs
+from dcluster.tests.stubs import basic_stubs
 
 
 class CreateComputeHostname(unittest.TestCase):
@@ -11,8 +11,8 @@ class CreateComputeHostname(unittest.TestCase):
         cluster_name = 'test'
         subnet_str = u'172.30.0.0/24'
         compute_count = 3
-        self.plan_data = stubs.basic_plan_data_stub(cluster_name, compute_count)
-        self.node_planner = stubs.basic_node_planner_stub(cluster_name, subnet_str)
+        self.plan_data = basic_stubs.user_plan_data_stub(cluster_name, compute_count)
+        self.node_planner = basic_stubs.basic_node_planner_stub(cluster_name, subnet_str)
 
     def test_hostname_0(self):
         # given
@@ -41,8 +41,8 @@ class CreateBasicComputeNode(unittest.TestCase):
         cluster_name = 'mycluster'
         subnet_str = u'172.30.0.0/24'
         compute_count = 3
-        self.plan_data = stubs.basic_plan_data_stub(cluster_name, compute_count)
-        self.node_planner = stubs.basic_node_planner_stub(cluster_name, subnet_str)
+        self.plan_data = basic_stubs.user_plan_data_stub(cluster_name, compute_count)
+        self.node_planner = basic_stubs.basic_node_planner_stub(cluster_name, subnet_str)
 
     def test_compute_index_1(self):
         # given
@@ -54,7 +54,7 @@ class CreateBasicComputeNode(unittest.TestCase):
         # then
         expected = BasicPlannedNode(hostname='node002',
                                      container='mycluster-node002',
-                                     image='centos7:ssh',
+                                     image='centos:7.7.1908-ssh',
                                      ip_address='172.30.0.2',
                                      role='compute')
         self.assertEqual(result, expected)

@@ -48,13 +48,13 @@ class TestJinjaRenderer(unittest.TestCase):
                 'gateway_ip': '172.30.0.254'
             }
         }
-        template_filename = 'cluster-basic.yml.j2'
+        template_filename = 'cluster-default.yml.j2'
 
         # when
         result = self.renderer.render_blueprint(cluster_specs, template_filename)
 
         # then matches a saved file
-        expected = self.resources.expected_docker_compose_basic
+        expected = self.resources.expected_docker_compose_simple
         self.assertEqual(result, expected)
 
     def test_slurm_render(self):
@@ -139,7 +139,7 @@ class TestJinjaRenderer(unittest.TestCase):
                 'var_log_slurm'
             ],
         }
-        template_filename = 'cluster-extended.yml.j2'
+        template_filename = 'cluster-default.yml.j2'
 
         # when
         result = self.renderer.render_blueprint(cluster_specs, template_filename)
@@ -181,7 +181,7 @@ class TestJinjaRenderer(unittest.TestCase):
                 'gateway_ip': '172.30.0.254'
             },
         }
-        template_filename = 'cluster-extended.yml.j2'
+        template_filename = 'cluster-default.yml.j2'
 
         # when
         result = self.renderer.render_blueprint(cluster_specs, template_filename)

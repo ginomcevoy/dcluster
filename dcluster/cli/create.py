@@ -62,7 +62,7 @@ def process_cli_call(args):
         extra_vars_list = []
 
     # dispatch a creation request
-    # for now, all creation requests that pass through this CLI are 'basic'
-    creation_request = request.BasicCreationRequest(cluster_name, count, flavor, flavor_paths,
-                                                    playbooks, extra_vars_list)
-    create_action.create_basic_cluster(creation_request)
+    # for now, all creation requests that pass through this CLI are 'default'
+    creation_request = request.DefaultCreationRequest(cluster_name, count, flavor, flavor_paths,
+                                                      playbooks, extra_vars_list)
+    create_action.create_default_cluster(creation_request)

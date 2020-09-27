@@ -3,27 +3,27 @@ from .blueprint import ClusterBlueprint
 from dcluster.util import collection as collection_util
 from dcluster.util import logger
 
-from dcluster.node.planner import BasicNodePlanner, ExtendedNodePlanner
+from dcluster.node.planner import BasicNodePlanner, DefaultNodePlanner
 
 
-def basic_plan_data(basic_config, creation_request):
+def user_plan_data(default_config, creation_request):
     '''
-    Build a plan for creating a basic cluster.
-    This is achieved by merging default dcluster configuration in the 'basic' flavor
+    Build a plan for creating a default cluster.
+    This is achieved by merging default dcluster configuration in the 'default' template
     with user-supplied information, e.g. the name of the cluster, etc
     '''
     # keep merge simplified for now
-    return collection_util.defensive_merge(basic_config, creation_request._asdict())
+    return collection_util.defensive_merge(default_config, creation_request._asdict())
 
 
-class BasicClusterPlan(logger.LoggerMixin):
+class DefaultClusterPlan(logger.LoggerMixin):
     '''
     A place to build and realize the plan for a cluster.
     The strategy is to build a dictionary with all the available details of the cluster,
     and to create a ClusterBlueprint instance that will actually deploy the cluster.
 
-    This plan assumes that the 'basic' template will be used, along with cluster flavors that are
-    marked with the 'basic' type.
+    This plan assumes that the 'default' template will be used, along with cluster flavors that are
+    marked with the 'default' type.
 
     The tasks of building the plan and deploying the clusters are kept in different classes,
     in order to reutilize blueprint code for clusters already deployed and retrieved later, while
@@ -36,6 +36,8 @@ class BasicClusterPlan(logger.LoggerMixin):
         'head': {
             'hostname': 'head',
             'image': 'centos7:ssh'
+            'docker_volumes': ...
+            'shared_volumes': ...
         },
         'compute': {
             'hostname': {
@@ -43,9 +45,11 @@ class BasicClusterPlan(logger.LoggerMixin):
                 'suffix_len': 3
             },
             'image': 'centos7:ssh'
+            'docker_volumes': ...
+            'shared_volumes': ...
         },
         'network': cluster_network.as_dict(),
-        'template': 'cluster-basic.yml.j2'
+        'template': 'cluster-default.yml.j2'
     }
     '''
 
@@ -107,6 +111,9 @@ class BasicClusterPlan(logger.LoggerMixin):
                 'gateway_ip': '172.30.0.254'
             },
             'template': 'cluster-basic.yml.j2'
+            'volumes':
+                - 'my_first_volume'
+                - 'my_second_volume'
         }
         '''
         plan_data = self.plan_data
@@ -127,6 +134,8 @@ class BasicClusterPlan(logger.LoggerMixin):
             compute_plan = node_planner.create_compute_plan(plan_data, index, compute_ip)
             cluster_specs['nodes'][compute_plan.ip_address] = compute_plan
 
+        self.__handle_volume_specs(cluster_specs)
+
         return cluster_specs
 
     def as_dict(self):
@@ -138,77 +147,99 @@ class BasicClusterPlan(logger.LoggerMixin):
         d['network'] = self.cluster_network.as_dict()
         return d
 
-    @classmethod
-    def create(cls, creation_request, basic_config, cluster_network):
+    def __handle_volume_specs(self, cluster_specs):
         '''
-        Build plan based on user request, existing configuration and a existing network.
-        The parameters in the user request are merged with existing configuration.
+        A docker-compose file needs to have a 'volumes' root item indicating which volumes need
+        to be created specifically for the deployment.
+
+        Here, we grab the volume names and add them to cluster_specs as a list value,
+        which will be later used to create the proper 'volumes' root item.
         '''
 
-        plan_data = basic_plan_data(basic_config, creation_request)
-        node_planner = BasicNodePlanner(cluster_network)
-        return BasicClusterPlan(cluster_network, plan_data, node_planner)
-
-
-class ExtendedClusterPlan(BasicClusterPlan):
-    '''
-    Similar to BasicClusterPlan, but here we assume that the 'extended' template will be used,
-    along with cluster flavors that are marked with the 'extended' type.
-
-    Here follows an example of the plan_data that is received at input:
-
-    as_dict= {
-        'name': 'test',
-        'head': {
-            'hostname': 'head',
-            'image': 'centos7:ssh'
-            'docker_volumes': ...
-            'shared_volumes': ...
-        },
-        'compute': {
-            'hostname': {
-                'prefix': 'node',
-                'suffix_len': 3
-            },
-            'image': 'centos7:ssh'
-            'docker_volumes': ...
-            'shared_volumes': ...
-        },
-        'volumes': ...
-        'network': cluster_network.as_dict(),
-        'template': 'cluster-extended.yml.j2'
-    }
-    '''
-
-    def build_specs(self):
-        '''
-        Creates a dictionary of node specs that will be used for the cluster blueprint.
-
-        An 'extended' cluster is similar to a 'basic' cluster, but also handles docker volumes.
-        '''
-        # build the 'basic' specs, noting that the ExtendedNodePlanner will be used
-        basic_cluster_specs = super(ExtendedClusterPlan, self).build_specs()
-
-        # the specs are missing the docker volumes at the bottom.
         # For now just get the docker volumes from the head role
         # TODO add volumes from other roles (compute) when we have a proper test
-        docker_volumes_head = self.plan_data['head']['docker_volumes']
+        docker_volumes_head = []
+        if 'docker_volumes' in self.plan_data['head']:
+            docker_volumes_head = self.plan_data['head']['docker_volumes']
 
         volumes_entry = [
             docker_volume[0:docker_volume.find(':')]
             for docker_volume
             in docker_volumes_head
         ]
-        basic_cluster_specs['volumes'] = volumes_entry
-
-        return basic_cluster_specs
+        cluster_specs['volumes'] = volumes_entry
 
     @classmethod
-    def create(cls, creation_request, extended_config, cluster_network):
+    def create(cls, creation_request, default_config, cluster_network):
         '''
         Build plan based on user request, existing configuration and a existing network.
         The parameters in the user request are merged with existing configuration.
         '''
-        plan_data = basic_plan_data(extended_config, creation_request)
-        node_planner = ExtendedNodePlanner(cluster_network)
-        return ExtendedClusterPlan(cluster_network, plan_data, node_planner)
+
+        plan_data = user_plan_data(default_config, creation_request)
+        node_planner = DefaultNodePlanner(cluster_network)
+        return DefaultClusterPlan(cluster_network, plan_data, node_planner)
+
+
+# class ExtendedClusterPlan(BasicClusterPlan):
+#     '''
+#     Similar to BasicClusterPlan, but here we assume that the 'extended' template will be used,
+#     along with cluster flavors that are marked with the 'extended' type.
+
+#     Here follows an example of the plan_data that is received at input:
+
+#     as_dict= {
+#         'name': 'test',
+#         'head': {
+#             'hostname': 'head',
+#             'image': 'centos7:ssh'
+#             'docker_volumes': ...
+#             'shared_volumes': ...
+#         },
+#         'compute': {
+#             'hostname': {
+#                 'prefix': 'node',
+#                 'suffix_len': 3
+#             },
+#             'image': 'centos7:ssh'
+#             'docker_volumes': ...
+#             'shared_volumes': ...
+#         },
+#         'volumes': ...
+#         'network': cluster_network.as_dict(),
+#         'template': 'cluster-extended.yml.j2'
+#     }
+#     '''
+
+#     def build_specs(self):
+#         '''
+#         Creates a dictionary of node specs that will be used for the cluster blueprint.
+
+#         An 'extended' cluster is similar to a 'basic' cluster, but also handles docker volumes.
+#         '''
+#         # build the 'basic' specs, noting that the ExtendedNodePlanner will be used
+#         basic_cluster_specs = super(ExtendedClusterPlan, self).build_specs()
+
+#         # the specs are missing the docker volumes at the bottom.
+#         # For now just get the docker volumes from the head role
+#         # TODO add volumes from other roles (compute) when we have a proper test
+#         docker_volumes_head = self.plan_data['head']['docker_volumes']
+
+#         volumes_entry = [
+#             docker_volume[0:docker_volume.find(':')]
+#             for docker_volume
+#             in docker_volumes_head
+#         ]
+#         basic_cluster_specs['volumes'] = volumes_entry
+
+#         return basic_cluster_specs
+
+#     @classmethod
+#     def create(cls, creation_request, extended_config, cluster_network):
+#         '''
+#         Build plan based on user request, existing configuration and a existing network.
+#         The parameters in the user request are merged with existing configuration.
+#         '''
+#         plan_data = user_plan_data(extended_config, creation_request)
+#         node_planner = ExtendedNodePlanner(cluster_network)
+#         return ExtendedClusterPlan(cluster_network, plan_data, node_planner)

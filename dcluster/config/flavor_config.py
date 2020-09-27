@@ -49,7 +49,7 @@ def get_all_available_flavors(user_places_to_look):
     for flavor_file in flavor_yaml_files:
 
         with open(flavor_file, 'r') as ff:
-            yaml_dict = yaml.load(ff)
+            yaml_dict = yaml.load(ff, Loader=yaml.SafeLoader)
 
             # inform the user if a flavor is to be updated
             for flavor_name in yaml_dict.keys():

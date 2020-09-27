@@ -1,10 +1,9 @@
 from collections import namedtuple
 
 
-# node details for the 'basic' plan
+# node details used when recovering node details from docker
 BasicPlannedNode = namedtuple('BasicPlannedNode', 'hostname, container, image, ip_address, role')
 
-# node details for the 'extended' plan
-ExtendedPlannedNode = namedtuple('ExtendedPlannedNode',
-                                 'hostname, container, image, ip_address, role, volumes, \
-                                  static_text')
+# node details for the 'default' plan when creating a cluster
+DefaultPlannedNode = namedtuple('DefaultPlannedNode', 'hostname, container, image, ip_address, \
+						         role, volumes, static_text')

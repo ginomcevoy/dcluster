@@ -1,8 +1,6 @@
 slurm:
 
   extend: simple    
-  cluster_type: extended
-  template: cluster-extended.yml.j2
 
   compute:
     docker_volumes:

@@ -6,6 +6,12 @@ import collections
 import copy
 
 
+try:
+    collectionsAbc = collections.abc
+except AttributeError:
+    collectionsAbc = collections
+
+
 def update_recursively(d, u):
     '''
     Updates the dictionary d with the contents of dictionary u.
@@ -22,7 +28,7 @@ def update_recursively(d, u):
         return d
 
     for k, v in u.items():
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, collectionsAbc.Mapping):
             # value is also a dictionary, apply recursion on nested dictionary.
             d[k] = update_recursively(d.get(k, {}), v)
 

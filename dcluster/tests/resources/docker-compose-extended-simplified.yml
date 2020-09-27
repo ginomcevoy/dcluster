@@ -1,9 +1,11 @@
-version: '3.3'
+version: '3.7'
 services:
 
     mycluster-head:
         container_name: mycluster-head
         image: centos7:slurmctld
+        init: true
+        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
         hostname: head
         labels:
             bull.com.dcluster.role: head
@@ -20,6 +22,8 @@ services:
     mycluster-node001:
         container_name: mycluster-node001
         image: centos7:slurmd
+        init: true
+        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
         hostname: node001
         labels:
             bull.com.dcluster.role: compute
@@ -36,6 +40,8 @@ services:
     mycluster-node002:
         container_name: mycluster-node002
         image: centos7:slurmd
+        init: true
+        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
         hostname: node002
         labels:
             bull.com.dcluster.role: compute

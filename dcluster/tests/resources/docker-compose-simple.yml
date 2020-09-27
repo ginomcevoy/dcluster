@@ -1,9 +1,11 @@
-version: '3.3'
+version: '3.7'
 services:
 
     mycluster-head:
         container_name: mycluster-head
         image: centos7:ssh
+        init: true
+        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
         hostname: head
         labels:
             bull.com.dcluster.role: head
@@ -16,9 +18,12 @@ services:
             node002: 172.30.0.2
             gateway: 172.30.0.254
 
+
     mycluster-node001:
         container_name: mycluster-node001
         image: centos7:ssh
+        init: true
+        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
         hostname: node001
         labels:
             bull.com.dcluster.role: compute
@@ -31,9 +36,12 @@ services:
             node002: 172.30.0.2
             gateway: 172.30.0.254
 
+
     mycluster-node002:
         container_name: mycluster-node002
         image: centos7:ssh
+        init: true
+        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
         hostname: node002
         labels:
             bull.com.dcluster.role: compute
@@ -46,7 +54,9 @@ services:
             node002: 172.30.0.2
             gateway: 172.30.0.254
 
+
 networks:
   dcluster-mycluster:
     external:
         name: dcluster-mycluster
+

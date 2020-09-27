@@ -41,7 +41,7 @@ class TestCreateAnsibleInventory(unittest.TestCase):
         self.inventory.to_yaml(output_filename)
 
         with open(output_filename, 'r') as of:
-            actual_output = yaml.load(of)
+            actual_output = yaml.load(of, Loader=yaml.SafeLoader)
 
         self.assertEqual(actual_output, self.expected)
 

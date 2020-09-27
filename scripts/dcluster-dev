@@ -12,8 +12,10 @@
 SCRIPTS_DIR="$( cd "$( dirname "$0" )" && pwd )"
 SRC_HOME_DIR=$SCRIPTS_DIR/..
 
+PYTHON=$(${SCRIPTS_DIR}/find-python.sh)
+
 # add downloadable programs to PATH
 export PATH=$HOME/.dcluster/bin:$PATH
 
 # call dcluster.main, let bash decide which python to use
-DCLUSTER_DEV=True PYTHONPATH=$SRC_HOME_DIR python -m dcluster.main $@
+DCLUSTER_DEV=True PYTHONPATH=$SRC_HOME_DIR $PYTHON -m dcluster.main $@
