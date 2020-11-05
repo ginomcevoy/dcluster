@@ -1,4 +1,6 @@
+include config/*
+include config/flavors/*
 include templates/*
 include usr/bin/*
 include dcluster/tests/resources/*.yml
-include ansible_static/hello/*.yml
+recursive-include ansible_static *.yml *.j2 *.whl
