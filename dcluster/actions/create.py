@@ -2,7 +2,7 @@ from . import display
 
 from dcluster import cluster, dansible, runtime
 
-from dcluster.config import main_config
+from dcluster.config import main_config, dansible_config
 from dcluster.infra import networking
 
 from dcluster.util import fs as fs_util
@@ -17,7 +17,7 @@ def create_default_cluster(creation_request):
 
     other optional arguments:
     - playbooks
-    - extra_vars_list 
+    - extra_vars_list
     '''
     # ensure that user-specified flavor paths exist before attempting anything
     fs_util.check_directories_exist(creation_request.flavor_paths)
@@ -40,20 +40,21 @@ def create_default_cluster(creation_request):
 
     # create the Ansible inventory now, too hard later
     cluster_name = creation_request.name
-    inventory_workpath = main_config.inventory_workpath(cluster_name)
+    inventory_workpath = dansible_config.inventory_workpath(cluster_name)
     (_, inventory_file) = dansible.create_inventory(cluster_blueprints.as_dict(),
                                                     inventory_workpath)
 
     # show newly created
     live_cluster = display.show_cluster(creation_request.name)
 
-    if main_config.prefs('inject_ssh_public_key_to_root'):
+    if main_config.prefs('inject_ssh_public_keys_to_root'):
         # inject SSH public key to all containers for password-less SSH
 
         # public_key_with_shell_vars = main_config.paths('ssh_public_key')
         # public_key_path = fs_util.evaluate_shell_path(public_key_with_shell_vars)
-        public_key_path = main_config.paths('ssh_public_key')
-        live_cluster.inject_public_ssh_key(public_key_path)
+        public_key_paths = main_config.paths('ssh_public_keys')
+        for public_key_path in public_key_paths:
+            live_cluster.inject_public_ssh_key(public_key_path)
 
     # run requested Ansible playbooks with optional extra vars
     for playbook in creation_request.playbooks:

@@ -8,7 +8,7 @@ import shutil
 import sys
 
 
-from runitmockit import runit
+from . import runit
 
 
 def get_module_filename(module_name):

@@ -1,5 +1,4 @@
 from dcluster.config import main_config
-from dcluster.actions import ssh as ssh_action
 
 
 def configure_ssh_parser(ssh_parser):
@@ -30,6 +29,9 @@ def process_ssh_cli_call(args):
     Performs SSH to a node in the cluster.
     The node can have username@hostname, or only hostname (uses default ssh_user).
     '''
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import ssh as ssh_action
+
     (cluster_name, username, hostname, _) = interpret_ssh_args(args)
     ssh_action.ssh(cluster_name, username, hostname)
 
@@ -40,6 +42,9 @@ def process_scp_cli_call(args):
     The node can have username@hostname, or only hostname (uses default ssh_user)
     Can send one or more files.
     '''
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import ssh as ssh_action
+
     (cluster_name, username, hostname, target_dir) = interpret_ssh_args(args)
 
     # handle scp of multiple files
@@ -55,6 +60,9 @@ def interpret_ssh_args(args):
     Parses the arguments received for SSH/scp.
     Takes care of username@container as a target, and the target path for scp.
     '''
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import ssh as ssh_action
+
     cluster_name = args.cluster_name
     target_dir = ''
 

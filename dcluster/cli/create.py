@@ -6,8 +6,6 @@ import logging
 
 
 from dcluster.config import main_config
-from dcluster.actions import create as create_action
-from dcluster.cluster import request
 
 
 def configure_parser(create_parser):
@@ -37,11 +35,15 @@ def configure_parser(create_parser):
     # default function to call
     create_parser.set_defaults(func=process_cli_call)
 
-
 def process_cli_call(args):
     '''
     Process the creation request issued via the command line.
     '''
+
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import create as create_action
+    from dcluster.cluster import request
+
     log = logging.getLogger()
     log.debug('Got create parameters: {}'.format(args))
 

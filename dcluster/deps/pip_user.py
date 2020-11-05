@@ -3,9 +3,7 @@ import logging
 import pkg_resources
 import sys
 
-from runitmockit import runit
-
-from dcluster.util import logger
+from dcluster.util import logger, runit
 
 
 def detect_pip_version():

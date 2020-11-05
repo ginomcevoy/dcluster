@@ -1,9 +1,7 @@
 import os
 
-from runitmockit import runit
-
 from dcluster.util import fs as fs_util
-from dcluster.util import logger
+from dcluster.util import logger, runit
 
 
 class ComposeFailure(Exception):
@@ -38,7 +36,7 @@ class DockerComposeDeployer(logger.LoggerMixin):
         #
         # TODO think about privileged containers
         cmd = 'docker-compose --no-ansi -f docker-cluster.yml up -d --force-recreate'
-        run = runit.execute(cmd, cwd=self.compose_path)
+        run = runit.execute(cmd, cwd=self.compose_path, env=os.environ)
 
         # always show the output of the docker-compose call
         print(run[1])
@@ -55,7 +53,7 @@ class DockerComposeDeployer(logger.LoggerMixin):
         '''
         # run docker-compose ps, save output
         cmd = 'docker-compose -f docker-cluster.yml ps'
-        run = runit.execute(cmd, cwd=self.compose_path)
+        run = runit.execute(cmd, cwd=self.compose_path, env=os.environ)
         self.ps_stdout = run[0]
 
         # look for 'Exit'
@@ -67,6 +65,6 @@ class DockerComposeDeployer(logger.LoggerMixin):
         '''
         # run docker-compose logs
         cmd = 'docker-compose -f docker-cluster.yml logs'
-        run = runit.execute(cmd, cwd=self.compose_path)
+        run = runit.execute(cmd, cwd=self.compose_path, env=os.environ)
 
         print(run[0])

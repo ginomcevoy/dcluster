@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 '''
 Main entry point of dcluster.
 '''
@@ -68,10 +66,13 @@ def processRequest():
     args.func(args)
 
 
-if __name__ == "__main__":
-
+def main():
     log_level_str = main_config.prefs('log_level')
     log_level = getattr(logging, log_level_str)
     logging.basicConfig(format='%(asctime)s - %(levelname)6s | %(message)s',
                         level=log_level, datefmt='%d-%b-%y %H:%M:%S')
     processRequest()
+
+
+if __name__ == "__main__":
+    main()

@@ -121,6 +121,11 @@ class RunningClusterMixin(logger.LoggerMixin):
         Reads the public SSH key specified in the path, and injects it to each container.
         For now, it will inject it to the root user.
         '''
+        # sanity check: key should exist
+        if not os.path.exists(public_key_path):
+            self.logger.warn('Cannot inject missing SSH key: {}'.format(public_key_path))
+            return
+
         ssh_target_path = '/root/.ssh'
 
         with open(public_key_path, 'r') as pk:

@@ -7,7 +7,8 @@
 * Creates a docker network, ensures that the network subnet is available.
 * Uses a template to create a Dockerfile for docker-compose, then calls docker-compose to instantiate containers attached to the docker network.
 * The containers are spinned up with an SSH server and tini (--init) for proper zombie process reaping.
-* Can choose a cluster "flavor" from existing templates at /usr/share/dcluster/flavors.
+* Can choose a cluster "flavor" from existing templates at /usr/share/dcluster/flavors but user can add own flavors.
+* Run one or more Ansible playbooks on the cluster, the inventory is automatically created by dcluster.
 * The cluster "flavors" can be customized and extended to use specific containers and environment variables. The user may add more cluster flavors.
 * Example:
 
@@ -31,30 +32,44 @@
   [root@head ~]#
   ```
 
-## Requirements
+## Requirements (from RPM)
 
 * Docker 17.06.0+
+  Follow instructions at https://docs.docker.com/engine/install
+
+* Usable Docker installation (docker service up, user with in the docker group) 
+
+* docker python API 4.0.0+
+  ```pip3 install --user docker```
 
 * docker-compose 1.25.0+ with template 3.7 (support for 'init' variable)
 
   ```sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -m)" -o /usr/bin/docker-compose && chmod +x /usr/bin/docker-compose```
 
-* docker python API 4.0.0+
+* ansible (only required for running Ansible playbooks)
 
-  ```pip install --user docker```
+Note: Use ```dcluster init``` to attempt to download docker API and docker-compose automatically.
+Note: Requirements can also be installed using the source: ```pip3 install --user -r deployment/requirements.txt```
 
-Note: use ```dcluster init``` to attempt to download docker API and docker-compose automatically.
+## Building RPM from source
 
-## Limitations
+* Satisfy requirements above
 
-* Tested only on CentOS 7 and CentOS 8 (Fedora and RHEL should work), also not in a clean environment yet (TODO try this in a clean VM!)
-  The default packaging (non-RPM) is not supported yet!
+* Run ```dnf install rpm-build```
 
-* The RPMs can be installed but not all requirements are met. dcluster also requires docker API (pip install docker) and docker-compose.
-  As a workaround, dcluster can try to install these additional requirements (requires internet access) using:
-  ```
-  dcluster init
-  ```
+* Execute the build script to create the SPEC file:
+
+  ```./scripts/dcluster-build spec```
+
+* Run `yum-builddep` on the generated SPEC file to install dependencies according to output of previous command:
+
+  ```sudo yum-builddep /root/dcluster/build/bdist.linux-x86_64/rpm/SPECS/dcluster.spec```
+
+* Create the RPMs:
+
+  ```./scripts/dcluster-build rpms```
+
+## Preparing for the first cluster
 
 * The container image requires an installation of an SSH server that supports root access (PermitRootLogin yes).
   Here is an example to install the SSH server for a base CentOS image.
@@ -69,16 +84,24 @@ Note: use ```dcluster init``` to attempt to download docker API and docker-compo
   ssh-keygen -A
   ```
 
-  Commit this image to docker in the host and clean up:
+  Commit this image to docker in the host (another command line) and clean up:
   ```
   docker commit dcluster-with-ssh centos:7.7.1908-ssh
   docker stop dcluster-with-ssh
   docker rm dcluster-with-ssh
   ```
 
-* The default flavor (simple) is pointing to centos:7.7.1908-ssh, which immediately fails if this image is not available. TODO let this be a variable managed by configuration, and that the user can override using --image
+## Limitations
 
-* User-provided Ansible playbooks will be supported very soon...
+* Tested only on CentOS/RHEL/Fedora (via RPM)! The default packaging (non-RPM) is not supported yet!
+
+* The RPMs can be installed but not all requirements are met. dcluster also requires docker API (pip install docker) and docker-compose.
+  As a workaround, dcluster can try to install these additional requirements (requires internet access) using:
+  ```
+  dcluster init
+  ```
+
+* The default flavor is pointing to centos:7.7.1908-ssh, which immediately fails if this image is not available. See "Preparing for the first cluster" above. TODO let this be a variable managed by configuration, and that the user can override using --image
 
 ## Usage
 
@@ -91,6 +114,14 @@ Note: Read the limitations and requirements before trying it out!
 * Create a cluster with a custom flavor:
 
   ```dcluster create -f slurm slurm_cluster 3```
+
+* Create a cluster and run two "built-in" playbooks:
+
+  ```dcluster create my_cluster 2 --playbooks dcluster-hello dcluster-ssh```
+
+* Run a custom playbook on an existing cluster:
+
+  ```dcluster-ansible playbook my_cluster dir_with_custom_playbook -e "myparam=myvalue"```
 
 * List current clusters:
 
@@ -159,14 +190,12 @@ You may need to install requirements for docs beforehand, using
 pip install --user -r deployment/requirements-docs.txt
 ```
 
-## (TODO) Generating the test reports
+## Generating the test reports
 
 The following commands generate the html test report and the associated badge. 
 
 ```bash
-pytest --junitxml=junit.xml -v runitmockit/tests/
-ant -f ci_tools/generate-junit-html.xml
-python ci_tools/generate-junit-badge.py
+DCLUSTER_DEV=true PYTHONPATH=. pytest --junitxml=junit.xml -v dcluster/tests
 ```
 
 ### Merging pull requests with edits - memo

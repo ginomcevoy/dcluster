@@ -4,9 +4,7 @@ import os
 import platform
 import stat
 
-from runitmockit import runit
-
-from dcluster.util import logger, fs
+from dcluster.util import logger, fs, runit
 
 from . import download
 from . import pip_user
@@ -22,13 +20,18 @@ def ensure_docker_package():
     '''
     log = logger.logger_for_me(ensure_docker_package)
 
+    # keep track of docker installation via pip function:
+    # if we install docker right now, "import docker" fails
+    just_installed = False
+
     if not pip_user.is_package_installed('docker'):
         # try to install it via pip
         pip_user.install_with_pip('docker')
+        just_installed = True
 
-    # try to import docker, if this fails then give up
-    import docker
-    log.info('Python API for docker found: {}'.format(docker.__version__))
+    if not just_installed:
+        import docker
+        log.info('Python API for docker found: {}'.format(docker.__version__))
 
 
 def ensure_docker_compose():
@@ -58,7 +61,7 @@ def ensure_docker_compose():
 
     # check for docker-compose version
     cmd = 'docker-compose -v'
-    stdout, stderr, rc = runit.execute(cmd)
+    stdout, stderr, rc = runit.execute(cmd, env=os.environ)
 
     if 'docker-compose' not in stdout or rc != 0:
         err_msg = 'Not able to use docker-compose (rc={}):\n{}\n{}'

@@ -1,7 +1,7 @@
 # --- package dependecies in source
 jinja2
 PyYAML
-ansible # can be omitted if dcluster ansible is not used (TODO... use selective installation)
+docker
 
 # --- to execute setup.py whatever the goal
 setuptools_scm

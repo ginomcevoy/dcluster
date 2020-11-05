@@ -11,13 +11,19 @@
 # the last line should be manually provided
 # All this input should be provided by build-rpm.sh
 
-# build Python2 and Python3 by default
-%bcond_without python2
+# build Python3 by default, Python2 is optional
+%bcond_with python2
 %bcond_without python3
 %define python2_sitelib /usr/lib/python2.7/site-packages/
 
-# Don't run tests by default
-%bcond_with tests
+# Run tests by default
+%bcond_without tests
+
+%if 0%{?rhel} > 7
+%define pytest_exec pytest-3
+%else
+%define pytest_exec py.test
+%endif
 
 Name: %{mod_name}
 Summary: Create and manage Docker clusters, optionally run Ansible on the cluster
@@ -45,7 +51,6 @@ Summary: Create and manage Docker clusters, optionally run Ansible on the cluste
 Provides: python-%{mod_name}       = %{version}-%{release}
 Provides: python2-%{mod_name}      = %{version}-%{release}
 
-Requires:  python2-runitmockit
 
 # Names of Jinja2 and YAML python packages depend on distro
 %if 0%{?rhel} > 7
@@ -58,6 +63,15 @@ Requires:  PyYAML
 
 %if 0%{?with_tests}
 BuildRequires:  python2-pytest
+
+%if 0%{?rhel} > 7
+BuildRequires:  python2-jinja2
+BuildRequires:  python2-pyyaml
+%else
+BuildRequires:  python-jinja2
+BuildRequires:  PyYAML
+%endif
+
 %endif
 
 %description -n python2-%{mod_name}
@@ -67,19 +81,24 @@ Create and manage Docker clusters, optionally run Ansible on the cluster.
 
 %if 0%{?with_python3}
 
-%package -n python3-%{mod_name}
+%package -n python%{python3_pkgversion}-%{mod_name}
 Summary: Create and manage Docker clusters, optionally run Ansible on the cluster.
 Provides: python-%{mod_name}       = %{version}-%{release}
-Provides: python3-%{mod_name}      = %{version}-%{release}
+Provides: python%{python3_pkgversion}-%{mod_name}      = %{version}-%{release}
 
-Requires:  python3-jinja2
-Requires:  python3-runitmockit
+BuildRequires:  python%{python3_pkgversion}-rpm-macros
+Requires:  python%{python3_pkgversion}-jinja2
+Requires:  python%{python3_pkgversion}-pyyaml
+# For RHEL 8+, use python3 explicitly
+BuildRequires: /usr/bin/pathfix.py
 
 %if 0%{?with_tests}
+BuildRequires:  python%{python3_pkgversion}-jinja2
+BuildRequires:  python%{python3_pkgversion}-pyyaml
 BuildRequires:  python3-pytest
 %endif
 
-%description -n python3-%{mod_name}
+%description -n python%{python3_pkgversion}-%{mod_name}
 Create and manage Docker clusters, optionally run Ansible on the cluster.
 
 %endif
@@ -95,7 +114,7 @@ python2 setup.py build
 %endif
 
 %if 0%{?with_python3}
-python3 setup.py build
+%{__python3} setup.py build
 %endif
 
 
@@ -119,23 +138,27 @@ rm -rf %{buildroot}%{python2_sitelib}/deployment
 %if 0%{?with_python3}
 
 # install the python code to RPM_BUILD_ROOT
-python3 setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
+%{__python3} setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT
 
 # create the production configuration, need DCLUSTER_INSTALL_PREFIX environment variable to deploy
 export PYTHONPATH=.
 export DCLUSTER_INSTALL_PREFIX=$RPM_BUILD_ROOT
-python3 -m deployment.deploy
+%{__python3} -m deployment.deploy
 
 # deployment script has done its job
 rm -rf %{buildroot}%{python3_sitelib}/deployment
+
+# Fix Python shebangs
+%if 0%{?rhel} > 7
+pathfix.py -pni "%{__python3}" usr/bin/*
+%endif
 
 %endif
 
 # the executable
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 
-# Tried to use an executable main.py and creating a link, but we have to commit to either python2 or python3.
-# Like this, we let the OS decide which python version to use (the default 'python')
+
 cp usr/bin/dcluster $RPM_BUILD_ROOT/usr/bin
 cp usr/bin/dcluster-ansible $RPM_BUILD_ROOT/usr/bin
 
@@ -162,10 +185,7 @@ export DCLUSTER_INSTALL_PREFIX=%{buildroot}
 
 # run the tests
 export PYTHONPATH=%{buildroot}%{python3_sitelib}
-
-#FIXME think how to do this better
-#pytest-3 --pyargs %{mod_name}
-py.test --pyargs %{mod_name}
+%{pytest_exec} -v %{mod_name} 
 
 # cleanup pycache so that pytest does not complain later
 rm -rf %{buildroot}%{python3_sitelib}/%{mod_name}/tests/__pycache__
@@ -191,7 +211,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %if 0%{?with_python3}
-%files -n python3-%{mod_name}
+%files -n python%{python3_pkgversion}-%{mod_name}
 %{python3_sitelib}/%{mod_name}
 %{python3_sitelib}/%{mod_name}-*.egg-info
 %defattr(-,root,root)

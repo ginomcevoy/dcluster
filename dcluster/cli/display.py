@@ -1,5 +1,3 @@
-from dcluster.actions import display as display_action
-
 
 def configure_show_parser(show_parser):
     '''
@@ -22,6 +20,9 @@ def process_show_cli_call(args):
     '''
     Process the show request issued via the command line.
     '''
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import display as display_action
+
     display_action.show_cluster(args.cluster_name)
 
 
@@ -29,4 +30,7 @@ def process_list_cli_call(args):
     '''
     Process the list request issued via the command line.
     '''
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import display as display_action
+
     display_action.list_clusters()

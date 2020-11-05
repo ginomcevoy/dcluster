@@ -189,26 +189,6 @@ def composer_workpath(cluster_name):
     return os.path.join(workpath, 'clusters', cluster_name)
 
 
-def inventory_workpath(cluster_name):
-    '''
-    Where to store the Ansible inventory for a cluster.
-    '''
-    return composer_workpath(cluster_name)
-
-
-def default_inventory(cluster_name):
-    iw = inventory_workpath(cluster_name)
-    return os.path.join(iw, 'inventory.yml')
-
-
-def playbook_workpath(cluster_name):
-    '''
-    Where to store Ansible playbook directories.
-    '''
-    workpath = paths('work')
-    return os.path.join(workpath, 'ansible')
-
-
 if __name__ == '__main__':
     import pprint
     print('*** ALL ***')

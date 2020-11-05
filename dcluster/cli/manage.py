@@ -1,4 +1,3 @@
-from dcluster.actions import manage as manage_action
 
 
 def configure_stop_parser(stop_parser):
@@ -35,13 +34,19 @@ def process_stop_cli_call(args):
     '''
     Process the stop request through command line.
     '''
-    manage_action.stop_cluster(args.cluster_name)
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import manage as manage_action
 
+    manage_action.stop_cluster(args.cluster_name)
+    print('Stopped cluster: {}'.format(args.cluster_name))
 
 def process_start_cli_call(args):
     '''
     Process the start request through command line.
     '''
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import manage as manage_action
+
     manage_action.start_cluster(args.cluster_name)
 
 
@@ -49,4 +54,8 @@ def process_rm_cli_call(args):
     '''
     Process the remove request through command line.
     '''
+    # to avoid chain of dependencies (docker!) before dcluster init
+    from dcluster.actions import manage as manage_action
+
     manage_action.remove_cluster(args.cluster_name)
+    print('Removed cluster: {}'.format(args.cluster_name))
