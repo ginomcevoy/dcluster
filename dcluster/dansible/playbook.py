@@ -1,7 +1,7 @@
 import logging
 import os
 
-from runitmockit import runit
+from dcluster.util import runit
 
 
 def execute_playbook(playbook_file, inventory_file, extra_vars_list=[]):

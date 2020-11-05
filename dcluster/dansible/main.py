@@ -6,7 +6,7 @@ import argparse
 import logging
 import sys
 
-from dcluster.config import main_config
+from dcluster.config import main_config, dansible_config
 from dcluster import dansible
 
 
@@ -14,7 +14,7 @@ def process_playbook(args):
     '''
     Process the request to execute an Ansible playbook.
     '''
-    inventory_file = main_config.default_inventory(args.cluster_name)
+    inventory_file = dansible_config.default_inventory(args.cluster_name)
 
     # handle additional inventory data (variables)
     extra_vars_list = args.extra_vars
@@ -73,10 +73,13 @@ def processRequest():
     args.func(args)
 
 
-if __name__ == "__main__":
-
+def main():
     log_level_str = main_config.prefs('log_level')
     log_level = getattr(logging, log_level_str)
     logging.basicConfig(format='%(asctime)s - %(levelname)6s | %(message)s',
                         level=log_level, datefmt='%d-%b-%y %H:%M:%S')
     processRequest()
+
+
+if __name__ == "__main__":
+    main()

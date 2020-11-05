@@ -1,0 +1,141 @@
+#!/bin/bash
+
+#
+# Build the RPMs our own way
+#
+# Giacomo Mc Evoy <giacomo.valenzano@atos.net>
+# Atos 2019
+#
+# version: 0.2
+#
+
+function detect_executable () {
+  cmd=$1
+  [[ $(type -P "$cmd") ]] && echo "$cmd is in PATH"  ||
+  { echo "$cmd executable missing!" 1>&2; exit 1; }
+}
+
+function print_usage () {
+      echo "Usage:"
+      echo "    dcluster-build -h           Display this help message."
+      echo "    dcluster-build spec         Create SPEC file for $PKG_NAME."
+      echo "    dcluster-build rpm          Create SPEC and RPMs for $PKG_NAME."
+}
+
+function create_spec () {
+
+  # bdist_rpm requires this
+  detect_executable rpmspec
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+
+  # call the default RPM builder
+  $PYTHON setup.py bdist_rpm
+
+  cd build/*/rpm
+
+  # save the original SPEC header, it describes versionsing
+  # delete the rest
+  SPEC_FILE=SPECS/${PKG_NAME}.spec
+  cat $SPEC_FILE | head -n 5 > /tmp/${PKG_NAME}.spec
+  mv /tmp/${PKG_NAME}.spec $SPEC_FILE
+
+  # add a line to the header that simplifies the handling of the name change
+  # from <pkg> to python-<pkg>
+  echo "%define mod_name ${PKG_NAME}" >> $SPEC_FILE
+
+  # use our custom-made SPEC template, we are keeping the header
+  cat $SRC_HOME_DIR/${PKG_NAME}.spec.in >> $SPEC_FILE
+
+  # add the changelog
+  cat $SRC_HOME_DIR/${PKG_NAME}.changelog.in >> $SPEC_FILE
+}
+
+function create_rpms () {
+
+  create_spec
+
+  # build the RPMs again (python3-*.noarch.rpm)
+  # Run tests, only python3 (defaults)
+  rpmbuild -ba --define "_topdir $PWD" --verbose $SPEC_FILE
+
+  if [ $? -ne 0 ]; then
+    echo >&2 "rpmbuild failed, check output."
+    exit 1
+  fi
+
+  # clean up the old dist RPMs, put our own
+  rm $SRC_HOME_DIR/dist/*.rpm
+  cp RPMS/noarch/* SRPMS/* $SRC_HOME_DIR/dist/
+
+  # save each SRPM separately for record
+  HISTORY_DIR=$SRC_HOME_DIR/dist/history
+  mkdir -p $HISTORY_DIR
+  cp -f SRPMS/* $HISTORY_DIR/
+}
+
+# calculate directory local to script
+SCRIPTS_DIR="$( cd "$( dirname "$0" )" && pwd )"
+SRC_HOME_DIR=$SCRIPTS_DIR/..
+cd $SRC_HOME_DIR
+
+# start clean
+rm -rf build
+
+PYTHON=$(${SCRIPTS_DIR}/find-python.sh)
+if [ $? -ne 0 ]; then
+  echo >&2 "Need a python executable, e.g. python3!"
+  exit 1
+fi
+
+# get the name of this package
+PKG_NAME=$($PYTHON setup.py --name)
+
+if [ $# -eq 0 ]; then
+  print_usage
+  exit 0
+fi
+
+while getopts ":h" opt; do
+  case ${opt} in
+    h )
+      print_usage
+      exit 0
+      ;;
+    \? )
+      echo "Invalid Option: -$OPTARG" 1>&2
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND -1))
+
+subcommand=$1
+shift
+
+case "$subcommand" in
+  spec)
+    create_spec
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
+    SPEC_FILE=$(readlink -f $SPEC_FILE)
+    echo ""
+    echo "SPEC file generated at: $SPEC_FILE"
+    echo "Run yum-builddep $SPEC_FILE to install dependencies"
+    shift
+    ;;
+  rpms)
+    create_rpms
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
+    echo ""
+    echo "dcluster RPMs at: $(readlink -f $SRC_HOME_DIR/dist)"
+    echo "Success!"
+    shift
+    ;;
+
+esac
+exit 0

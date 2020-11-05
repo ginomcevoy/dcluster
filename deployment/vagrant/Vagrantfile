@@ -1,0 +1,14 @@
+load "DisableUpdateOfGuestAdditions.rb"
+Vagrant.configure("2") do |c|
+  c.berkshelf.enabled = false if Vagrant.has_plugin?("vagrant-berkshelf")
+  c.vm.box = "centos/8"
+  c.vm.box_check_update = false
+  c.vm.hostname = "management1"
+  #c.vm.network(:private_network, {:ip=>"10.11.0.1", :netmask=>"255.255.0.0", :adapter_ip=>"10.11.0.10", :mac=>"080027dcf8f5"})
+  c.vm.synced_folder ".", "/vagrant", disabled: true
+  #c.vm.synced_folder "/var/www/html/repositories/redhat/8/x86_64", "/var/www/html/repositories/redhat/8/x86_64/", {:type=>"virtualbox"}
+  c.vm.provider :virtualbox do |p|
+    p.name = "dcluster-vm"
+    p.customize ["modifyvm", :id, "--audio", "none"]
+  end
+end
