@@ -1,4 +1,8 @@
 %changelog
+* Wed Nov 04 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.1.0-1
+- Improve README
+- Fix doc requirements
+
 * Thu Oct 29 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.15-1
 - Support injection of multiple SSH keys
 - Include runit to avoid external dependency
