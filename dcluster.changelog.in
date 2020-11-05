@@ -1,4 +1,12 @@
 %changelog
+* Thu Oct 29 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.15-1
+- Support injection of multiple SSH keys
+- Include runit to avoid external dependency
+- Fix issues with Python version during packaging
+- Support multiple paths for finding Ansible playbooks
+- Improve building script, can generate SPEC separately
+- Vagrantfile for setting up a test VM
+
 * Sun Sep 27 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.0.14-1
 - #12: Merge basic and extended templates into a single default template
 - Resolve deprecation warnings
