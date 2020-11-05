@@ -44,7 +44,11 @@
 
 * docker-compose 1.25.0+ with template 3.7 (support for 'init' variable)
 
-  ```sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -m)" -o /usr/bin/docker-compose && chmod +x /usr/bin/docker-compose```
+  ```
+  sudo curl -L \
+  "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -m)" \
+  -o /usr/bin/docker-compose && chmod +x /usr/bin/docker-compose
+  ```
 
 * ansible (only required for running Ansible playbooks)
 
@@ -160,21 +164,6 @@ pytest -v dcluster/tests
 
 Note: the tests may fail if the parameters of the original configuration are changed.
 
-## Packaging
-
-Please use the provided script to generate the RPMs in addition to the egg-info package:
-
-```bash
-./scripts/build-rpm.sh
-```
-
-You may need to install requirements for setup beforehand, using 
-
-```bash
-pip install --user -r deployment/requirements.txt
-```
-
-Note: more requirements may be missing, TODO!
 
 ## Generating the documentation page
 
