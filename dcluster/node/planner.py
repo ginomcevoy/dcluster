@@ -112,4 +112,5 @@ class DefaultNodePlanner(BasicNodePlanner):
         extended_dict = basic_planned_node._asdict()
         extended_dict['volumes'] = volumes
         extended_dict['static_text'] = static_text
+
         return DefaultPlannedNode(**extended_dict)

@@ -1,9 +1,10 @@
 from .blueprint import ClusterBlueprint
 
+from dcluster.config import main_config
 from dcluster.util import collection as collection_util
 from dcluster.util import logger
 
-from dcluster.node.planner import BasicNodePlanner, DefaultNodePlanner
+from dcluster.node.planner import DefaultNodePlanner
 
 
 def user_plan_data(default_config, creation_request):
@@ -133,6 +134,9 @@ class DefaultClusterPlan(logger.LoggerMixin):
         for index, compute_ip in enumerate(compute_ips):
             compute_plan = node_planner.create_compute_plan(plan_data, index, compute_ip)
             cluster_specs['nodes'][compute_plan.ip_address] = compute_plan
+
+        # will be used to set the entrypoint to the injected bootstrap script
+        cluster_specs['bootstrap_dir'] = main_config.paths('bootstrap')
 
         self.__handle_volume_specs(cluster_specs)
 
