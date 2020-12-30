@@ -2,6 +2,7 @@
 
 paths:
   templates: '/usr/share/dcluster/templates'
+  bootstrap: '/usr/share/dcluster/bootstrap'
   work: $HOME/.dcluster
   ansible_static: '/usr/share/dcluster/ansible_static'
   flavors:

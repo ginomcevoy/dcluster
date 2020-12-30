@@ -62,6 +62,8 @@
     ssh_known_hosts_command: "ssh-keyscan -H -T 10"
     ssh_known_hosts_file: "/etc/ssh/ssh_known_hosts"
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-    dansible:
-      inventory_basepath: ../../clusters
-      inventory_filename: inventory.yml
+
+# Add these lines to vars: to use the dcluster-provided inventory if needed
+#    dansible:
+#      inventory_basepath: ../../clusters
+#      inventory_filename: inventory.yml

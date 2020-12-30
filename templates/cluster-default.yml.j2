@@ -6,7 +6,7 @@ services:
         container_name: {{node.container}}
         image: {{node.image}}
         init: true
-        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
+        entrypoint: "/dcluster/bootstrap.sh"
         hostname: {{node.hostname}}
         labels:
             bull.com.dcluster.role: {{node.role}}
@@ -18,8 +18,9 @@ services:
             {{extra_host.hostname}}: {{extra_host.ip_address}}
 {% endfor %}
             gateway: {{network.gateway_ip}}
-{% if node.volumes %}
         volumes:
+            - {{bootstrap_dir}}:/dcluster
+{% if node.volumes %}
 {% for node_volume in node.volumes %}
             - {{node_volume}}
 {% endfor %}

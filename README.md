@@ -52,6 +52,8 @@
 
 * ansible (only required for running Ansible playbooks)
 
+* Either a docker image with SSH server installed OR access to a repository to install an SSH server on the fly (latter only for Fedora/CentOS/RHEL) 
+
 Note: Use ```dcluster init``` to attempt to download docker API and docker-compose automatically.
 Note: Requirements can also be installed using the source: ```pip3 install --user -r deployment/requirements.txt```
 
@@ -73,9 +75,11 @@ Note: Requirements can also be installed using the source: ```pip3 install --use
 
   ```./scripts/dcluster-build rpms```
 
-## Preparing for the first cluster
+## Preparing an image for offline use
 
-* The container image requires an installation of an SSH server that supports root access (PermitRootLogin yes).
+* dcluster provides a bootstrap script to install an SSH server on the fly on each container (Fedora/RHEL/CentOS), but this requires access to RPM repositories, e.g. to the default repositories via internet access.
+
+* For later offline use, the container image requires an installation of an SSH server that supports root access (PermitRootLogin yes).
   Here is an example to install the SSH server for a base CentOS image.
   From the host, create a container based on a base CentOS image (7.7 as example):
   ```
@@ -88,24 +92,26 @@ Note: Requirements can also be installed using the source: ```pip3 install --use
   ssh-keygen -A
   ```
 
-  Commit this image to docker in the host (another command line) and clean up:
+* Commit this image to docker in the host (another command line) and clean up:
   ```
   docker commit dcluster-with-ssh centos:7.7.1908-ssh
   docker stop dcluster-with-ssh
   docker rm dcluster-with-ssh
   ```
 
+* Update the flavor configuration to use the newly provided image centos:7.7.1908-ssh.
+
 ## Limitations
 
 * Tested only on CentOS/RHEL/Fedora (via RPM)! The default packaging (non-RPM) is not supported yet!
 
-* The RPMs can be installed but not all requirements are met. dcluster also requires docker API (pip install docker) and docker-compose.
+* The RPMs can be installed but not all requirements are met. dcluster also requires docker API (pip3 install docker) and docker-compose.
   As a workaround, dcluster can try to install these additional requirements (requires internet access) using:
   ```
   dcluster init
   ```
 
-* The default flavor is pointing to centos:7.7.1908-ssh, which immediately fails if this image is not available. See "Preparing for the first cluster" above. TODO let this be a variable managed by configuration, and that the user can override using --image
+* The default flavor is pointing to centos:7.7.1908, this will try to download the image and will fail if docker cannot be reached. See "Preparing an image for offline use" above. TODO let this be a variable managed by configuration, and that the user can override using --image
 
 ## Usage
 
@@ -176,7 +182,7 @@ cd docs && make html
 You may need to install requirements for docs beforehand, using 
 
 ```bash
-pip install --user -r deployment/requirements-docs.txt
+pip3 install --user -r deployment/requirements-docs.txt
 ```
 
 ## Generating the test reports

@@ -2,6 +2,7 @@
 
 paths:
   templates: 'templates'
+  bootstrap: '$PWD/bootstrap'
   work: $PWD/.dcluster
   ansible_static: 'ansible_static'
   flavors:
