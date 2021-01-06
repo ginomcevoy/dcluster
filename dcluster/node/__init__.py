@@ -6,4 +6,4 @@ BasicPlannedNode = namedtuple('BasicPlannedNode', 'hostname, container, image, i
 
 # node details for the 'default' plan when creating a cluster
 DefaultPlannedNode = namedtuple('DefaultPlannedNode', 'hostname, container, image, ip_address, \
-						         role, volumes, static_text')
+                                role, volumes, static_text, systemctl')

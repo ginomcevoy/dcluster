@@ -5,8 +5,17 @@ services:
     {{node.container}}:
         container_name: {{node.container}}
         image: {{node.image}}
+{% if node.systemctl %}
+{#      Using privileged: true messes with the host's GUI, so just adding SYS_ADMIN cap instead #}
+        init: false
+        entrypoint: "/sbin/init"
+        cap_add:
+            - SYS_ADMIN
+{% else %}
+{#      Here we allow docker's init as PID 0 which will call our bootstrap script #}
         init: true
         entrypoint: "/dcluster/bootstrap.sh"
+{% endif %}
         hostname: {{node.hostname}}
         labels:
             bull.com.dcluster.role: {{node.role}}
@@ -20,6 +29,10 @@ services:
             gateway: {{network.gateway_ip}}
         volumes:
             - {{bootstrap_dir}}:/dcluster
+{% if node.systemctl %}
+{# this mount is required for systemctl to work #}
+            - /sys/fs/cgroup:/sys/fs/cgroup:ro
+{% endif %}
 {% if node.volumes %}
 {% for node_volume in node.volumes %}
             - {{node_volume}}

@@ -1,6 +1,8 @@
     mycluster-head:
         container_name: mycluster-head
         image: centos7:slurmctld
+        init: true
+        entrypoint: "/dcluster/bootstrap.sh"
         hostname: head
         networks:
             dcluster-mycluster:

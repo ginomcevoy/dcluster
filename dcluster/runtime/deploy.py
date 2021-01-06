@@ -34,7 +34,6 @@ class DockerComposeDeployer(logger.LoggerMixin):
         # note: apparently, using docker-compose.yml and removing '-f' fails to
         # to acknowledge the --force-recreate option
         #
-        # TODO think about privileged containers
         cmd = 'docker-compose --no-ansi -f docker-cluster.yml up -d --force-recreate'
         run = runit.execute(cmd, cwd=self.compose_path, env=os.environ)
 

@@ -1,0 +1,10 @@
+---
+
+rhel82-ssh:
+  extend: simple
+
+  head:
+    image: 'rhel82:ssh'
+
+  compute:
+    image: 'rhel82:ssh'

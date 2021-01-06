@@ -5,7 +5,7 @@ services:
         container_name: mycluster-head
         image: centos7:slurmctld
         init: true
-        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
+        entrypoint: "/dcluster/bootstrap.sh"
         hostname: head
         labels:
             bull.com.dcluster.role: head
@@ -18,6 +18,7 @@ services:
             node002: 172.30.0.2
             gateway: 172.30.0.254
         volumes:
+            - /home/giacomo/dcluster/bootstrap:/dcluster
             - /home:/home
             - /opt/intel:/opt/intel
             - /srv/shared:/srv/dcluster/shared
@@ -39,7 +40,7 @@ services:
         container_name: mycluster-node001
         image: centos7:slurmd
         init: true
-        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
+        entrypoint: "/dcluster/bootstrap.sh"
         hostname: node001
         labels:
             bull.com.dcluster.role: compute
@@ -52,6 +53,7 @@ services:
             node002: 172.30.0.2
             gateway: 172.30.0.254
         volumes:
+            - /home/giacomo/dcluster/bootstrap:/dcluster
             - /home:/home
             - /opt/intel:/opt/intel
             - /srv/shared:/srv/dcluster/shared
@@ -67,7 +69,7 @@ services:
         container_name: mycluster-node002
         image: centos7:slurmd
         init: true
-        entrypoint: ["/bin/bash", "-c", "/sbin/sshd -D 2> /dev/null || /usr/sbin/sshd -D 2> /dev/null || echo \"dcluster needs SSH server installed in image\""]
+        entrypoint: "/dcluster/bootstrap.sh"
         hostname: node002
         labels:
             bull.com.dcluster.role: compute
@@ -80,6 +82,7 @@ services:
             node002: 172.30.0.2
             gateway: 172.30.0.254
         volumes:
+            - /home/giacomo/dcluster/bootstrap:/dcluster
             - /home:/home
             - /opt/intel:/opt/intel
             - /srv/shared:/srv/dcluster/shared

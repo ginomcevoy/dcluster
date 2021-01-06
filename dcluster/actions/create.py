@@ -56,6 +56,9 @@ def create_default_cluster(creation_request):
         for public_key_path in public_key_paths:
             live_cluster.inject_public_ssh_key(public_key_path)
 
+    # fix for containers running /sbin/init
+    live_cluster.fix_init_if_needed()
+
     # run requested Ansible playbooks with optional extra vars
     for playbook in creation_request.playbooks:
         dansible.run_playbook(cluster_name, playbook, inventory_file,

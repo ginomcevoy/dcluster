@@ -46,7 +46,8 @@ class TestJinjaRenderer(unittest.TestCase):
                 'address': '172.30.0.0/24',
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
-            }
+            },
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
         template_filename = 'cluster-default.yml.j2'
 
@@ -55,6 +56,52 @@ class TestJinjaRenderer(unittest.TestCase):
 
         # then matches a saved file
         expected = self.resources.expected_docker_compose_simple
+        self.assertEqual(result, expected)
+
+    def test_basic_render_with_systemctl(self):
+        # given a basic cluster specification but systemctl=True
+        cluster_specs = {
+            'nodes': {
+                '172.30.0.253': {
+                    'hostname': 'head',
+                    'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.253',
+                    'role': 'head',
+                    'systemctl': True
+                },
+                '172.30.0.1': {
+                    'hostname': 'node001',
+                    'container': 'mycluster-node001',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.1',
+                    'role': 'compute',
+                    'systemctl': True
+                },
+                '172.30.0.2': {
+                    'hostname': 'node002',
+                    'container': 'mycluster-node002',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.2',
+                    'role': 'compute',
+                    'systemctl': True
+                }
+            },
+            'network': {
+                'name': 'dcluster-mycluster',
+                'address': '172.30.0.0/24',
+                'gateway': 'gateway',
+                'gateway_ip': '172.30.0.254'
+            },
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
+        }
+        template_filename = 'cluster-default.yml.j2'
+
+        # when
+        result = self.renderer.render_blueprint(cluster_specs, template_filename)
+
+        # then matches a saved file
+        expected = self.resources.expected_docker_compose_simple_priv
         self.assertEqual(result, expected)
 
     def test_slurm_render(self):
@@ -138,6 +185,7 @@ class TestJinjaRenderer(unittest.TestCase):
                 'var_lib_mysql',
                 'var_log_slurm'
             ],
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
         template_filename = 'cluster-default.yml.j2'
 
@@ -180,6 +228,7 @@ class TestJinjaRenderer(unittest.TestCase):
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
         template_filename = 'cluster-default.yml.j2'
 

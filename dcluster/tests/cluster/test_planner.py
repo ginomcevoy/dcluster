@@ -40,11 +40,12 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 '172.30.0.253': DefaultPlannedNode(
                     hostname='head',
                     container='mycluster-head',
-                    image='centos:7.7.1908-ssh',
+                    image='centos:7.7.1908',
                     ip_address='172.30.0.253',
                     role='head',
                     volumes=[],
-                    static_text=''),
+                    static_text='',
+                    systemctl=False),
             },
             'network': {
                 'name': 'dcluster-mycluster',
@@ -53,7 +54,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 'gateway_ip': '172.30.0.254'
             },
             'template': 'cluster-default.yml.j2',
-            'volumes': []
+            'volumes': [],
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
         self.assertEqual(result, expected)
 
@@ -78,11 +80,12 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 '172.30.1.125': DefaultPlannedNode(
                     hostname='head',
                     container='mycluster-head',
-                    image='centos:7.7.1908-ssh',
+                    image='centos:7.7.1908',
                     ip_address='172.30.1.125',
                     role='head',
                     volumes=[],
-                    static_text=''),
+                    static_text='',
+                    systemctl=False),
             },
             'network': {
                 'name': 'dcluster-mycluster',
@@ -91,7 +94,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 'gateway_ip': '172.30.1.126'
             },
             'template': 'cluster-default.yml.j2',
-            'volumes': []
+            'volumes': [],
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
         self.assertEqual(result, expected)
 
@@ -116,19 +120,21 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 '172.30.0.253': DefaultPlannedNode(
                     hostname='head',
                     container='mycluster-head',
-                    image='centos:7.7.1908-ssh',
+                    image='centos:7.7.1908',
                     ip_address='172.30.0.253',
                     role='head',
                     volumes=[],
-                    static_text=''),
+                    static_text='',
+                    systemctl=False),
                 '172.30.0.1': DefaultPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
-                    image='centos:7.7.1908-ssh',
+                    image='centos:7.7.1908',
                     ip_address='172.30.0.1',
                     role='compute',
                     volumes=[],
-                    static_text=''),
+                    static_text='',
+                    systemctl=False),
             },
             'network': {
                 'name': 'dcluster-mycluster',
@@ -137,7 +143,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 'gateway_ip': '172.30.0.254'
             },
             'template': 'cluster-default.yml.j2',
-            'volumes': []
+            'volumes': [],
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
         self.assertEqual(result, expected)
 
@@ -162,35 +169,39 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 '172.30.0.253': DefaultPlannedNode(
                     hostname='head',
                     container='mycluster-head',
-                    image='centos:7.7.1908-ssh',
+                    image='centos:7.7.1908',
                     ip_address='172.30.0.253',
                     role='head',
                     volumes=[],
-                    static_text=''),
+                    static_text='',
+                    systemctl=False),
                 '172.30.0.1': DefaultPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
-                    image='centos:7.7.1908-ssh',
+                    image='centos:7.7.1908',
                     ip_address='172.30.0.1',
                     role='compute',
                     volumes=[],
-                    static_text=''),
+                    static_text='',
+                    systemctl=False),
                 '172.30.0.2': DefaultPlannedNode(
                     hostname='node002',
                     container='mycluster-node002',
-                    image='centos:7.7.1908-ssh',
+                    image='centos:7.7.1908',
                     ip_address='172.30.0.2',
                     role='compute',
                     volumes=[],
-                    static_text=''),
+                    static_text='',
+                    systemctl=False),
                 '172.30.0.3': DefaultPlannedNode(
                     hostname='node003',
                     container='mycluster-node003',
-                    image='centos:7.7.1908-ssh',
+                    image='centos:7.7.1908',
                     ip_address='172.30.0.3',
                     role='compute',
                     volumes=[],
-                    static_text='')
+                    static_text='',
+                    systemctl=False)
             },
             'network': {
                 'name': 'dcluster-mycluster',
@@ -199,7 +210,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 'gateway_ip': '172.30.0.254'
             },
             'template': 'cluster-default.yml.j2',
-            'volumes': []
+            'volumes': [],
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
         self.assertEqual(result, expected)
 
@@ -247,7 +259,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         expose:
           - '6817'
           - '6819'
-      '''),
+      ''',
+                    systemctl=False),
                 '172.30.0.1': DefaultPlannedNode(
                     hostname='node001',
                     container='mycluster-node001',
@@ -268,7 +281,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         expose:
           - '6818'
         shm_size: 4g
-      '''),
+      ''',
+                    systemctl=False),
                 '172.30.0.2': DefaultPlannedNode(
                     hostname='node002',
                     container='mycluster-node002',
@@ -289,7 +303,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         expose:
           - '6818'
         shm_size: 4g
-      '''),
+      ''',
+                    systemctl=False),
                 '172.30.0.3': DefaultPlannedNode(
                     hostname='node003',
                     container='mycluster-node003',
@@ -310,7 +325,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         expose:
           - '6818'
         shm_size: 4g
-      ''')
+      ''',
+                    systemctl=False)
             },
             'network': {
                 'name': 'dcluster-mycluster',
@@ -325,7 +341,8 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 'etc_slurm',
                 'slurm_jobdir',
                 'var_log_slurm'
-            ]
+            ],
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
         self.assertEqual(result, expected)
 
@@ -350,14 +367,14 @@ class TestCreateDefaultClusterPlan(unittest.TestCase):
             'name': 'test',
             'head': {
                 'hostname': 'head',
-                'image': 'centos:7.7.1908-ssh'
+                'image': 'centos:7.7.1908'
             },
             'compute': {
                 'hostname': {
                     'prefix': 'node',
                     'suffix_len': 3
                 },
-                'image': 'centos:7.7.1908-ssh'
+                'image': 'centos:7.7.1908'
             },
             'network': cluster_network.as_dict(),
             'template': 'cluster-default.yml.j2'

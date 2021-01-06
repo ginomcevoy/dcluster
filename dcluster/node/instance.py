@@ -88,6 +88,21 @@ class DeployedNode(logger.LoggerMixin):
 
         self.docker_container.exec_run(run_cmd)
 
+    def needs_init_fix(self):
+        return DockerContainers.has_sys_admin_cap(self.docker_container)
+
+    def run_init_fix(self):
+        '''
+        If the container is using "/sbin/init" as an entrypoint, we need to remove the /var/run/nologin
+        file, otherwise can run into problems with SSH.
+        '''
+        run_cmd = '/bin/bash -c "rm -f /var/run/nologin"'
+
+        log_msg = 'Run init fix in docker container %s: %s'
+        self.logger.debug(log_msg % (self.docker_container.name, run_cmd))
+
+        self.docker_container.exec_run(run_cmd)
+
     def __str__(self):
         return 'DeployedNode: {}->{}'.format(self.planned.image, self.planned.hostname)
 
