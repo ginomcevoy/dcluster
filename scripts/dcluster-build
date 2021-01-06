@@ -19,7 +19,7 @@ function print_usage () {
       echo "Usage:"
       echo "    dcluster-build -h           Display this help message."
       echo "    dcluster-build spec         Create SPEC file for $PKG_NAME."
-      echo "    dcluster-build rpm          Create SPEC and RPMs for $PKG_NAME."
+      echo "    dcluster-build rpms         Create SPEC and RPMs for $PKG_NAME."
 }
 
 function create_spec () {
