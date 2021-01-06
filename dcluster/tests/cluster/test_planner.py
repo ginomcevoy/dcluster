@@ -1,6 +1,7 @@
 '''
 Unit tests for cluster.plan_basic
 '''
+import os
 import unittest
 
 from dcluster.node import DefaultPlannedNode
@@ -14,10 +15,22 @@ from dcluster.tests.stubs import extended_stubs
 class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
     '''
     Unit tests for cluster.planner.DefaultClusterPlan.build_specs()
+
+    Note that we cannot properly test for the value of bootstrap_dir, because it
+    will resolve to a $HOME directory for "dev" enviroment, and also it will be different
+    during deployment testing (inside BUILDROOT during rpmbuild)
     '''
 
     def setUp(self):
         self.maxDiff = None
+
+    def verify_bootstrap_dir(self, result):
+        # bootstrap_dir exists and is not empty
+        self.assertTrue(result.get('bootstrap_dir'))
+
+        # bootstrap_dir points to an existing directory
+        print(result.get('bootstrap_dir'))
+        self.assertTrue(os.path.isdir(result.get('bootstrap_dir')))
 
     def test_zero_compute_nodes(self):
         '''
@@ -33,7 +46,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         result = cluster_plan.build_specs()
 
         # then
-        expected = {
+        expected_without_bootstrap_dir = {
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
@@ -55,9 +68,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             },
             'template': 'cluster-default.yml.j2',
             'volumes': [],
-            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
-        self.assertEqual(result, expected)
+        self.verify_bootstrap_dir(result)
+        del result['bootstrap_dir']
+        self.assertEqual(result, expected_without_bootstrap_dir)
 
     def test_zero_compute_nodes_small_subnet(self):
         '''
@@ -73,7 +87,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         result = cluster_plan.build_specs()
 
         # then
-        expected = {
+        expected_without_bootstrap_dir = {
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
@@ -95,9 +109,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             },
             'template': 'cluster-default.yml.j2',
             'volumes': [],
-            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
-        self.assertEqual(result, expected)
+        self.assertTrue(result.get('bootstrap_dir'))  # bootstrap_dir exists and is not empty
+        del result['bootstrap_dir']
+        self.assertEqual(result, expected_without_bootstrap_dir)
 
     def test_one_compute_node(self):
         '''
@@ -113,7 +128,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         result = cluster_plan.build_specs()
 
         # then
-        expected = {
+        expected_without_bootstrap_dir = {
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
@@ -144,9 +159,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             },
             'template': 'cluster-default.yml.j2',
             'volumes': [],
-            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
-        self.assertEqual(result, expected)
+        self.verify_bootstrap_dir(result)
+        del result['bootstrap_dir']
+        self.assertEqual(result, expected_without_bootstrap_dir)
 
     def test_three_compute_nodes(self):
         '''
@@ -162,7 +178,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         result = cluster_plan.build_specs()
 
         # then
-        expected = {
+        expected_without_bootstrap_dir = {
             'flavor': 'simple',
             'name': 'mycluster',
             'nodes': {
@@ -211,9 +227,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             },
             'template': 'cluster-default.yml.j2',
             'volumes': [],
-            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
-        self.assertEqual(result, expected)
+        self.verify_bootstrap_dir(result)
+        del result['bootstrap_dir']
+        self.assertEqual(result, expected_without_bootstrap_dir)
 
     def test_three_compute_nodes_extended(self):
         '''
@@ -229,7 +246,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         result = cluster_plan.build_specs()
 
         # then
-        expected = {
+        expected_without_bootstrap_dir = {
             'flavor': 'slurm',
             'name': 'mycluster',
             'nodes': {
@@ -342,9 +359,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                 'slurm_jobdir',
                 'var_log_slurm'
             ],
-            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
         }
-        self.assertEqual(result, expected)
+        self.verify_bootstrap_dir(result)
+        del result['bootstrap_dir']
+        self.assertEqual(result, expected_without_bootstrap_dir)
 
 
 class TestCreateDefaultClusterPlan(unittest.TestCase):

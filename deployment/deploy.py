@@ -82,6 +82,7 @@ def install_dcluster(sandbox_dir):
     # install templates and ansible_static folders
     install_source_artifact('templates', main_config.paths('templates'))
     install_source_artifact('ansible_static', main_config.paths('ansible_static'))
+    install_source_artifact('bootstrap', main_config.paths('bootstrap'))
 
     # install cluster flavors, note that the entry is a list
     # assuming the first element has the dcluster-supplied path
