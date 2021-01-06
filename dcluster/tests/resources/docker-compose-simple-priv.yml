@@ -4,8 +4,10 @@ services:
     mycluster-head:
         container_name: mycluster-head
         image: centos7:ssh
-        init: true
-        entrypoint: "/dcluster/bootstrap.sh"
+        init: false
+        entrypoint: "/sbin/init"
+        cap_add:
+            - SYS_ADMIN
         hostname: head
         labels:
             bull.com.dcluster.role: head
@@ -19,13 +21,16 @@ services:
             gateway: 172.30.0.254
         volumes:
             - /home/giacomo/dcluster/bootstrap:/dcluster
+            - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
 
     mycluster-node001:
         container_name: mycluster-node001
         image: centos7:ssh
-        init: true
-        entrypoint: "/dcluster/bootstrap.sh"
+        init: false
+        entrypoint: "/sbin/init"
+        cap_add:
+            - SYS_ADMIN
         hostname: node001
         labels:
             bull.com.dcluster.role: compute
@@ -39,13 +44,16 @@ services:
             gateway: 172.30.0.254
         volumes:
             - /home/giacomo/dcluster/bootstrap:/dcluster
+            - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
 
     mycluster-node002:
         container_name: mycluster-node002
         image: centos7:ssh
-        init: true
-        entrypoint: "/dcluster/bootstrap.sh"
+        init: false
+        entrypoint: "/sbin/init"
+        cap_add:
+            - SYS_ADMIN
         hostname: node002
         labels:
             bull.com.dcluster.role: compute
@@ -59,6 +67,7 @@ services:
             gateway: 172.30.0.254
         volumes:
             - /home/giacomo/dcluster/bootstrap:/dcluster
+            - /sys/fs/cgroup:/sys/fs/cgroup:ro
 
 
 networks:

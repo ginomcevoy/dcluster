@@ -53,8 +53,8 @@ class CreateBasicComputeNode(unittest.TestCase):
 
         # then
         expected = BasicPlannedNode(hostname='node002',
-                                     container='mycluster-node002',
-                                     image='centos:7.7.1908-ssh',
-                                     ip_address='172.30.0.2',
-                                     role='compute')
+                                    container='mycluster-node002',
+                                    image='centos:7.7.1908',
+                                    ip_address='172.30.0.2',
+                                    role='compute')
         self.assertEqual(result, expected)

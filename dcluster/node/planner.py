@@ -113,4 +113,9 @@ class DefaultNodePlanner(BasicNodePlanner):
         extended_dict['volumes'] = volumes
         extended_dict['static_text'] = static_text
 
+        # will container run systemctl?
+        extended_dict['systemctl'] = False
+        if plan_data[role].get('systemctl', False):
+            extended_dict['systemctl'] = True
+
         return DefaultPlannedNode(**extended_dict)

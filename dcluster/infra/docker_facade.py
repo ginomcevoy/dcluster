@@ -160,6 +160,11 @@ class DockerContainers:
 
         return role
 
+    @classmethod
+    def has_sys_admin_cap(cls, docker_container):
+        cap_adds = docker_container.attrs['HostConfig']['CapAdd']
+        return isinstance(cap_adds, list) and 'SYS_ADMIN' in cap_adds
+
 
 class DockerNetworking:
     '''

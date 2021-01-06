@@ -136,6 +136,15 @@ class RunningClusterMixin(logger.LoggerMixin):
         for n in self.ordered_nodes:
             n.inject_public_ssh_key(ssh_target_path, public_key)
 
+    def fix_init_if_needed(self):
+        '''
+        If a container is using "/sbin/init" as an entrypoint, we need to perform some actions
+        after creating the instance.
+        '''
+        for n in self.ordered_nodes:
+            if n.needs_init_fix:
+                n.run_init_fix()
+
 
 class DeployedCluster(ClusterBlueprint, RunningClusterMixin):
     '''

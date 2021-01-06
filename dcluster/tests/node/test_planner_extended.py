@@ -51,6 +51,7 @@ class CreateExtendedHeadPlan(unittest.TestCase):
                 'etc_slurm:/etc/slurm',
                 'slurm_jobdir:/data',
                 'var_log_slurm:/var/log/slurm'
-            ]
+            ],
+            'systemctl': False
         }
         self.assertEqual(dict(result._asdict()), expected)
