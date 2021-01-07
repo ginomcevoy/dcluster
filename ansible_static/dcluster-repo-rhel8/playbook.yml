@@ -1,0 +1,51 @@
+---
+
+- hosts: all
+  gather_facts: false
+  user: root
+  tasks:
+
+    - name: (yum) Find default RHEL repositories
+      find:
+        paths: /etc/yum.repos.d
+        patterns:
+          - 'ubi.repo'
+      register: repofiles_to_delete
+
+    - name: (yum) Remove default RHEL repositories
+      file:
+          path: "{{ item.path }}"
+          state: absent
+      with_items: "{{ repofiles_to_delete.files }}"      
+
+    # https://docs.ansible.com/ansible/latest/modules/yum_repository_module.html
+    # https://stackoverflow.com/questions/42167747/how-to-loop-over-this-dictionary-in-ansible
+    - name: (yum) Generate custom repositories
+      yum_repository:
+        name: "{{ item.key }}"
+        description: "{{ item.key }} repository"
+        baseurl: "{{ item.value }}"
+        gpgcheck: no
+      loop: "{{ yum.repositories | dict2items }}"
+      notify: yum-clean-metadata
+
+    - name: (yum) upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+
+  handlers:
+    - name: yum-clean-metadata
+      command: yum clean metadata
+      args:
+        warn: no
+
+  vars:
+    ssh_known_hosts_command: "ssh-keyscan -H -T 10"
+    ssh_known_hosts_file: "/etc/ssh/ssh_known_hosts"
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    yum:
+      repositories:
+        BaseOS: "http://{{ cluster_network.gateway_ip }}/repositories/redhat/8/x86_64/os/BaseOS"
+        AppStream: "http://{{ cluster_network.gateway_ip }}/repositories/redhat/8/x86_64/os/AppStream"
+        epel-ansible: "http://{{ cluster_network.gateway_ip }}/ansible-repo-epel8"

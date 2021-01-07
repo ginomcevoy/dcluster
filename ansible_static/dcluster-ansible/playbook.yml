@@ -1,28 +1,9 @@
 ---
 
-# https://www.middlewareinventory.com/blog/ssh-key-based-authentication-using-ansible-ad-hoc-and-playbook
-# https://juriansluiman.nl/article/151/managing-ssh-known-hosts-with-ansible
-
 - hosts: all
   gather_facts: false
   user: root
   tasks:
-
-    # https://docs.ansible.com/ansible/latest/modules/yum_repository_module.html
-    # https://stackoverflow.com/questions/42167747/how-to-loop-over-this-dictionary-in-ansible
-    - name: (yum) Generate custom repositories
-      yum_repository:
-        name: "{{ item.key }}"
-        description: "{{ item.key }} repository"
-        baseurl: "{{ item.value }}"
-        gpgcheck: no
-      loop: "{{ yum.repositories | dict2items }}"
-      notify: yum-clean-metadata
-
-    - name: (yum) upgrade all packages
-      yum:
-        name: '*'
-        state: latest
 
     - name: (ansible) Install ansible on head
       yum:
@@ -36,19 +17,8 @@
         dest: /etc/ansible/hosts
       when: "'head' in group_names"
 
-  handlers:
-    - name: yum-clean-metadata
-      command: yum clean metadata
-      args:
-        warn: no
-
   vars:
-    ssh_known_hosts_command: "ssh-keyscan -H -T 10"
-    ssh_known_hosts_file: "/etc/ssh/ssh_known_hosts"
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-    yum:
-      repositories:
-        epel: http://download.fedoraproject.org/pub/epel/7/x86_64
     dansible:
       inventory_basepath: ../../clusters
       inventory_filename: inventory.yml
