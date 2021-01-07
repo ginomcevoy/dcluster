@@ -52,6 +52,7 @@ class AnsibleInventory:
             },
             'network': {
                 'name': 'dcluster-mycluster',
+                'subnet': '172.30.0.0'
                 'address': '172.30.0.0/24',
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
@@ -99,9 +100,13 @@ class AnsibleInventory:
                 cluster_name: mycluster
                 cluster_network:
                     address: 172.30.0.0/24
+                    subnet: 172.30.0.0
+                    prefix: 24
+                    netmask: 255.255.255.0
+                    broadcast: 172.30.0.255
                     gateway: gateway
                     gateway_ip: 172.30.0.254
-                    name: mycluster
+                    name: dcluster-mycluster
                 cluster_template: cluster-basic.yml.j2
 
         The IP addresses are used instead of the hostnames, because the hostnames are not expected

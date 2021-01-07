@@ -63,6 +63,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.0.0/24',
+                'subnet': '172.30.0.0',
+                'prefix': '24',
+                'netmask': '255.255.255.0',
+                'broadcast': '172.30.0.255',
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
@@ -104,6 +108,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.1.0/25',
+                'subnet': '172.30.1.0',
+                'prefix': '25',
+                'netmask': '255.255.255.128',
+                'broadcast': '172.30.1.127',
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.1.126'
             },
@@ -154,6 +162,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.0.0/24',
+                'subnet': '172.30.0.0',
+                'prefix': '24',
+                'netmask': '255.255.255.0',
+                'broadcast': '172.30.0.255',
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
@@ -222,6 +234,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.0.0/24',
+                'subnet': '172.30.0.0',
+                'prefix': '24',
+                'netmask': '255.255.255.0',
+                'broadcast': '172.30.0.255',
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
@@ -348,6 +364,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.0.0/24',
+                'subnet': '172.30.0.0',
+                'prefix': '24',
+                'netmask': '255.255.255.0',
+                'broadcast': '172.30.0.255',
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },

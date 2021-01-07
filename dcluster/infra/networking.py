@@ -94,6 +94,10 @@ class ClusterNetwork(object):
         return {
             'name': self.network_name,
             'address': self.ip_address(),
+            'subnet': str([net for net in self.subnet][0]),  # e.g. '17.30.0.0'
+            'prefix': str(self.subnet.prefixlen),
+            'netmask': str(self.subnet.netmask),
+            'broadcast': str(self.subnet.broadcast_address),
             'gateway': main_config.networking('gateway'),
             'gateway_ip': self.gateway_ip()
         }

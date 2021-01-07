@@ -108,6 +108,7 @@ class DefaultClusterPlan(logger.LoggerMixin):
             'network': {
                 'name': 'dcluster-mycluster',
                 'address': '172.30.0.0/24',
+                'subnet': '172.30.0.0',
                 'gateway': 'gateway',
                 'gateway_ip': '172.30.0.254'
             },
