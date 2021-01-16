@@ -10,9 +10,9 @@ from dcluster.config import main_config, dansible_config
 from dcluster import dansible
 
 
-def process_playbook(args):
+def process_playbooks(args):
     '''
-    Process the request to execute an Ansible playbook.
+    Process the request to execute one or more Ansible playbooks.
     '''
     inventory_file = dansible_config.default_inventory(args.cluster_name)
 
@@ -21,46 +21,34 @@ def process_playbook(args):
     if extra_vars_list is None:
         extra_vars_list = []
 
-    # extra_vars = None
-    # if args.yum:
-
-    #     # load the '--yum <file>' as a JSON with extra variables for Ansible.
-    #     # TODO reuse this for other optional arguments?
-    #     extra_vars = '@%s' % args.yum
-
-    dansible.run_playbook(args.cluster_name, args.playbook_name, inventory_file, extra_vars_list)
+    # run requested Ansible playbooks with optional extra vars
+    for playbook in args.playbooks:
+        dansible.run_playbook(args.cluster_name, playbook, inventory_file,
+                              extra_vars_list)
 
 
-def configure_playbook_parser(playbook_parser):
+def configure_parser(parser):
     '''
-    Adds the required and optional arguments for the 'playbook' subcommand.
-
-    TODO: reuse some/all optional arguments for 'dcluster create' command?
+    Adds the required and optional arguments the parser.
     '''
-    playbook_parser.add_argument('cluster_name', help='name of the Docker cluster')
-    playbook_parser.add_argument('playbook_name', help='playbook identifier (TODO: show list?)')
-    # playbook_parser.add_argument('--yum', default=None, help='JSON file with yum repositories')
+    parser.add_argument('cluster_name', help='name of the Docker cluster')
+    parser.add_argument('playbooks', help='one or more playbooks to execute', nargs='+')
 
     msg = 'extra-vars passed to ansible-playbook as-is'
-    playbook_parser.add_argument('-e', '--extra-vars', help=msg, nargs='+')
+    parser.add_argument('-e', '--extra-vars', help=msg, nargs='+')
 
-    playbook_parser.set_defaults(func=process_playbook)
+    parser.set_defaults(func=process_playbooks)
 
 
 def processRequest():
     '''
     Handle the program execution using argparse.
-
-    For now, only the 'playbook' subcommand is supported.
+    Only one parser that deals with the execution of playbooks on a cluster.
     '''
     # top level parser
     desc = 'dcluster-ansible: run/manage Ansible playbooks on dcluster containers'
     parser = argparse.ArgumentParser(prog='dcluster-ansible', description=desc)
-    subparsers = parser.add_subparsers(help='Run dcluster <command> for additional help')
-
-    # below we create subparsers for the subcommands
-    playbook_parser = subparsers.add_parser('playbook', help='run an Ansible playbook')
-    configure_playbook_parser(playbook_parser)
+    configure_parser(parser)
 
     # show help if no subcommand is given
     if len(sys.argv) == 1:
