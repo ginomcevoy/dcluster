@@ -1,5 +1,6 @@
 include config/*
 include config/profiles/*
+include bootstrap/*
 include templates/*
 include usr/bin/*
 include dcluster/tests/resources/*.yml
