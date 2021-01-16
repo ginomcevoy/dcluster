@@ -110,14 +110,14 @@ if __name__ == '__main__':
     real_path = evaluate_shell_path('$PWD')
     print(real_path)
 
-    # find config/flavors with YAML files
+    # find config/profiles with YAML files
     dir_of_this_module = get_module_directory('dcluster.util.fs')
     dcluster_dir = os.path.dirname(os.path.dirname(dir_of_this_module))
-    flavor_dir = os.path.join(dcluster_dir, 'config/flavors')
+    profile_dir = os.path.join(dcluster_dir, 'config/profiles')
 
     # find YAML files there
-    yaml_files = find_files_with_extension(flavor_dir, '.yml')
-    print('flavor files: %s' % str(yaml_files))
+    yaml_files = find_files_with_extension(profile_dir, '.yml')
+    print('profile files: %s' % str(yaml_files))
 
     # attempt to find where there are none (here)
     no_files = find_files_with_extension(dir_of_this_module, '.yml')

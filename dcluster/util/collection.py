@@ -43,7 +43,7 @@ def update_recursively(d, u):
 def defensive_copy(original_dict):
     '''
     Creates a copy of a dictionary that can be independently modified.
-    Useful when using default cluster configuration (flavor) as a template for cluster instances,
+    Useful when using default cluster profile as a template for cluster instances,
     among other cases.
     '''
     return copy.deepcopy(original_dict)

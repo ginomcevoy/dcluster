@@ -3,7 +3,7 @@ import os
 from dcluster.tests.test_dcluster import DclusterTest
 
 from dcluster.config import main_config
-from dcluster.config import flavor_config
+from dcluster.config import profile_config
 
 
 class ConfigTest(DclusterTest):
@@ -20,14 +20,14 @@ class ConfigTest(DclusterTest):
         base cluster config.
         '''
         # when using simple config
-        simple_config = flavor_config.cluster_config_for_flavor('simple')
+        simple_config = profile_config.cluster_config_for_profile('simple')
         simple_value = simple_config['template']
 
         # given that an extended config is requested
-        _ = flavor_config.cluster_config_for_flavor('slurm')
+        _ = profile_config.cluster_config_for_profile('slurm')
 
         # then it should not affect the base config
-        simple_config_again = flavor_config.cluster_config_for_flavor('simple')
+        simple_config_again = profile_config.cluster_config_for_profile('simple')
         simple_value_again = simple_config_again['template']
         self.assertEqual(simple_value, simple_value_again)
 

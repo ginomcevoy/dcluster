@@ -32,7 +32,7 @@ all:
                 172.30.0.3:
 
     vars:
-        cluster_flavor: simple
+        cluster_profile: simple
         cluster_name: mycluster
         cluster_network:
             address: 172.30.0.0/24

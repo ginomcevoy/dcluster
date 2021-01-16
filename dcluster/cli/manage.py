@@ -40,6 +40,7 @@ def process_stop_cli_call(args):
     manage_action.stop_cluster(args.cluster_name)
     print('Stopped cluster: {}'.format(args.cluster_name))
 
+
 def process_start_cli_call(args):
     '''
     Process the start request through command line.

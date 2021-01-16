@@ -1,4 +1,4 @@
-from dcluster.config import flavor_config
+from dcluster.config import profile_config
 from dcluster.cluster.request import DefaultCreationRequest
 from dcluster.cluster.planner import DefaultClusterPlan, user_plan_data
 from dcluster.node.planner import BasicNodePlanner
@@ -7,7 +7,7 @@ from . import infra_stubs
 
 
 def simple_config():
-    return flavor_config.cluster_config_for_flavor('simple')
+    return profile_config.cluster_config_for_profile('simple')
 
 
 def default_request_stub(cluster_name, compute_count):

@@ -7,13 +7,13 @@
 * Creates a docker network, ensures that the network subnet is available.
 * Uses a template to create a Dockerfile for docker-compose, then calls docker-compose to instantiate containers attached to the docker network.
 * The containers are spinned up with an SSH server and tini (--init) for proper zombie process reaping.
-* Can choose a cluster "flavor" from existing templates at /usr/share/dcluster/flavors but user can add own flavors.
+* Can choose a cluster "profile" from existing templates at /usr/share/dcluster/profiles but user can add own profiles.
 * Run one or more Ansible playbooks on the cluster, the inventory is automatically created by dcluster.
-* The cluster "flavors" can be customized and extended to use specific containers and environment variables. The user may add more cluster flavors.
+* The cluster "profiles" can be customized and extended to use specific containers and environment variables. The user may add more cluster profiles.
 * Example:
 
   ```
-  $ dcluster create --flavor simple my_cluster 2
+  $ dcluster create --profile simple my_cluster 2
   (...)
 
   $ dcluster show my_cluster
@@ -99,7 +99,7 @@ Note: Requirements can also be installed using the source: ```pip3 install --use
   docker rm dcluster-with-ssh
   ```
 
-* Update the flavor configuration to use the newly provided image centos:7.7.1908-ssh.
+* Update the profile configuration to use the newly provided image centos:7.7.1908-ssh.
 
 ## Limitations
 
@@ -111,7 +111,7 @@ Note: Requirements can also be installed using the source: ```pip3 install --use
   dcluster init
   ```
 
-* The default flavor is pointing to centos:7.7.1908, this will try to download the image and will fail if docker cannot be reached. See "Preparing an image for offline use" above. TODO let this be a variable managed by configuration, and that the user can override using --image
+* The default profile is pointing to centos:7.7.1908, this will try to download the image and will fail if docker cannot be reached. See "Preparing an image for offline use" above. TODO let this be a variable managed by configuration, and that the user can override using --image
 
 ## Usage
 
@@ -121,7 +121,7 @@ Note: Read the limitations and requirements before trying it out!
 
   ```dcluster create my_cluster 2```
 
-* Create a cluster with a custom flavor:
+* Create a cluster with a custom profile:
 
   ```dcluster create -f slurm slurm_cluster 3```
 

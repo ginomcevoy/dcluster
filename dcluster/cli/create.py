@@ -16,15 +16,15 @@ def configure_parser(create_parser):
     create_parser.add_argument('compute_count', help='number of compute nodes in cluster')
 
     # optional arguments
-    help_msg = 'cluster flavor, see configuration file (default: %(default)s)'
-    create_parser.add_argument('-f', '--flavor', default='simple',
+    help_msg = 'cluster profile, see configuration file (default: %(default)s)'
+    create_parser.add_argument('-p', '--profile', default='simple',
                                help=help_msg)
 
     msg = 'directory where cluster files are created (default: %(default)s)'
     create_parser.add_argument('--workpath', help=msg, default=main_config.paths('work'))
 
-    msg = 'additional directories with flavors in YAML files (can be specified multiple times)'
-    create_parser.add_argument('--flavor-path', help=msg, action='append')
+    msg = 'additional directories with profiles in YAML files (can be specified multiple times)'
+    create_parser.add_argument('--profile-path', help=msg, action='append')
 
     msg = 'run these ansible playbooks immediately after creating the cluster (list)'
     create_parser.add_argument('--playbooks', help=msg, nargs='+')
@@ -34,6 +34,7 @@ def configure_parser(create_parser):
 
     # default function to call
     create_parser.set_defaults(func=process_cli_call)
+
 
 def process_cli_call(args):
     '''
@@ -49,11 +50,11 @@ def process_cli_call(args):
 
     # get arguments
     cluster_name = args.cluster_name
-    flavor = args.flavor
+    profile = args.profile
     count = int(args.compute_count)
-    flavor_paths = args.flavor_path  # append will create a list
-    if flavor_paths is None:
-        flavor_paths = []
+    profile_paths = args.profile_path  # append will create a list
+    if profile_paths is None:
+        profile_paths = []
 
     playbooks = args.playbooks
     if playbooks is None:
@@ -65,6 +66,6 @@ def process_cli_call(args):
 
     # dispatch a creation request
     # for now, all creation requests that pass through this CLI are 'default'
-    creation_request = request.DefaultCreationRequest(cluster_name, count, flavor, flavor_paths,
+    creation_request = request.DefaultCreationRequest(cluster_name, count, profile, profile_paths,
                                                       playbooks, extra_vars_list)
     create_action.create_default_cluster(creation_request)

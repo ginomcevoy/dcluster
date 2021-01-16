@@ -23,7 +23,7 @@ class DefaultClusterPlan(logger.LoggerMixin):
     The strategy is to build a dictionary with all the available details of the cluster,
     and to create a ClusterBlueprint instance that will actually deploy the cluster.
 
-    This plan assumes that the 'default' template will be used, along with cluster flavors that are
+    This plan assumes that the 'default' template will be used, along with cluster profiles that are
     marked with the 'default' type.
 
     The tasks of building the plan and deploying the clusters are kept in different classes,
@@ -77,7 +77,7 @@ class DefaultClusterPlan(logger.LoggerMixin):
         Example output: for compute_count = 3, add a head node and 3 compute nodes:
 
         cluster_specs = {
-            'flavor': 'basic',
+            'profile': 'basic',
             'name': 'mycluster',
             'nodes': {
                 '172.30.0.253': BasicPlannedNode(
@@ -123,7 +123,7 @@ class DefaultClusterPlan(logger.LoggerMixin):
         node_planner = self.node_planner
 
         # initialize with name, template, network
-        cluster_specs = collection_util.defensive_subset(plan_data, ('flavor', 'name', 'template'))
+        cluster_specs = collection_util.defensive_subset(plan_data, ('profile', 'name', 'template'))
         cluster_specs['network'] = cluster_network.as_dict()
 
         # always have a head
@@ -189,7 +189,7 @@ class DefaultClusterPlan(logger.LoggerMixin):
 # class ExtendedClusterPlan(BasicClusterPlan):
 #     '''
 #     Similar to BasicClusterPlan, but here we assume that the 'extended' template will be used,
-#     along with cluster flavors that are marked with the 'extended' type.
+#     along with cluster profiles that are marked with the 'extended' type.
 
 #     Here follows an example of the plan_data that is received at input:
 

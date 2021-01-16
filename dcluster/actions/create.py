@@ -13,14 +13,14 @@ def create_default_cluster(creation_request):
     Creates a new default cluster, the request must have:
     - name
     - compute_count
-    - flavor
+    - profile
 
     other optional arguments:
     - playbooks
     - extra_vars_list
     '''
-    # ensure that user-specified flavor paths exist before attempting anything
-    fs_util.check_directories_exist(creation_request.flavor_paths)
+    # ensure that user-specified profile paths exist before attempting anything
+    fs_util.check_directories_exist(creation_request.profile_paths)
 
     # go ahead and create the network using Docker
     cluster_network = networking.create(creation_request.name)

@@ -84,9 +84,9 @@ def install_dcluster(sandbox_dir):
     install_source_artifact('ansible_static', main_config.paths('ansible_static'))
     install_source_artifact('bootstrap', main_config.paths('bootstrap'))
 
-    # install cluster flavors, note that the entry is a list
+    # install cluster profiles, note that the entry is a list
     # assuming the first element has the dcluster-supplied path
-    install_source_artifact('config/flavors', main_config.paths('flavors')[0])
+    install_source_artifact('config/profiles', main_config.paths('profiles')[0])
 
 
 if __name__ == '__main__':

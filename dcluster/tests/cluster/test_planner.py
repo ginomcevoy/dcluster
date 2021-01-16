@@ -47,7 +47,7 @@ class TestBuildSpecsOfDefaultClusterPlan(DclusterTest):
 
         # then
         expected_without_bootstrap_dir = {
-            'flavor': 'simple',
+            'profile': 'simple',
             'name': 'mycluster',
             'nodes': {
                 '172.30.0.253': DefaultPlannedNode(
@@ -97,7 +97,7 @@ class TestBuildSpecsOfDefaultClusterPlan(DclusterTest):
 
         # then
         expected_without_bootstrap_dir = {
-            'flavor': 'simple',
+            'profile': 'simple',
             'name': 'mycluster',
             'nodes': {
                 '172.30.1.125': DefaultPlannedNode(
@@ -143,7 +143,7 @@ class TestBuildSpecsOfDefaultClusterPlan(DclusterTest):
 
         # then
         expected_without_bootstrap_dir = {
-            'flavor': 'simple',
+            'profile': 'simple',
             'name': 'mycluster',
             'nodes': {
                 '172.30.0.253': DefaultPlannedNode(
@@ -199,7 +199,7 @@ class TestBuildSpecsOfDefaultClusterPlan(DclusterTest):
 
         # then
         expected_without_bootstrap_dir = {
-            'flavor': 'simple',
+            'profile': 'simple',
             'name': 'mycluster',
             'nodes': {
                 '172.30.0.253': DefaultPlannedNode(
@@ -275,7 +275,7 @@ class TestBuildSpecsOfDefaultClusterPlan(DclusterTest):
 
         # then
         expected_without_bootstrap_dir = {
-            'flavor': 'slurm',
+            'profile': 'slurm',
             'name': 'mycluster',
             'nodes': {
                 '172.30.0.253': DefaultPlannedNode(

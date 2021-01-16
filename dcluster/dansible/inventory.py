@@ -22,7 +22,7 @@ class AnsibleInventory:
         Function that takes the following dictionary:
 
         cluster_specs = {
-            'flavor': 'basic',
+            'profile': 'basic',
             'name': 'mycluster',
             'nodes': {
                 '172.30.0.253': BasicPlannedNode(
@@ -96,7 +96,7 @@ class AnsibleInventory:
                         172.30.0.3:
 
             vars:
-                cluster_flavor: basic
+                cluster_profile: basic
                 cluster_name: mycluster
                 cluster_network:
                     address: 172.30.0.0/24
@@ -118,7 +118,7 @@ class AnsibleInventory:
                 'hosts': {},
                 'children': {},
                 'vars': {
-                    'cluster_flavor': self.cluster_specs['flavor'],
+                    'cluster_profile': self.cluster_specs['profile'],
                     'cluster_name': self.cluster_specs['name'],
                     'cluster_network': self.cluster_specs['network'],
                     'cluster_template': self.cluster_specs['template']

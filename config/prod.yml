@@ -5,9 +5,9 @@ paths:
   bootstrap: '/usr/share/dcluster/bootstrap'
   work: $HOME/.dcluster
   ansible_static: '/usr/share/dcluster/ansible_static'
-  flavors:
-    - /usr/share/dcluster/flavors
-    - ~/.dcluster/flavors
+  profiles:
+    - /usr/share/dcluster/profiles
+    - ~/.dcluster/profiles
 
 prefs:
   log_level: INFO

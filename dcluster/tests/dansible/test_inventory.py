@@ -56,7 +56,7 @@ class TestCreateAnsibleInventory(DclusterTest):
 
     def blueprint_as_dict(self):
         return {
-            'flavor': 'simple',
+            'profile': 'simple',
             'name': 'mycluster',
             'nodes': {
                 '172.30.0.253': BasicPlannedNode(

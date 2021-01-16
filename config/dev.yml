@@ -5,9 +5,9 @@ paths:
   bootstrap: '$PWD/bootstrap'
   work: $PWD/.dcluster
   ansible_static: 'ansible_static'
-  flavors:
-    - config/flavors
-    - ~/.dcluster/flavors
+  profiles:
+    - config/profiles
+    - ~/.dcluster/profiles
 
 prefs:
   hostname_alias:

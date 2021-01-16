@@ -1,4 +1,4 @@
-from dcluster.config import flavor_config
+from dcluster.config import profile_config
 
 from dcluster.cluster.request import DefaultCreationRequest
 from dcluster.cluster.planner import user_plan_data, DefaultClusterPlan
@@ -12,12 +12,12 @@ def slurm_config():
     '''
     Use slurm configuration with volumes and static parameters
     '''
-    return flavor_config.cluster_config_for_flavor('slurm')
+    return profile_config.cluster_config_for_profile('slurm')
 
 
 def basic_slurm_request_stub(cluster_name, compute_count):
     '''
-    Use the basic request (no additional parameters) but ask for slurm flavor
+    Use the basic request (no additional parameters) but ask for slurm profile
     '''
     return DefaultCreationRequest(cluster_name, compute_count, 'slurm', [], [], [])
 
