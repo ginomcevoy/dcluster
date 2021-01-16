@@ -1,11 +1,10 @@
-import unittest
-
 from dcluster.node import BasicPlannedNode
 
+from dcluster.tests.test_dcluster import DclusterTest
 from dcluster.tests.stubs import basic_stubs
 
 
-class CreateComputeHostname(unittest.TestCase):
+class CreateComputeHostname(DclusterTest):
 
     def setUp(self):
         cluster_name = 'test'
@@ -35,7 +34,7 @@ class CreateComputeHostname(unittest.TestCase):
         self.assertEqual(result, 'node011')
 
 
-class CreateBasicComputeNode(unittest.TestCase):
+class CreateBasicComputeNode(DclusterTest):
 
     def setUp(self):
         cluster_name = 'mycluster'

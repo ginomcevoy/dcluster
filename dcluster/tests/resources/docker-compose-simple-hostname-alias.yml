@@ -1,0 +1,77 @@
+version: '3.7'
+services:
+
+    mycluster-head:
+        container_name: mycluster-head
+        image: centos7:ssh
+        init: true
+        entrypoint: "/dcluster/bootstrap.sh"
+        hostname: head
+        labels:
+            bull.com.dcluster.role: head
+        networks:
+            dcluster-mycluster:
+                ipv4_address: 172.30.0.253
+        extra_hosts:
+            head: 172.30.0.253
+            head-cool-alias: 172.30.0.253
+            node001: 172.30.0.1
+            node001-cool-alias: 172.30.0.1
+            node002: 172.30.0.2
+            node002-cool-alias: 172.30.0.2
+            gateway: 172.30.0.254
+        volumes:
+            - /home/giacomo/dcluster/bootstrap:/dcluster
+
+
+    mycluster-node001:
+        container_name: mycluster-node001
+        image: centos7:ssh
+        init: true
+        entrypoint: "/dcluster/bootstrap.sh"
+        hostname: node001
+        labels:
+            bull.com.dcluster.role: compute
+        networks:
+            dcluster-mycluster:
+                ipv4_address: 172.30.0.1
+        extra_hosts:
+            head: 172.30.0.253
+            head-cool-alias: 172.30.0.253
+            node001: 172.30.0.1
+            node001-cool-alias: 172.30.0.1
+            node002: 172.30.0.2
+            node002-cool-alias: 172.30.0.2
+            gateway: 172.30.0.254
+        volumes:
+            - /home/giacomo/dcluster/bootstrap:/dcluster
+
+
+    mycluster-node002:
+        container_name: mycluster-node002
+        image: centos7:ssh
+        init: true
+        entrypoint: "/dcluster/bootstrap.sh"
+        hostname: node002
+        labels:
+            bull.com.dcluster.role: compute
+        networks:
+            dcluster-mycluster:
+                ipv4_address: 172.30.0.2
+        extra_hosts:
+            head: 172.30.0.253
+            head-cool-alias: 172.30.0.253
+            node001: 172.30.0.1
+            node001-cool-alias: 172.30.0.1
+            node002: 172.30.0.2
+            node002-cool-alias: 172.30.0.2
+            gateway: 172.30.0.254
+        volumes:
+            - /home/giacomo/dcluster/bootstrap:/dcluster
+
+
+networks:
+  dcluster-mycluster:
+    external:
+        name: dcluster-mycluster
+

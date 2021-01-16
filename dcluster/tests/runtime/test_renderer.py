@@ -1,12 +1,11 @@
-import unittest
-
 from dcluster.config import main_config
 from dcluster.runtime import render
 
+from dcluster.tests.test_dcluster import DclusterTest
 from dcluster.tests import test_resources
 
 
-class TestJinjaRenderer(unittest.TestCase):
+class TestJinjaRenderer(DclusterTest):
 
     def setUp(self):
         self.resources = test_resources.ResourcesForTest()
@@ -56,6 +55,52 @@ class TestJinjaRenderer(unittest.TestCase):
 
         # then matches a saved file
         expected = self.resources.expected_docker_compose_simple
+        self.assertEqual(result, expected)
+
+    def test_basic_render_with_hostname_alias(self):
+        # given a basic cluster specification
+        cluster_specs = {
+            'nodes': {
+                '172.30.0.253': {
+                    'hostname': 'head',
+                    'hostname_alias': 'head-cool-alias',
+                    'container': 'mycluster-head',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.253',
+                    'role': 'head'
+                },
+                '172.30.0.1': {
+                    'hostname': 'node001',
+                    'hostname_alias': 'node001-cool-alias',
+                    'container': 'mycluster-node001',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.1',
+                    'role': 'compute'
+                },
+                '172.30.0.2': {
+                    'hostname': 'node002',
+                    'hostname_alias': 'node002-cool-alias',
+                    'container': 'mycluster-node002',
+                    'image': 'centos7:ssh',
+                    'ip_address': '172.30.0.2',
+                    'role': 'compute'
+                }
+            },
+            'network': {
+                'name': 'dcluster-mycluster',
+                'address': '172.30.0.0/24',
+                'gateway': 'gateway',
+                'gateway_ip': '172.30.0.254'
+            },
+            'bootstrap_dir': '/home/giacomo/dcluster/bootstrap'
+        }
+        template_filename = 'cluster-default.yml.j2'
+
+        # when
+        result = self.renderer.render_blueprint(cluster_specs, template_filename)
+
+        # then matches a saved file
+        expected = self.resources.expected_docker_compose_simple_hostname_alias
         self.assertEqual(result, expected)
 
     def test_basic_render_with_systemctl(self):

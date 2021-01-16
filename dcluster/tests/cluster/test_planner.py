@@ -2,17 +2,17 @@
 Unit tests for cluster.plan_basic
 '''
 import os
-import unittest
 
 from dcluster.node import DefaultPlannedNode
 from dcluster.cluster.planner import DefaultClusterPlan
 
+from dcluster.tests.test_dcluster import DclusterTest
 from dcluster.tests.stubs import infra_stubs
 from dcluster.tests.stubs import basic_stubs
 from dcluster.tests.stubs import extended_stubs
 
 
-class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
+class TestBuildSpecsOfDefaultClusterPlan(DclusterTest):
     '''
     Unit tests for cluster.planner.DefaultClusterPlan.build_specs()
 
@@ -52,6 +52,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'nodes': {
                 '172.30.0.253': DefaultPlannedNode(
                     hostname='head',
+                    hostname_alias='head-ice1-1',
                     container='mycluster-head',
                     image='centos:7.7.1908',
                     ip_address='172.30.0.253',
@@ -73,6 +74,10 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'template': 'cluster-default.yml.j2',
             'volumes': [],
         }
+
+        from dcluster.config import main_config
+        print(main_config.get_config())
+
         self.verify_bootstrap_dir(result)
         del result['bootstrap_dir']
         self.assertEqual(result, expected_without_bootstrap_dir)
@@ -97,6 +102,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'nodes': {
                 '172.30.1.125': DefaultPlannedNode(
                     hostname='head',
+                    hostname_alias='head-ice1-1',
                     container='mycluster-head',
                     image='centos:7.7.1908',
                     ip_address='172.30.1.125',
@@ -142,6 +148,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'nodes': {
                 '172.30.0.253': DefaultPlannedNode(
                     hostname='head',
+                    hostname_alias='head-ice1-1',
                     container='mycluster-head',
                     image='centos:7.7.1908',
                     ip_address='172.30.0.253',
@@ -151,6 +158,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                     systemctl=False),
                 '172.30.0.1': DefaultPlannedNode(
                     hostname='node001',
+                    hostname_alias='node001-ice1-1',
                     container='mycluster-node001',
                     image='centos:7.7.1908',
                     ip_address='172.30.0.1',
@@ -196,6 +204,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'nodes': {
                 '172.30.0.253': DefaultPlannedNode(
                     hostname='head',
+                    hostname_alias='head-ice1-1',
                     container='mycluster-head',
                     image='centos:7.7.1908',
                     ip_address='172.30.0.253',
@@ -205,6 +214,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                     systemctl=False),
                 '172.30.0.1': DefaultPlannedNode(
                     hostname='node001',
+                    hostname_alias='node001-ice1-1',
                     container='mycluster-node001',
                     image='centos:7.7.1908',
                     ip_address='172.30.0.1',
@@ -214,6 +224,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                     systemctl=False),
                 '172.30.0.2': DefaultPlannedNode(
                     hostname='node002',
+                    hostname_alias='node002-ice1-1',
                     container='mycluster-node002',
                     image='centos:7.7.1908',
                     ip_address='172.30.0.2',
@@ -223,6 +234,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                     systemctl=False),
                 '172.30.0.3': DefaultPlannedNode(
                     hostname='node003',
+                    hostname_alias='node003-ice1-1',
                     container='mycluster-node003',
                     image='centos:7.7.1908',
                     ip_address='172.30.0.3',
@@ -268,6 +280,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
             'nodes': {
                 '172.30.0.253': DefaultPlannedNode(
                     hostname='head',
+                    hostname_alias='head-ice1-1',
                     container='mycluster-head',
                     image='rhel76-slurm:v2',
                     ip_address='172.30.0.253',
@@ -296,6 +309,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                     systemctl=False),
                 '172.30.0.1': DefaultPlannedNode(
                     hostname='node001',
+                    hostname_alias='node001-ice1-1',
                     container='mycluster-node001',
                     image='rhel76-slurm:v2',
                     ip_address='172.30.0.1',
@@ -318,6 +332,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                     systemctl=False),
                 '172.30.0.2': DefaultPlannedNode(
                     hostname='node002',
+                    hostname_alias='node002-ice1-1',
                     container='mycluster-node002',
                     image='rhel76-slurm:v2',
                     ip_address='172.30.0.2',
@@ -340,6 +355,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
                     systemctl=False),
                 '172.30.0.3': DefaultPlannedNode(
                     hostname='node003',
+                    hostname_alias='node003-ice1-1',
                     container='mycluster-node003',
                     image='rhel76-slurm:v2',
                     ip_address='172.30.0.3',
@@ -385,7 +401,7 @@ class TestBuildSpecsOfDefaultClusterPlan(unittest.TestCase):
         self.assertEqual(result, expected_without_bootstrap_dir)
 
 
-class TestCreateDefaultClusterPlan(unittest.TestCase):
+class TestCreateDefaultClusterPlan(DclusterTest):
     '''
     Unit tests for cluster.planner.DefaultClusterPlan.create()
     '''

@@ -1,13 +1,12 @@
-import unittest
 import yaml
 
+from dcluster.tests.test_dcluster import DclusterTest
 from dcluster.tests import test_resources
 
 from dcluster.dansible import inventory
 from dcluster.node import BasicPlannedNode
 
-
-class TestCreateAnsibleInventory(unittest.TestCase):
+class TestCreateAnsibleInventory(DclusterTest):
 
     def setUp(self):
         resources = test_resources.ResourcesForTest()

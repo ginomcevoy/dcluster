@@ -1,5 +1,6 @@
 from . import BasicPlannedNode, DefaultPlannedNode
 
+from dcluster.config import main_config
 from dcluster.infra.docker_facade import DockerNaming
 from dcluster.util import dyaml
 
@@ -69,6 +70,7 @@ class DefaultNodePlanner(BasicNodePlanner):
     a chunk of 'static' text that is added to the specification without parsing, but with the
     proper indentation for a later renderization.
     '''
+
     def __init__(self, cluster_network):
         super(DefaultNodePlanner, self).__init__(cluster_network)
         self.basic = super(DefaultNodePlanner, self)
@@ -93,7 +95,17 @@ class DefaultNodePlanner(BasicNodePlanner):
         '''
         Promotes an instance of BasicNodePlanner to DefaultNodePlanner, by adding more details.
         '''
+
+        # reuse basic plan and add to it
         role = basic_planned_node.role
+        extended_dict = basic_planned_node._asdict()
+
+        # use hostname alias?
+        extended_dict['hostname_alias'] = ''
+        hostname_alias_config = main_config.prefs('hostname_alias')
+        if hostname_alias_config['enabled']:
+            alias = '{}-{}'.format(basic_planned_node.hostname, hostname_alias_config['suffix'])
+            extended_dict['hostname_alias'] = alias
 
         # join the two type of volumes
         volumes = []
@@ -101,16 +113,13 @@ class DefaultNodePlanner(BasicNodePlanner):
             volumes.extend(plan_data[role]['shared_volumes'])
         if 'docker_volumes' in plan_data[role]:
             volumes.extend(plan_data[role]['docker_volumes'])
+        extended_dict['volumes'] = volumes
 
         # the static text needs to be indented to show up properly
         static_text = ''
         if 'static' in plan_data[role]:
             static_without_offset = plan_data[role]['static']
             static_text = dyaml.dump_with_offset_indent(static_without_offset, 4)
-
-        # reuse basic plan and add to it
-        extended_dict = basic_planned_node._asdict()
-        extended_dict['volumes'] = volumes
         extended_dict['static_text'] = static_text
 
         # will container run systemctl?

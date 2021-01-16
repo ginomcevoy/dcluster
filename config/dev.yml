@@ -10,4 +10,7 @@ paths:
     - ~/.dcluster/flavors
 
 prefs:
+  hostname_alias:
+    enabled: True
+    suffix: ice1-1
   log_level: DEBUG

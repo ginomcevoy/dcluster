@@ -1,7 +1,7 @@
 import random
 import string
-import unittest
 
+from dcluster.tests.test_dcluster import DclusterTest
 
 from dcluster.infra import networking
 
@@ -9,7 +9,7 @@ from dcluster.infra import networking
 DEFAULT_DOCKER_NETWORK = 'bridge'
 
 
-class TestClusterNetwork(unittest.TestCase):
+class TestClusterNetwork(DclusterTest):
 
     def test_gateway_for_24(self):
         cluster_network = self.create_network(u'172.30.0.0/16', 24, 'test')
@@ -67,7 +67,7 @@ class TestClusterNetwork(unittest.TestCase):
         return networking.ClusterNetwork.from_first_subnet(supernet, cidr_bits, name)
 
 
-class TestValidateNameIsAvailable(unittest.TestCase):
+class TestValidateNameIsAvailable(DclusterTest):
 
     def setUp(self):
         self.creator = networking.DockerClusterNetworkFactory()

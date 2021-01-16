@@ -25,6 +25,9 @@ services:
         extra_hosts:
 {% for node_ip, extra_host in nodes.items() | sort(attribute='1.hostname') %}
             {{extra_host.hostname}}: {{extra_host.ip_address}}
+{% if extra_host.hostname_alias %}
+            {{extra_host.hostname_alias}}: {{extra_host.ip_address}}
+            {% endif -%}
 {% endfor %}
             gateway: {{network.gateway_ip}}
         volumes:

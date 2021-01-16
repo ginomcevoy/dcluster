@@ -1,11 +1,12 @@
 import os
-import unittest
+
+from dcluster.tests.test_dcluster import DclusterTest
 
 from dcluster.config import main_config
 from dcluster.config import flavor_config
 
 
-class ConfigTest(unittest.TestCase):
+class ConfigTest(DclusterTest):
     '''
     Unit tests for dcluster.config
     '''

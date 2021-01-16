@@ -11,3 +11,6 @@ paths:
 
 prefs:
   log_level: INFO
+  hostname_alias:
+    enabled: False
+    suffix:

@@ -1,11 +1,10 @@
 import collections
-import unittest
 
-
+from dcluster.tests.test_dcluster import DclusterTest
 from dcluster.cluster.format import TextFormatterBasic
 
 
-class TextFormatterBasicTest(unittest.TestCase):
+class TextFormatterBasicTest(DclusterTest):
     '''
     Unit tests for cluster.format.TextFormatterBasic
     '''

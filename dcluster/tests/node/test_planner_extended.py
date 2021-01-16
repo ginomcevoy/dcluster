@@ -1,9 +1,8 @@
-import unittest
-
+from dcluster.tests.test_dcluster import DclusterTest
 from dcluster.tests.stubs import extended_stubs
 
 
-class CreateExtendedHeadPlan(unittest.TestCase):
+class CreateExtendedHeadPlan(DclusterTest):
     '''
     Unit tests for node.planner.DefaultNodePlanner with extended stubs
     '''
@@ -27,6 +26,7 @@ class CreateExtendedHeadPlan(unittest.TestCase):
         # then
         expected = {
             'hostname': 'head',
+            'hostname_alias': 'head-ice1-1',
             'container': 'mycluster-head',
             'image': 'rhel76-slurm:v2',
             'ip_address': '172.30.0.253',

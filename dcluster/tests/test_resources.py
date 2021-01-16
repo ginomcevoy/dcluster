@@ -26,6 +26,10 @@ class ResourcesForTest(object):
         return self.read_text_file('docker-compose-simple.yml')
 
     @property
+    def expected_docker_compose_simple_hostname_alias(self):
+        return self.read_text_file('docker-compose-simple-hostname-alias.yml')
+
+    @property
     def expected_docker_compose_simple_priv(self):
         return self.read_text_file('docker-compose-simple-priv.yml')
 
