@@ -8,8 +8,7 @@
     - name: (yum) Find default RHEL repositories
       find:
         paths: /etc/yum.repos.d
-        patterns:
-          - 'ubi.repo'
+        patterns: "{{ yum.delete.patterns }}"
       register: repofiles_to_delete
 
     - name: (yum) Remove default RHEL repositories
@@ -45,6 +44,9 @@
     ssh_known_hosts_file: "/etc/ssh/ssh_known_hosts"
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
     yum:
+      delete:
+        patterns:
+          - 'ubi.repo'
       repositories:
         BaseOS: "http://{{ cluster_network.gateway_ip }}/repositories/redhat/8/x86_64/os/BaseOS"
         AppStream: "http://{{ cluster_network.gateway_ip }}/repositories/redhat/8/x86_64/os/AppStream"
