@@ -1,4 +1,9 @@
 %changelog
+* Mon Jan 18 2020 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.1.2-1
+- Renamed flavor to profile
+- Removed dcluster-ansible command, now use dcluster ansible
+- Improved provided playbooks
+
 * Wed Jan 06 2021 Giacomo Mc Evoy <giacomo.valenzano@atos.net> 0.1.1-1
 - #14: Use /sbin/init and SYS_ADMIN cap to enable systemctl on containers when systemctl=True
 - #15: Add bootstrap script to install SSH server for Fedora/RHEL/CentOS
