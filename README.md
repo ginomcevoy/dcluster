@@ -129,9 +129,9 @@ Note: Read the limitations and requirements before trying it out!
 
   ```dcluster create my_cluster 2 --playbooks dcluster-hello dcluster-ssh```
 
-* Run a custom playbook on an existing cluster:
+* Run a custom playbook on an existing cluster (dir should contain "playbook.yml" file):
 
-  ```dcluster-ansible playbook my_cluster dir_with_custom_playbook -e "myparam=myvalue"```
+  ```dcluster ansible -c my_cluster dir_with_custom_playbook -e "myparam=myvalue"```
 
 * List current clusters:
 
